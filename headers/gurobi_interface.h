@@ -6,9 +6,9 @@
 #include <iostream>
 #include <math.h>
 #include <limits>
-#include "config.h"
+#include "configuration.h"
 using namespace std;
-
+extern parameter_values sherlock_parameters;
 
 int prove_limit_in_NN(
   vector< vector< datatype > > region_constraints,

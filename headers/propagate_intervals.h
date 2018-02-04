@@ -1,7 +1,7 @@
 #ifndef propagate_intervals_h
 #define propagate_intervals_h
 
-#include "config.h"
+#include "configuration.h"
 
 
 #include <iostream>
@@ -19,7 +19,7 @@
 
 
 using namespace std;
-
+extern parameter_values sherlock_parameters;
 
 class network_handler
 {
@@ -106,4 +106,5 @@ void find_limits_using_reluplex(
   vector< vector< datatype > > input_interval,
   vector< datatype >& output_range
 );
+
 #endif

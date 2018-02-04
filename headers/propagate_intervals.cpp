@@ -120,7 +120,7 @@ network_handler :: network_handler(char* name)
   file >> data;
   if(data != (-100))
   {
-    if(verbosity){cout << "Network input file probably has an error ! " << endl;}
+    if(sherlock_parameters.verbosity){cout << "Network input file probably has an error ! " << endl;}
   }
 
   file.close();
@@ -344,7 +344,7 @@ vector< datatype > network_handler :: return_gradient(
                 // saving the final constraint that comes from the output
                 append_matrix_to_matrix(positive_constraint_matrix, constraint_matrix);
 
-                if(!skip_LP_jump)
+                if(!sherlock_parameters.skip_LP_jump)
                 {
                   // call the linear programming solver to find the range of the output
                   run_optimization(positive_constraint_matrix, objective, last_bias,
@@ -488,22 +488,22 @@ void network_handler :: do_gradient_search(
  vector< vector< unsigned int > > bogus_input;
  current_point = sample_point;
  old_point = current_point;
- if(verbosity)
+ if(sherlock_parameters.verbosity)
  {
    cout << "Doing gradient search ... " << endl;
    cout << "Starting at " << compute_network_output(current_point, weights, biases, bogus_input ) << endl;
  }
 
- datatype current_rate = gradient_rate * grad_scaling_factor;
+ datatype current_rate = sherlock_parameters.gradient_rate * sherlock_parameters.grad_scaling_factor;
  unsigned int switch_count = 0;
  vector< datatype > previous_point;
- unsigned int switch_flag = switch_to_modified_gradient_search;
+ unsigned int switch_flag = sherlock_parameters.switch_to_modified_gradient_search;
  datatype change_amount = 100;
 
- unsigned int gradient_search_time_out = grad_switch_count;
+ unsigned int gradient_search_time_out = sherlock_parameters.grad_switch_count;
  unsigned int grad_steps = 0 ;
 
- while(  change_amount > grad_termination_limit )
+ while(  change_amount > sherlock_parameters.grad_termination_limit )
  {
 
    gradient = return_gradient(current_point, direction , region_constraints,
@@ -513,7 +513,7 @@ void network_handler :: do_gradient_search(
   normalize_vector(gradient);
  //  cout << "Corrected gradient = " << endl;
 
- if(!skip_LP_jump)
+ if(!sherlock_parameters.skip_LP_jump)
  {
    if(direction == 1)
    {
@@ -531,7 +531,7 @@ void network_handler :: do_gradient_search(
    }
  }
 
-  if(grad_search_point_verbosity)
+  if(sherlock_parameters.grad_search_point_verbosity)
   {
     cout << endl << "Current point = " ;
     i = 0;
@@ -583,7 +583,7 @@ void network_handler :: do_gradient_search(
   if(switch_flag)
   {
     gradient = scale_vector(gradient, current_rate);
-    if(grad_search_point_verbosity)
+    if(sherlock_parameters.grad_search_point_verbosity)
     {
       cout << "Gradient = ";
       i = 0;
@@ -597,15 +597,15 @@ void network_handler :: do_gradient_search(
     old_point = current_point;
     if(!propagate_point(current_point, gradient, region_constraints))
     {
-      current_rate = gradient_rate;
+      current_rate = sherlock_parameters.gradient_rate;
       switch_flag = 0;
       current_point = old_point;
       change_amount = 1e20;
     }
     switch_count++;
-    if(switch_count > grad_switch_count)
+    if(switch_count > sherlock_parameters.grad_switch_count)
     {
-      current_rate = gradient_rate;
+      current_rate = sherlock_parameters.gradient_rate;
       switch_flag = 0;
       change_amount = 1e20;
     }
@@ -614,7 +614,7 @@ void network_handler :: do_gradient_search(
   {
     old_point = current_point;
     gradient = scale_vector(gradient, current_rate);
-    if(grad_search_point_verbosity)
+    if(sherlock_parameters.grad_search_point_verbosity)
     {
       cout << "Gradient = ";
       i = 0;
@@ -641,7 +641,7 @@ void network_handler :: do_gradient_search(
   grad_steps++;
 
  }
- if(verbosity)
+ if(sherlock_parameters.verbosity)
  {
    cout << "Gradient search ends ... " << endl;
    cout << "Ending at " << compute_network_output(current_point, weights, biases, bogus_input ) << endl;
@@ -654,14 +654,14 @@ void network_handler :: do_gradient_search(
  if(direction == 1)
  {
    extrema_point = max_point ;
-   return_val[0] = compute_network_output(current_point, weights, biases, bogus_input ) + num_shift;
-   return_val[1] = compute_network_output(current_point, weights, biases, bogus_input ) + num_shift;
+   return_val[0] = compute_network_output(current_point, weights, biases, bogus_input ) + sherlock_parameters.num_shift;
+   return_val[1] = compute_network_output(current_point, weights, biases, bogus_input ) + sherlock_parameters.num_shift;
  }
  else if(direction == (-1))
  {
    extrema_point = min_point;
-   return_val[0] = compute_network_output(current_point, weights, biases, bogus_input ) - num_shift;
-   return_val[1] = compute_network_output(current_point, weights, biases, bogus_input ) - num_shift;
+   return_val[0] = compute_network_output(current_point, weights, biases, bogus_input ) - sherlock_parameters.num_shift;
+   return_val[1] = compute_network_output(current_point, weights, biases, bogus_input ) - sherlock_parameters.num_shift;
  }
  else
  {
@@ -702,7 +702,7 @@ void network_handler :: return_interval_output(
   found_limit = 0;
   current_point = sample_point;
 
-           if(verbosity)
+           if(sherlock_parameters.verbosity)
            {
    cout << "Beginning point for finding the minima : " << endl;
    cout << "[ " ;
@@ -722,26 +722,26 @@ void network_handler :: return_interval_output(
   while(!found_limit)
   {
 
-    if(time_verbosity)
+    if(sherlock_parameters.time_verbosity)
     {
       begin = clock();
     }
 
     do_gradient_search(region_constraints, current_point, interval, extrema_point, -1 );
 
-    if(time_verbosity)
+    if(sherlock_parameters.time_verbosity)
     {
       end = clock();
       printf("time cost for gradient search: %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
     }
 
     current_min = interval[0];
-    if(current_min < tool_zero)
+    if(current_min < sherlock_parameters.tool_zero)
     {
       current_min = (datatype)0;
     }
 
-    if(time_verbosity)
+    if(sherlock_parameters.time_verbosity)
     {
       begin = clock();
     }
@@ -757,7 +757,7 @@ void network_handler :: return_interval_output(
      current_point = counter_example;
    }
 
-    if(time_verbosity)
+    if(sherlock_parameters.time_verbosity)
     {
       end = clock();
       printf("time cost for check_limits : %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
@@ -767,7 +767,7 @@ void network_handler :: return_interval_output(
 
   min = current_min;
 
-          if(verbosity)
+          if(sherlock_parameters.verbosity)
           {
    cout << "Min found  = "  << min << endl;
   }
@@ -775,7 +775,7 @@ void network_handler :: return_interval_output(
   found_limit = 0;
   current_point = sample_point;
 
-        if(verbosity)
+        if(sherlock_parameters.verbosity)
         {
    cout << "Beginning point for finding the maxima: " << endl;
    cout << "[ " ;
@@ -791,14 +791,14 @@ void network_handler :: return_interval_output(
   // Find the maxima
   while(!found_limit)
   {
-        if(time_verbosity)
+        if(sherlock_parameters.time_verbosity)
         {
       begin = clock();
     }
 
    do_gradient_search(region_constraints, current_point, interval, extrema_point, 1 );
 
-        if(time_verbosity)
+        if(sherlock_parameters.time_verbosity)
         {
      end = clock();
      printf("time cost for gradient search: %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
@@ -806,11 +806,11 @@ void network_handler :: return_interval_output(
 
    current_max = interval[1];
 
-        if(verbosity)
+        if(sherlock_parameters.verbosity)
         {
      cout << "Checking limits start ... " << endl ;
    }
-        if(time_verbosity)
+        if(sherlock_parameters.time_verbosity)
         {
      begin = clock();
    }
@@ -826,12 +826,12 @@ void network_handler :: return_interval_output(
      current_point = counter_example;
    }
 
-        if(time_verbosity)
+        if(sherlock_parameters.time_verbosity)
         {
      end = clock();
      printf("time cost for check_limits : %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
    }
-        if(verbosity)
+        if(sherlock_parameters.verbosity)
         {
      cout << "Checking limits ends ... " << endl ;
    }
@@ -839,7 +839,7 @@ void network_handler :: return_interval_output(
   }
 
   max = current_max;
-  if(verbosity)
+  if(sherlock_parameters.verbosity)
   {
    cout << "Max found  "<< max << endl;
   }
@@ -874,7 +874,7 @@ void merge_networks(datatype network_offset,
 {
   if(!output_file)
   {
-    if(verbosity)
+    if(sherlock_parameters.verbosity)
     {
       cout << "No output file name received while merging, naming it as : output_network " << endl;
     }
@@ -1077,7 +1077,7 @@ int split_set(set_info current_set, set_info stable_box,
     if(find_if_constraint_matters(region_constraints, buffer_for_constr, stable_region_constraints, degree_of_matter))
     {
       cout << "Degree of matter = " << degree_of_matter << endl;
-      if(degree_of_matter > split_threshold)
+      if(degree_of_matter > sherlock_parameters.split_threshold)
       {
         split_happens = 1;
         buffer_set.region_constr = region_constraints;
@@ -1169,7 +1169,7 @@ int split_set(set_info current_set, set_info stable_box,
     if(find_if_constraint_matters(region_constraints, buffer_for_constr, stable_region_constraints, degree_of_matter))
     {
       cout << "Degree of matter = " << degree_of_matter << " for i = " << i << endl;
-      if(degree_of_matter > split_threshold)
+      if(degree_of_matter > sherlock_parameters.split_threshold)
       {
         split_happens = 1;
         buffer_set.region_constr = region_constraints;

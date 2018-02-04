@@ -1,5 +1,5 @@
-
 #include "network_computation.h"
+
 
 int __check_if_the_weights_and_biases_make_sense__(
   vector< vector< vector< datatype > > > weights,
@@ -792,7 +792,7 @@ int check_limits_using_reluplex(
 
   // if(direction == 1)
   // {
-  //   data = limit_found + num_tolerance;
+  //   data = limit_found + sherlock_parameters.num_tolerance;
   //   output_file << data << "\n";
   //   data = upper_lim;
   //   output_file << data << "\n";
@@ -801,7 +801,7 @@ int check_limits_using_reluplex(
   // {
   //   data = -upper_lim;
   //   output_file << data << "\n";
-  //   data = limit_found - num_tolerance;
+  //   data = limit_found - sherlock_parameters.num_tolerance;
   //   output_file << data << "\n";
   // }
 
@@ -1019,7 +1019,7 @@ int similar(
   vector< datatype > vector_2
 )
 {
-  datatype epsilon = num_similar;
+  datatype epsilon = sherlock_parameters.num_similar;
   unsigned int i, j , size;
   size = vector_1.size();
   j = 1;
@@ -1055,7 +1055,7 @@ int detect_degeneracy(
 )
 {
   unsigned int i , j , k, size;
-  datatype epsilon = epsilon_degeneracy;
+  datatype epsilon = sherlock_parameters.epsilon_degeneracy;
   size = input_interval.size();
   i= 0 ;
   while(i < size)
@@ -1097,7 +1097,7 @@ int check_counter_example(
       j++;
     }
     buff += positive_constraint_matrix[i][j];
-   if(buff < (0-num_tolerance))
+   if(buff < (0-sherlock_parameters.num_tolerance))
     {
       // cout << "Wrong counter example postive constraints .." << endl;
       return 0;
@@ -1234,16 +1234,16 @@ int find_random_sample(
     while(j < (input_size) )
     {
       if(
-        (  (positive_constraint[i][j] < (1 + num_similar)) &&
-            (positive_constraint[i][j] > (1 - num_similar))
+        (  (positive_constraint[i][j] < (1 + sherlock_parameters.num_similar)) &&
+            (positive_constraint[i][j] > (1 - sherlock_parameters.num_similar))
         ) ||
-        (  (positive_constraint[i][j] < (-1 + num_similar)) &&
-            (positive_constraint[i][j] > (-1 - num_similar))
+        (  (positive_constraint[i][j] < (-1 + sherlock_parameters.num_similar)) &&
+            (positive_constraint[i][j] > (-1 - sherlock_parameters.num_similar))
         )
         )
           {
             size_1 += 1;
-             dimension = j;
+            dimension = j;
             if(positive_constraint[i][j] > 0)
             {
               direction = 1;
@@ -1252,10 +1252,10 @@ int find_random_sample(
             {
               direction = -1;
             }
-        }
+          }
       else if(
-          (positive_constraint[i][j] < (0 + num_similar)) &&
-          (positive_constraint[i][j] > (0 - num_similar))
+          (positive_constraint[i][j] < (0 + sherlock_parameters.num_similar)) &&
+          (positive_constraint[i][j] > (0 - sherlock_parameters.num_similar))
           )
           {
             size_2 += 1;
@@ -1438,12 +1438,12 @@ void create_sub_boxes(
   j = 0;
   while(j < no_of_inputs)
   {
-    unit_size[j] = (input_interval[j][1] - input_interval[j][0] )/ no_of_sub_divisions ;
+    unit_size[j] = (input_interval[j][1] - input_interval[j][0] )/ sherlock_parameters.no_of_sub_divisions ;
     j++;
   }
 
   // Making the sub_boxes
-  no_of_sub_boxes = (unsigned int)(pow(no_of_sub_divisions,no_of_inputs));
+  no_of_sub_boxes = (unsigned int)(pow(sherlock_parameters.no_of_sub_divisions,no_of_inputs));
 
   i = 0;
   while(i < no_of_sub_boxes)
@@ -1462,7 +1462,7 @@ void create_sub_boxes(
       j = 0;
       while(j < no_of_inputs-1)
       {
-        if(grid_point[j] >= no_of_sub_divisions)
+        if(grid_point[j] >= sherlock_parameters.no_of_sub_divisions)
         {
           grid_point[j] = 0;
           grid_point[j+1]++;
@@ -1481,7 +1481,7 @@ vector< datatype > scale_vector(
   datatype factor
 )
 {
-  if(fabs(factor) < num_tolerance )
+  if(fabs(factor) < sherlock_parameters.num_tolerance )
   {
     cout << "Scaling by a factor of almost zero .. " << endl;
     cout << "exiting.. " << endl;
@@ -1604,7 +1604,7 @@ int check_inflection_point(
   while(i < input_size)
   {
     test_point = point;
-    test_point[i] += delta_inflection;
+    test_point[i] += sherlock_parameters.delta_inflection;
 
     new_eval = compute_network_output(test_point, weights, biases, bogus_input);
 
@@ -1623,7 +1623,7 @@ int check_inflection_point(
     }
 
     test_point = point;
-    test_point[i] -= delta_inflection;
+    test_point[i] -= sherlock_parameters.delta_inflection;
 
     new_eval = compute_network_output(test_point, weights, biases, bogus_input);
 
@@ -1669,24 +1669,26 @@ int check_limits(
 )
 {
   vector< vector< unsigned int > > active_weights;
-  if(grad_search_point_verbosity)
+  if(sherlock_parameters.grad_search_point_verbosity)
   {
     cout << "Limit being send to  the solvers = " << limit_found << endl;
   }
-  if(prove_limit_in_NN(region, weights, biases, limit_found,
-                        extrema_point, direction))
+  if( (sherlock_parameters.do_LP_certificate) && (prove_limit_in_NN(region, weights, biases, limit_found,
+                        extrema_point, direction)))
   {
-    if(grad_search_point_verbosity)
+    if(sherlock_parameters.grad_search_point_verbosity)
     {
       cout << "prove limits works " << endl;
       cout << "limit found = " << limit_found << endl;
+      cout << "extrema point = " << extrema_point[0] << " " << extrema_point[1] << endl;
+      cout << "direction = " << direction << endl;
     }
     return 1;
   }
   else if(find_counter_example_in_NN(region, weights, biases,
             counter_example, limit_found, direction))
   {
-    if(grad_search_point_verbosity)
+    if(sherlock_parameters.grad_search_point_verbosity)
     {
       cout << "For direction = " << direction << endl;
       cout << "New limit found = " << limit_found << endl;
@@ -1698,7 +1700,7 @@ int check_limits(
   }
   else
   {
-    if(grad_search_point_verbosity)
+    if(sherlock_parameters.grad_search_point_verbosity)
     {
       cout << "Gets MILP certificate" << endl;
     }
@@ -2011,7 +2013,7 @@ void expand_last_few_input(
 
   if( (no_of_untouched_inputs + sum) != ( no_of_right_neurons))
   {
-    if(verbosity)
+    if(sherlock_parameters.verbosity)
     {
       cout << "Mistake in the count, for function expand_last_few_input()" << endl;
     }
@@ -3019,7 +3021,7 @@ void scale_vector(
 //     exit(0);
 //   }
 //
-//   datatype internal_bias = int_bias_for_RK;
+//   datatype internal_bias = sherlock_parameters.int_bias_for_RK;
 //
 //   vector< vector< vector < vector < datatype > > > > all_weights;
 //   vector< vector< vector< datatype > > > all_biases;

@@ -9,9 +9,11 @@
 #include <math.h>
 #include <stdint.h>
 #include "gurobi_interface.h"
-using namespace std;
+#include "configuration.h"
 
-#include "config.h"
+using namespace std;
+extern parameter_values sherlock_parameters;
+
 
 int __check_if_the_weights_and_biases_make_sense__(
   vector< vector< vector< datatype > > > weights,

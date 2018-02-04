@@ -10,7 +10,7 @@ vector< GRBVar > input_neurons;
 GRBVar last_neuron;
 
 // static double M = numeric_limits<double> :: max() ;
-static double M = MILP_M;
+static double M = sherlock_parameters.MILP_M;
 int prove_limit_in_NN(
   vector< vector< datatype > > region_constraints,
   vector< vector< vector< datatype > > > weights,
@@ -36,6 +36,7 @@ int prove_limit_in_NN(
 
 */
 {
+
       vector< unsigned int > network_configuration_buffer;
       vector< unsigned int > total_network_configuration;
       deduce_network_configuration(weights, biases, network_configuration_buffer);
@@ -83,7 +84,7 @@ int prove_limit_in_NN(
       vector< int > direction_vector(no_of_inputs);
       vector< vector< datatype > > M_values;
 
-      if(do_dynamic_M_computation)
+      if(sherlock_parameters.do_dynamic_M_computation)
       {
           i = 0;
           while(i < no_of_inputs)
@@ -467,9 +468,9 @@ int prove_limit_in_NN(
           data = 1;
           expr_buffer_1.addTerms(& data, & epsilon_variables[i][j], 1);
 
-          if(do_dynamic_M_computation)
+          if(sherlock_parameters.do_dynamic_M_computation)
           {
-            data =  scale_factor_for_M * M_values[i-1][j];
+            data =  sherlock_parameters.scale_factor_for_M * M_values[i-1][j];
           }
           else
           {
@@ -480,18 +481,18 @@ int prove_limit_in_NN(
 
           model_ptr->addConstr(expr_buffer_2, GRB_GREATER_EQUAL, 0.0, constraint_names[i][j][2]);
 
-          if(do_dynamic_M_computation)
+          if(sherlock_parameters.do_dynamic_M_computation)
           {
-            data = scale_factor_for_M * M_values[i-1][j];
+            data = sherlock_parameters.scale_factor_for_M * M_values[i-1][j];
           }
           else
           {
             data = M;
           }
           expr_buffer_3.addTerms(& data, & const_var, 1);
-          if(do_dynamic_M_computation)
+          if(sherlock_parameters.do_dynamic_M_computation)
           {
-            data = -scale_factor_for_M * M_values[i-1][j];
+            data = -sherlock_parameters.scale_factor_for_M * M_values[i-1][j];
           }
           else
           {
@@ -517,7 +518,7 @@ int prove_limit_in_NN(
         expr_buffer_0 = expr_zero;
         data = 1;
         expr_buffer_0.addTerms(& data, & neuron_variables[no_of_hidden_layers+1][0], 1);
-        data = -(limit_found + MILP_tolerance + LP_offset);
+        data = -(limit_found + sherlock_parameters.MILP_tolerance + sherlock_parameters.LP_offset);
         expr_buffer_0.addTerms(& data, & const_var, 1);
         model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0, "output_constraint");
       }
@@ -526,7 +527,7 @@ int prove_limit_in_NN(
         expr_buffer_0 = expr_zero;
         data = -1;
         expr_buffer_0.addTerms(& data, & neuron_variables[no_of_hidden_layers+1][0], 1);
-        data = (limit_found - MILP_tolerance - LP_offset);
+        data = (limit_found - sherlock_parameters.MILP_tolerance - sherlock_parameters.LP_offset);
         expr_buffer_0.addTerms(& data, & const_var, 1);
         model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0, "output_constraint");
       }
@@ -570,7 +571,7 @@ int prove_limit_in_NN(
       }
       i++;
     }
-    model_ptr->addConstr(expr_buffer_0, GRB_LESS_EQUAL, MILP_e_tolerance,"epsilon_sum_con" );
+    model_ptr->addConstr(expr_buffer_0, GRB_LESS_EQUAL, sherlock_parameters.MILP_e_tolerance,"epsilon_sum_con" );
 
     // Putting the delta bounds
     i = 0;
@@ -622,7 +623,7 @@ int prove_limit_in_NN(
       data = M;
       expr_buffer_0.addTerms(& data, & extrema_delta_variables[count], 1);
 
-      data = (-1 * (extrema_point[i] + LP_tolerance_limit));
+      data = (-1 * (extrema_point[i] + sherlock_parameters.LP_tolerance_limit));
       expr_buffer_0.addTerms(& data, & const_var, 1);
       model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0 ,"extrema_constr" );
       count++;
@@ -635,7 +636,7 @@ int prove_limit_in_NN(
       data = M;
       expr_buffer_0.addTerms(& data, & extrema_delta_variables[count], 1);
 
-      data = (extrema_point[i] - LP_tolerance_limit);
+      data = (extrema_point[i] - sherlock_parameters.LP_tolerance_limit);
       expr_buffer_0.addTerms(& data, & const_var, 1);
       model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0 ,"extrema_constr" );
       count++;
@@ -742,8 +743,8 @@ int prove_limit_in_NN(
     }
     else
     {
-      cout << "Unknown error in gurobi implementation ... " << endl;
-      cout << "Status code = " << model_ptr->get(GRB_IntAttr_Status)  << endl;
+      // cout << "Unknown error in gurobi implementation ... " << endl;
+      // cout << "Status code = " << model_ptr->get(GRB_IntAttr_Status)  << endl;
       return 0;
     }
 
@@ -783,7 +784,7 @@ int find_counter_example_in_NN(
 */
 {
 
-    if(!do_incremental_MILP)
+    if(!sherlock_parameters.do_incremental_MILP)
     {
 
       vector< unsigned int > network_configuration_buffer;
@@ -833,7 +834,7 @@ int find_counter_example_in_NN(
       vector< int > direction_vector(no_of_inputs);
       vector< vector< datatype > > M_values;
 
-      if(do_dynamic_M_computation)
+      if(sherlock_parameters.do_dynamic_M_computation)
       {
           i = 0;
           while(i < no_of_inputs)
@@ -1225,9 +1226,9 @@ int find_counter_example_in_NN(
           data = 1;
           expr_buffer_1.addTerms(& data, & epsilon_variables[i][j], 1);
 
-          if(do_dynamic_M_computation)
+          if(sherlock_parameters.do_dynamic_M_computation)
           {
-            data =  scale_factor_for_M * M_values[i-1][j];
+            data =  sherlock_parameters.scale_factor_for_M * M_values[i-1][j];
           }
           else
           {
@@ -1238,18 +1239,18 @@ int find_counter_example_in_NN(
 
           model_ptr->addConstr(expr_buffer_2, GRB_GREATER_EQUAL, 0.0, constraint_names[i][j][2]);
 
-          if(do_dynamic_M_computation)
+          if(sherlock_parameters.do_dynamic_M_computation)
           {
-            data = scale_factor_for_M * M_values[i-1][j];
+            data = sherlock_parameters.scale_factor_for_M * M_values[i-1][j];
           }
           else
           {
             data = M;
           }
           expr_buffer_3.addTerms(& data, & const_var, 1);
-          if(do_dynamic_M_computation)
+          if(sherlock_parameters.do_dynamic_M_computation)
           {
-            data = -scale_factor_for_M * M_values[i-1][j];
+            data = -sherlock_parameters.scale_factor_for_M * M_values[i-1][j];
           }
           else
           {
@@ -1303,7 +1304,7 @@ int find_counter_example_in_NN(
           i++;
       }
 
-      model_ptr->addConstr(expr_buffer_0, GRB_LESS_EQUAL, MILP_e_tolerance,"epsilon_sum_con" );
+      model_ptr->addConstr(expr_buffer_0, GRB_LESS_EQUAL, sherlock_parameters.MILP_e_tolerance,"epsilon_sum_con" );
 
       // The delta output bound
       // expr_buffer_0 = expr_zero;
@@ -1318,7 +1319,7 @@ int find_counter_example_in_NN(
         expr_buffer_0 = expr_zero;
         data = 1;
         expr_buffer_0.addTerms(& data, & neuron_variables[no_of_hidden_layers+1][0], 1);
-        data = -(limit_found + MILP_tolerance);
+        data = -(limit_found + sherlock_parameters.MILP_tolerance);
         expr_buffer_0.addTerms(& data, & const_var, 1);
         model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0, "output_constraint");
       }
@@ -1327,7 +1328,7 @@ int find_counter_example_in_NN(
         expr_buffer_0 = expr_zero;
         data = -1;
         expr_buffer_0.addTerms(& data, & neuron_variables[no_of_hidden_layers+1][0], 1);
-        data = (limit_found - MILP_tolerance);
+        data = (limit_found - sherlock_parameters.MILP_tolerance);
         expr_buffer_0.addTerms(& data, & const_var, 1);
         model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0, "output_constraint");
       }
@@ -1391,8 +1392,8 @@ int find_counter_example_in_NN(
       }
       else
       {
-          cout << "Unknown error in gurobi implementation ... " << endl;
-          cout << "Status code = " << model_ptr->get(GRB_IntAttr_Status)  << endl;
+          // cout << "Unknown error in gurobi implementation ... " << endl;
+          // cout << "Status code = " << model_ptr->get(GRB_IntAttr_Status)  << endl;
           return 0;
       }
 
@@ -1451,7 +1452,7 @@ int find_counter_example_in_NN(
       vector< int > direction_vector(no_of_inputs);
       vector< vector< datatype > > M_values;
 
-      if(do_dynamic_M_computation)
+      if(sherlock_parameters.do_dynamic_M_computation)
       {
           i = 0;
           while(i < no_of_inputs)
@@ -1845,9 +1846,9 @@ int find_counter_example_in_NN(
             data = 1;
             expr_buffer_1.addTerms(& data, & epsilon_variables[i][j], 1);
 
-            if(do_dynamic_M_computation)
+            if(sherlock_parameters.do_dynamic_M_computation)
             {
-              data =  scale_factor_for_M * M_values[i-1][j];
+              data =  sherlock_parameters.scale_factor_for_M * M_values[i-1][j];
             }
             else
             {
@@ -1858,18 +1859,18 @@ int find_counter_example_in_NN(
 
             model_ptr->addConstr(expr_buffer_2, GRB_GREATER_EQUAL, 0.0, constraint_names[i][j][2]);
 
-            if(do_dynamic_M_computation)
+            if(sherlock_parameters.do_dynamic_M_computation)
             {
-              data = scale_factor_for_M * M_values[i-1][j];
+              data = sherlock_parameters.scale_factor_for_M * M_values[i-1][j];
             }
             else
             {
               data = M;
             }
             expr_buffer_3.addTerms(& data, & const_var, 1);
-            if(do_dynamic_M_computation)
+            if(sherlock_parameters.do_dynamic_M_computation)
             {
-              data = -scale_factor_for_M * M_values[i-1][j];
+              data = -sherlock_parameters.scale_factor_for_M * M_values[i-1][j];
             }
             else
             {
@@ -1923,7 +1924,7 @@ int find_counter_example_in_NN(
             i++;
         }
 
-        model_ptr->addConstr(expr_buffer_0, GRB_LESS_EQUAL, MILP_e_tolerance,"epsilon_sum_con" );
+        model_ptr->addConstr(expr_buffer_0, GRB_LESS_EQUAL, sherlock_parameters.MILP_e_tolerance,"epsilon_sum_con" );
 
         // The delta output bound
         // expr_buffer_0 = expr_zero;
@@ -1938,7 +1939,7 @@ int find_counter_example_in_NN(
           // expr_buffer_0 = expr_zero;
           // data = 1;
           // expr_buffer_0.addTerms(& data, & neuron_variables[no_of_hidden_layers+1][0], 1);
-          data = -(limit_found + MILP_tolerance);
+          data = -(limit_found + sherlock_parameters.MILP_tolerance);
           // expr_buffer_0.addTerms(& data, & const_var, 1);
           // model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0, "output_constraint");
 
@@ -1953,7 +1954,7 @@ int find_counter_example_in_NN(
           // expr_buffer_0 = expr_zero;
           // data = -1;
           // expr_buffer_0.addTerms(& data, & neuron_variables[no_of_hidden_layers+1][0], 1);
-          data = (limit_found - MILP_tolerance);
+          data = (limit_found - sherlock_parameters.MILP_tolerance);
           // expr_buffer_0.addTerms(& data, & const_var, 1);
           // model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0, "output_constraint");
 
@@ -2040,8 +2041,8 @@ int find_counter_example_in_NN(
         }
         else
         {
-            cout << "Unknown error in gurobi implementation ... " << endl;
-            cout << "Status code = " << model_ptr->get(GRB_IntAttr_Status)  << endl;
+            // cout << "Unknown error in gurobi implementation ... " << endl;
+            // cout << "Status code = 4" << model_ptr->get(GRB_IntAttr_Status)  << endl;
             return 0;
         }
 
@@ -2069,7 +2070,7 @@ int find_counter_example_in_NN(
           // expr_buffer_0 = expr_zero;
           // data = 1;
           // expr_buffer_0.addTerms(& data, & neuron_variables[no_of_hidden_layers+1][0], 1);
-          data = -(limit_found + MILP_tolerance);
+          data = -(limit_found + sherlock_parameters.MILP_tolerance);
           // expr_buffer_0.addTerms(& data, & const_var, 1);
           // model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0, "output_constraint");
 
@@ -2084,7 +2085,7 @@ int find_counter_example_in_NN(
           // expr_buffer_0 = expr_zero;
           // data = -1;
           // expr_buffer_0.addTerms(& data, & neuron_variables[no_of_hidden_layers+1][0], 1);
-          data = (limit_found - MILP_tolerance);
+          data = (limit_found - sherlock_parameters.MILP_tolerance);
           // expr_buffer_0.addTerms(& data, & const_var, 1);
           // model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0, "output_constraint");
           model_ptr->getEnv().set(GRB_IntParam_SolutionLimit, 1);
@@ -2167,8 +2168,8 @@ int find_counter_example_in_NN(
         }
         else
         {
-            cout << "Unknown error in gurobi implementation ... " << endl;
-            cout << "Status code = " << model_ptr->get(GRB_IntAttr_Status)  << endl;
+            // cout << "Unknown error in gurobi implementation ... " << endl;
+            // cout << "Status code = " << model_ptr->get(GRB_IntAttr_Status)  << endl;
             return 0;
         }
 
@@ -2644,7 +2645,7 @@ datatype do_MILP_optimization(
     //   expr_buffer_0 = expr_zero;
     //   data = 1;
     //   expr_buffer_0.addTerms(& data, & neuron_variables[no_of_hidden_layers+1][0], 1);
-    //   data = -(limit_found + MILP_tolerance);
+    //   data = -(limit_found + sherlock_parameters.MILP_tolerance);
     //   expr_buffer_0.addTerms(& data, & const_var, 1);
     //   model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0, "output_constraint");
     // }
@@ -2653,7 +2654,7 @@ datatype do_MILP_optimization(
     //   expr_buffer_0 = expr_zero;
     //   data = -1;
     //   expr_buffer_0.addTerms(& data, & neuron_variables[no_of_hidden_layers+1][0], 1);
-    //   data = (limit_found - MILP_tolerance);
+    //   data = (limit_found - sherlock_parameters.MILP_tolerance);
     //   expr_buffer_0.addTerms(& data, & const_var, 1);
     //   model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0, "output_constraint");
     // }
@@ -2698,7 +2699,7 @@ datatype do_MILP_optimization(
     }
     i++;
   }
-  model_ptr->addConstr(expr_buffer_0, GRB_LESS_EQUAL, MILP_e_tolerance,"epsilon_sum_con" );
+  model_ptr->addConstr(expr_buffer_0, GRB_LESS_EQUAL, sherlock_parameters.MILP_e_tolerance,"epsilon_sum_con" );
 
   // The delta output bound
     // expr_buffer_0 = expr_zero;
@@ -2839,7 +2840,7 @@ void produce_string_for_variable_index(string & return_name,
 
     unsigned int i,j,k, z;
     i = 0;
-    while(i < max_digits_in_var_names)
+    while(i < sherlock_parameters.max_digits_in_var_names)
     {
       name += "0" ;
       i++;
@@ -2848,13 +2849,13 @@ void produce_string_for_variable_index(string & return_name,
     while(k <= count_digits(layer_no))
     {
       z = ( layer_no % (int)(pow(10,k)) ) / (pow (10, k-1));
-      name[2 + max_digits_in_var_names - 1 - k + 1] = '0' + z;
+      name[2 + sherlock_parameters.max_digits_in_var_names - 1 - k + 1] = '0' + z;
       k++;
     }
 
     name += "_";
     i = 0;
-    while(i < max_digits_in_var_names)
+    while(i < sherlock_parameters.max_digits_in_var_names)
     {
       name += "0" ;
       i++;
@@ -2864,7 +2865,7 @@ void produce_string_for_variable_index(string & return_name,
     while(k <= count_digits(var_no))
     {
       z = ( var_no % (int)(pow(10,k)) ) / (pow (10, k-1));
-      name[2 + 2 * max_digits_in_var_names +1 - 1 - k + 1] = '0' + z;
+      name[2 + 2 * sherlock_parameters.max_digits_in_var_names +1 - 1 - k + 1] = '0' + z;
       k++;
     }
 
@@ -2961,7 +2962,7 @@ int find_if_constraint_matters(
 
 
   degree_of_matter = 0;
-  if(region_amount_with_constraint > num_tolerance)
+  if(region_amount_with_constraint > sherlock_parameters.num_tolerance)
   {
     // degree_of_matter =
     // (region_amount_without_constraint - region_amount_with_constraint)
@@ -3124,7 +3125,7 @@ void find_size_of_enclosed_region_in_direction(
   else
   {
     cout << "Unknown error in gurobi implementation ... " << endl;
-    cout << "Status code = " << model_ptr->get(GRB_IntAttr_Status)  << endl;
+    cout << "Status code =  " << model_ptr->get(GRB_IntAttr_Status)  << endl;
     delete model_ptr;
     delete env_ptr;
     cout << "Exiting.. " << endl;
