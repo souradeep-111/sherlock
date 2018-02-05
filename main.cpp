@@ -5,6 +5,8 @@ using namespace std::chrono;
 int main(int argc, char ** argv)
 {
 	int run_benchmark_no = -1;
+	char key[] = "all";
+	bool run_all = false;
 	if(argc != 2)
 	{
 		cout << "Wrong number of command line arguments : " << endl;
@@ -12,10 +14,16 @@ int main(int argc, char ** argv)
 		cout << "Exiting... " << endl;
 		exit(0);
 	}
+	else if(strcmp(key, argv[1]) == 0)
+	{
+		run_all = true;
+	}
 	else
 	{
 		sscanf(argv[1], "%d", &run_benchmark_no);
 	}
+
+
 	vector< vector< datatype > > input_interval(2, vector< datatype >(2,0));
 	vector< vector< datatype > > input_constraints;
 	clock_t begin, end;
@@ -25,7 +33,7 @@ int main(int argc, char ** argv)
 	// sherlock_parameters.grad_search_point_verbosity = true;
 	sherlock_parameters.time_verbosity = true;
 
-	if(run_benchmark_no == 0)
+	if((run_benchmark_no == 0) || (run_all))
 	{
 		char benchmark_0_name[] = "./network_files/neural_network_information_0" ;
 		network_handler benchmark_0(benchmark_0_name);
@@ -44,7 +52,7 @@ int main(int argc, char ** argv)
 		printf("time cost for Sherlock benchmark 0 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
 	}
-	else if (run_benchmark_no == 1) {
+	if ((run_benchmark_no == 1) || (run_all)) {
 		// Simple range propagation
 		char benchmark_1_name[] = "./network_files/neural_network_information_1" ;
 		sherlock_parameters.MILP_tolerance = 1e-2;
@@ -63,7 +71,7 @@ int main(int argc, char ** argv)
 
 
 	}
-	else if (run_benchmark_no == 2) {
+	if ((run_benchmark_no == 2) || (run_all)) {
 		// Simple range propagation
 		char benchmark_2_name[] = "./network_files/neural_network_information_2" ;
 		sherlock_parameters.gradient_rate = 1e-4;
@@ -84,7 +92,7 @@ int main(int argc, char ** argv)
 		end = clock();
 		printf("time cost for Sherlock benchmark 2 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 	}
-	else if (run_benchmark_no == 3) {
+	if ((run_benchmark_no == 3) || (run_all)) {
 		// Simple range propagation
 		char benchmark_3_name[] = "./network_files/neural_network_information_3" ;
 
@@ -101,7 +109,7 @@ int main(int argc, char ** argv)
 		end = clock();
 		printf("time cost for Sherlock benchmark 3 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 	}
-	else if (run_benchmark_no == 4) {
+	if ((run_benchmark_no == 4) || (run_all)) {
 		// Simple range propagation
 		char benchmark_4_name[] = "./network_files/neural_network_information_4" ;
 
@@ -119,7 +127,7 @@ int main(int argc, char ** argv)
 		printf("time cost for Sherlock benchmark 4 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
 	}
-	else if (run_benchmark_no == 5) {
+	if ((run_benchmark_no == 5) || (run_all)) {
 		// Simple range propagation
 		char benchmark_5_name[] = "./network_files/neural_network_information_5" ;
 		sherlock_parameters.MILP_tolerance = 2e-2;
@@ -141,7 +149,7 @@ int main(int argc, char ** argv)
 		printf("time cost for Sherlock benchmark 5 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
 	}
-	else if (run_benchmark_no == 6) {
+	if ((run_benchmark_no == 6) || (run_all)) {
 		//	Simple range propagation
 		char benchmark_6_name[] = "./network_files/neural_network_information_6" ;
 
@@ -162,7 +170,7 @@ int main(int argc, char ** argv)
 		printf("time cost for Sherlock benchmark 6 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
 	}
-	else if (run_benchmark_no == 7) {
+	if ((run_benchmark_no == 7) || (run_all)) {
 		//	Simple range propagation
 		char benchmark_7_name[] = "./network_files/neural_network_information_7" ;
 		network_handler benchmark_7(benchmark_7_name);
@@ -183,7 +191,7 @@ int main(int argc, char ** argv)
 		printf("time cost for Sherlock benchmark 7 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
 	}
-	else if (run_benchmark_no == 8) {
+	if ((run_benchmark_no == 8) || (run_all)) {
 		char benchmark_8_name[] = "./network_files/neural_network_information_8" ;
 		network_handler benchmark_8(benchmark_8_name);
 
@@ -202,7 +210,7 @@ int main(int argc, char ** argv)
 		printf("time cost for Sherlock benchmark 8 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
 	}
-	else if (run_benchmark_no == 9) {
+	if ((run_benchmark_no == 9) || (run_all)) {
 		char benchmark_9_name[] = "./network_files/neural_network_information_9" ;
 		network_handler benchmark_9(benchmark_9_name);
 
@@ -221,7 +229,7 @@ int main(int argc, char ** argv)
 		printf("time cost for Sherlock benchmark 9 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
 	}
-	else if (run_benchmark_no == 10) {
+	if ((run_benchmark_no == 10) || (run_all)) {
 		char benchmark_10_name[] = "./network_files/neural_network_information_10" ;
 		sherlock_parameters.gradient_rate = 1e-6;
 		sherlock_parameters.grad_scaling_factor = 2e1;
@@ -249,7 +257,7 @@ int main(int argc, char ** argv)
 		printf("time cost for Sherlock benchmark 10 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
 	}
-	else if (run_benchmark_no == 11) {
+	if ((run_benchmark_no == 11) || (run_all)) {
 		char benchmark_11_name[] = "./network_files/neural_network_information_11" ;
 		sherlock_parameters.gradient_rate = 1e-4;
 		sherlock_parameters.grad_scaling_factor = 5e1;
@@ -278,7 +286,7 @@ int main(int argc, char ** argv)
 		printf("time cost for Sherlock benchmark 11 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
 	}
-	else if (run_benchmark_no == 12) {
+	if ((run_benchmark_no == 12) || (run_all)) {
 		char benchmark_12_name[] = "./network_files/neural_network_information_12" ;
 		network_handler benchmark_12(benchmark_12_name);
 		sherlock_parameters.gradient_rate = 1e-2;
@@ -307,7 +315,7 @@ int main(int argc, char ** argv)
 		printf("time cost for Sherlock benchmark 12 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
 	}
-	else if (run_benchmark_no == 13) {
+	if ((run_benchmark_no == 13) || (run_all)) {
 		char benchmark_13_name[] = "./network_files/neural_network_information_13" ;
 		sherlock_parameters.gradient_rate = 1e-2;
 		sherlock_parameters.grad_scaling_factor = 5e1;
@@ -338,7 +346,7 @@ int main(int argc, char ** argv)
 		printf("time cost for Sherlock benchmark 13 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
 	}
-	else if (run_benchmark_no == 14) {
+	if ((run_benchmark_no == 14) || (run_all)) {
 		char benchmark_14_name[] = "./network_files/neural_network_information_14" ;
 		sherlock_parameters.gradient_rate = 1e-2;
 		sherlock_parameters.grad_scaling_factor = 5e1;
@@ -367,7 +375,7 @@ int main(int argc, char ** argv)
 		printf("time cost for Sherlock benchmark 14 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
 	}
-	else if(run_benchmark_no == 15)
+	if((run_benchmark_no == 15) || (run_all))
 	{
 		char benchmark_15_name[] = "./network_files/neural_network_information_15" ;
 		sherlock_parameters.gradient_rate = 1e-2;
