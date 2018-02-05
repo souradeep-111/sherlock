@@ -1,4 +1,4 @@
-#include "./headers/propagate_intervals.h"
+#include "propagate_intervals.h"
 using namespace std;
 using namespace std::chrono;
 
@@ -120,7 +120,7 @@ int main()
 	end = clock();
 	printf("time cost for Sherlock benchmark 5 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
-	Simple range propagation
+	//	Simple range propagation
 	char benchmark_6_name[] = "./network_files/neural_network_information_6" ;
 
 	network_handler benchmark_6(benchmark_6_name);
@@ -139,7 +139,7 @@ int main()
 	end = clock();
 	printf("time cost for Sherlock benchmark 6 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 
-	Simple range propagation
+	//	Simple range propagation
 	char benchmark_7_name[] = "./network_files/neural_network_information_7" ;
 	network_handler benchmark_7(benchmark_7_name);
 
