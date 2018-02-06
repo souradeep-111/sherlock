@@ -1,3 +1,13 @@
+/*
+
+Contributors to the tool : 
+Souradeep Dutta
+
+email : souradeep.dutta@colorado.edu
+
+LICENSE : Please see the license file, in the main directory
+
+*/
 #ifndef propagate_intervals_h
 #define propagate_intervals_h
 
