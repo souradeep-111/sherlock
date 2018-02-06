@@ -415,12 +415,7 @@ int main(int argc, char ** argv)
 		end = clock();
 		printf("time cost for Sherlock benchmark 15 ------------------ %lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
 	}
-	else
-	{
-		cout << "Wrong input argument ! " << endl;
-		cout << "Exiting... " << endl;
-		exit(0);
-	}
+	
 
 
   return 0;
