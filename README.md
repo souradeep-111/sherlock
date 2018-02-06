@@ -41,10 +41,12 @@ to compile. It should work out of the box.
 
 ## Instructions to run
 
-Please use the command line run_file
+Please use the command line run_file to run all the benchmarks.
 
-> ./run_file
+> ./run_file all
 
 
 Enjoy the output as it scrolls on your screen :-)
 
+Alternatively, you can run a specific benchmark using the following command : 
+ > ./run_file <benchmark_no>
