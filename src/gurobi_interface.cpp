@@ -1,3 +1,14 @@
+/*
+
+Contributors to the tool : 
+Souradeep Dutta
+
+email : souradeep.dutta@colorado.edu
+
+LICENSE : Please see the license file, in the main directory
+
+*/
+
 #include "gurobi_interface.h"
 #define node ("n_")    // 1
 #define epsilon ("e_") // 2
