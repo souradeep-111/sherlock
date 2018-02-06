@@ -1,3 +1,14 @@
+/*
+
+Contributors to the tool : 
+Souradeep Dutta
+
+email : souradeep.dutta@colorado.edu
+
+LICENSE : Please see the license file, in the main directory
+
+*/
+
 #ifndef network_computation_h
 #define network_computation_h
 #include <vector>
