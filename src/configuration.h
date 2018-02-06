@@ -1,3 +1,14 @@
+/*
+
+Contributors to the tool : 
+Souradeep Dutta
+
+email : souradeep.dutta@colorado.edu
+
+LICENSE : Please see the license file, in the main directory
+
+*/
+
 #ifndef config_h
 #define config_h
 #define datatype double
