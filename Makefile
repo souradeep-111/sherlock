@@ -16,6 +16,11 @@ LINK_FLAGS = -g -L ./ -L /usr/local/lib/ -L$(GUROBI_LIBDIR)
 
 OBJS = ./src/propagate_intervals.o ./src/network_computation.o ./src/gurobi_interface.o ./src/configuration.o
 
+libs: $(OBJS)
+	ar rcs ./lib/libsherlock.a $(OBJS)
+	ranlib ./lib/libsherlock.a
+	cp ./src/*.h ./include
+
 
 run_file: main.o $(OBJS)
 	g++ -O3 -w $(LINK_FLAGS) -o $@ $^ $(LIBS)
@@ -29,4 +34,4 @@ run_file: main.o $(OBJS)
 	$(CXX) -O3 -c $(CFLAGS) $(LIBS) -o $@ $<
 
 clean:
-	rm -f ./src/*.o *.o ./run_file
+	rm -f ./src/*.o *.o ./run_file ./lib/* ./include/configuration.h ./include/gurobi_interface.h ./include/network_computation.h ./include/propagate_intervals.h 	
