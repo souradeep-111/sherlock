@@ -3175,8 +3175,9 @@ int run_optimization(
 
   optimize(constraints, objective, obj_bias, 1, maximum, max_point);
   optimize(constraints, objective, obj_bias, -1, minimum, min_point);
-
+  return 1;
 }
+
 void optimize(
   vector< vector< datatype > > constraint_set,
   vector< datatype > objective,
@@ -3539,7 +3540,7 @@ int find_size_inside_target(
 
   size = sum_vector(size_vector);
 
-
+  return size;
 }
 
 int find_size(
@@ -3586,7 +3587,7 @@ int find_size(
   }
 
   size = sum_vector(size_vector);
-
+  return size;
 
 }
 
