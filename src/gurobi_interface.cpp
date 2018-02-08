@@ -1,14 +1,3 @@
-/*
-
-Contributors to the tool : 
-Souradeep Dutta
-
-email : souradeep.dutta@colorado.edu
-
-LICENSE : Please see the license file, in the main directory
-
-*/
-
 #include "gurobi_interface.h"
 #define node ("n_")    // 1
 #define epsilon ("e_") // 2
@@ -2195,6 +2184,536 @@ int find_counter_example_in_NN(
     return 0;
 }
 
+void do_network_encoding(
+  vector< vector< vector< datatype > > > weights,
+  vector< vector< datatype > > biases,
+  GRBModel * net_model_ptr,
+  GRBEnv * net_env_ptr,
+  vector< GRBVar >& input_variables,
+  GRBVar & output_variable
+)
+{
+  vector< unsigned int > network_configuration_buffer;
+  vector< unsigned int > total_network_configuration;
+  deduce_network_configuration(weights, biases, network_configuration_buffer);
+  datatype data;
+  unsigned int no_of_inputs, no_of_outputs, i , j , k,
+               no_of_input_constraints, no_of_hidden_layers, sum;
+
+  vector< vector< datatype > > region_constraints;
+
+
+  no_of_inputs = (weights[0][0]).size();
+  total_network_configuration.push_back(no_of_inputs);
+  i = 0;
+  while(i < network_configuration_buffer.size())
+  {
+    total_network_configuration.push_back(network_configuration_buffer[i]);
+    i++;
+  }
+
+  no_of_hidden_layers = weights.size() - 1;
+  no_of_inputs = (weights[0][0]).size();
+
+
+
+  no_of_outputs = (weights[no_of_hidden_layers]).size();
+  if(no_of_outputs != 1)
+  {
+    cout << "No_of_outputs not equal to 1, in do_network_encoding().. " << endl;
+    cout << "Exiting .. "<< endl;
+    exit(0);
+  }
+
+  // Finding the M values
+  vector< vector< datatype > > over_approximated_input_interval(no_of_inputs, vector< datatype>(2));
+  vector< int > direction_vector(no_of_inputs);
+  vector< vector< datatype > > M_values;
+
+  // if(sherlock_parameters.do_dynamic_M_computation)
+  // {
+  //     i = 0;
+  //     while(i < no_of_inputs)
+  //     {
+  //       // In the negative direction
+  //       fill(direction_vector.begin(), direction_vector.end(), 0);
+  //       direction_vector[i] = -1;
+  //       find_size_of_enclosed_region_in_direction(region_constraints, direction_vector, data);
+  //       over_approximated_input_interval[i][0] = data;
+  //       // In the positive direction
+  //       fill(direction_vector.begin(), direction_vector.end(), 0);
+  //       direction_vector[i] = 1;
+  //       find_size_of_enclosed_region_in_direction(region_constraints, direction_vector, data);
+  //       over_approximated_input_interval[i][1] = data;
+  //       i++;
+  //     }
+  //     compute_M_values_with_interval_propagation(weights, biases, over_approximated_input_interval, M_values);
+  //     // print_2D_vector(M_values);
+  // }
+  // Done with finding the M values
+  // GRBEnv * env_ptr = new GRBEnv();
+  // erase_line();
+  //
+  //
+  // env_ptr->set(GRB_IntParam_OutputFlag, 0);
+  //
+  // GRBModel * model_ptr = new GRBModel(*env_ptr);
+
+  if((!net_model_ptr) || (!net_env_ptr))
+  {
+    GRBEnv * env_ptr = new GRBEnv();
+    erase_line();
+    env_ptr->set(GRB_IntParam_OutputFlag, 0);
+    GRBModel * model_ptr = new GRBModel(* env_ptr);
+
+    net_env_ptr = env_ptr;
+    net_model_ptr = model_ptr;
+  }
+
+  string const_name = "constant";
+  GRBVar const_var = net_model_ptr->addVar(1.0, 1.0, 0.0, GRB_CONTINUOUS, const_name);
+
+  // Creating names for all the neurons involved
+  vector< vector< string > > neuron_names;
+  vector< string > names_vector;
+  string name;
+
+  // The names for the input neurons, layer = 0
+  j = 0;
+  while(j < total_network_configuration[0])
+  {
+    produce_string_for_variable_index(name, 0, j, 1);
+    names_vector.push_back(name);
+    j++;
+  }
+  neuron_names.push_back(names_vector);
+
+  // For the internal neurons
+
+  i = 1;
+  while(i < (no_of_hidden_layers+1) )
+  {
+    names_vector.clear();
+    j = 0;
+    while(j < total_network_configuration[i])
+    {
+      produce_string_for_variable_index(name, i, j, 1);
+      names_vector.push_back(name);
+      j++;
+    }
+    neuron_names.push_back(names_vector);
+    i++;
+  }
+
+  // For the output neurons
+
+  names_vector.clear();
+  j = 0;
+  while(j < total_network_configuration[no_of_hidden_layers+1])
+  {
+    produce_string_for_variable_index(name, (no_of_hidden_layers + 1), j, 1);
+    names_vector.push_back(name);
+    j++;
+  }
+  neuron_names.push_back(names_vector);
+  // Create the neurons variables
+  vector < vector< GRBVar > > neuron_variables;
+  vector< GRBVar > var_vector;
+  GRBVar var;
+  i = 0;
+  while(i < (no_of_hidden_layers + 2))
+  {
+    var_vector.clear();
+    j = 0;
+    while(j < total_network_configuration[i])
+    {
+      var = net_model_ptr->addVar(-GRB_INFINITY,
+                               GRB_INFINITY,
+                               0.0,
+                               GRB_CONTINUOUS,
+                               neuron_names[i][j]);
+
+      var_vector.push_back(var);
+      j++;
+    }
+    neuron_variables.push_back(var_vector);
+    i++;
+  }
+
+  vector< vector< string > > epsilon_names;
+
+  // The names for the epsilons, layer = 0
+
+  names_vector.clear();
+  j = 0;
+  while(j < total_network_configuration[0])
+  {
+    produce_string_for_variable_index(name, 0, j, 2);
+    names_vector.push_back(name);
+    j++;
+  }
+  epsilon_names.push_back(names_vector);
+
+  // For the internal neurons
+
+  i = 1;
+  while(i < (no_of_hidden_layers + 1) )
+  {
+    names_vector.clear();
+    j = 0;
+    while(j < total_network_configuration[i])
+    {
+      produce_string_for_variable_index(name, i, j, 2);
+      names_vector.push_back(name);
+      j++;
+    }
+    epsilon_names.push_back(names_vector);
+    i++;
+  }
+
+  // For the output neurons
+
+  names_vector.clear();
+  j = 0;
+  while(j < total_network_configuration[no_of_hidden_layers+1])
+  {
+    produce_string_for_variable_index(name, (no_of_hidden_layers + 1), j, 2);
+    names_vector.push_back(name);
+    j++;
+  }
+  epsilon_names.push_back(names_vector);
+
+
+
+  // Create the epsilon variables
+  vector < vector< GRBVar > > epsilon_variables;
+
+  i = 0;
+  while(i < (no_of_hidden_layers + 2))
+  {
+    var_vector.clear();
+    j = 0;
+    while(j < total_network_configuration[i])
+    {
+      var = net_model_ptr->addVar( 0,
+                               GRB_INFINITY,
+                               0.0,
+                               GRB_CONTINUOUS,
+                               epsilon_names[i][j]);
+
+      var_vector.push_back(var);
+      j++;
+    }
+    epsilon_variables.push_back(var_vector);
+    i++;
+  }
+
+  vector< vector< string > > delta_names;
+
+  // The names for the delta, layer = 0
+
+  names_vector.clear();
+  j = 0;
+  while(j < total_network_configuration[0])
+  {
+    produce_string_for_variable_index(name, 0, j, 3);
+    names_vector.push_back(name);
+    j++;
+  }
+  delta_names.push_back(names_vector);
+
+  // For the internal neurons
+
+  i = 1;
+  while(i < (no_of_hidden_layers + 1) )
+  {
+    names_vector.clear();
+    j = 0;
+    while(j < total_network_configuration[i])
+    {
+      produce_string_for_variable_index(name, i, j, 3);
+      names_vector.push_back(name);
+      j++;
+    }
+    delta_names.push_back(names_vector);
+    i++;
+  }
+
+  // For the output neurons
+
+  names_vector.clear();
+  j = 0;
+  while(j < total_network_configuration[no_of_hidden_layers+1])
+  {
+    produce_string_for_variable_index(name, (no_of_hidden_layers + 1), j, 3);
+    names_vector.push_back(name);
+    j++;
+  }
+  delta_names.push_back(names_vector);
+
+  // Create the delta variables
+  vector < vector< GRBVar > > delta_variables;
+
+  i = 0;
+  while(i < (no_of_hidden_layers + 2))
+  {
+    var_vector.clear();
+    j = 0;
+    while(j < total_network_configuration[i])
+    {
+      var = net_model_ptr->addVar( 0.0,
+                               1.0,
+                               0.0,
+                               GRB_BINARY,
+                               delta_names[i][j]);
+
+      var_vector.push_back(var);
+      j++;
+    }
+    delta_variables.push_back(var_vector);
+    i++;
+  }
+
+  // Creating the names for constraint variables
+
+  vector< vector< vector< string > > > constraint_names;
+  vector< vector< string > > neuron_constraint_names;
+  vector< string > sub_constraint_names;
+
+  // FOR THE CONSTRAINTS ON THE INPUT NEURONS
+
+  neuron_constraint_names.clear();
+  j = 0;
+  while(j < region_constraints.size())
+  {
+    sub_constraint_names.clear();
+
+    produce_string_for_variable_index(name, 0, j, 4);
+    name += "_a" ;
+    sub_constraint_names.push_back(name);
+    neuron_constraint_names.push_back(sub_constraint_names);
+    j++;
+  }
+
+  constraint_names.push_back(neuron_constraint_names);
+
+  // For the internal neurons
+  i = 1;
+  while(i < (no_of_hidden_layers + 1) )
+  {
+    neuron_constraint_names.clear();
+    j = 0;
+    while(j < total_network_configuration[i])
+    {
+      sub_constraint_names.clear();
+
+      produce_string_for_variable_index(name, i, j, 4);
+      name += "_a";
+      sub_constraint_names.push_back(name);
+      produce_string_for_variable_index(name, i, j, 4);
+      name += "_b";
+      sub_constraint_names.push_back(name);
+      produce_string_for_variable_index(name, i, j, 4);
+      name += "_c";
+      sub_constraint_names.push_back(name);
+      produce_string_for_variable_index(name, i, j, 4);
+      name += "_d";
+      sub_constraint_names.push_back(name);
+
+      neuron_constraint_names.push_back(sub_constraint_names);
+      j++;
+    }
+    constraint_names.push_back(neuron_constraint_names);
+    i++;
+  }
+
+  // For the output neurons
+
+  neuron_constraint_names.clear();
+  j = 0;
+  while(j < total_network_configuration[no_of_hidden_layers+1])
+  {
+    sub_constraint_names.clear();
+
+    produce_string_for_variable_index(name, no_of_hidden_layers+1, j, 4);
+    name += "_a";
+    sub_constraint_names.push_back(name);
+    produce_string_for_variable_index(name, no_of_hidden_layers+1, j, 4);
+    name += "_b";
+    sub_constraint_names.push_back(name);
+    produce_string_for_variable_index(name, no_of_hidden_layers+1, j, 4);
+    name += "_c";
+    sub_constraint_names.push_back(name);
+    produce_string_for_variable_index(name, no_of_hidden_layers+1, j, 4);
+    name += "_d";
+    sub_constraint_names.push_back(name);
+
+    neuron_constraint_names.push_back(sub_constraint_names);
+    j++;
+  }
+  constraint_names.push_back(neuron_constraint_names);
+
+  // Create the constraint variables
+  vector < vector< GRBVar > > constraint_variables;
+  GRBLinExpr expr_one(1.0);
+  GRBLinExpr expr_zero(0.0);
+  GRBLinExpr expr_buffer_0(0.0);
+  GRBLinExpr expr_buffer_1(0.0);
+  GRBLinExpr expr_buffer_2(0.0);
+  GRBLinExpr expr_buffer_3(0.0);
+
+  // Putting the constraints imposed by the input region constraints
+  i = 0;
+  while(i < no_of_input_constraints)
+  {
+
+    expr_buffer_0 = expr_zero;
+    j = 0;
+    while(j < no_of_inputs)
+    {
+      data = region_constraints[i][j];
+      expr_buffer_0.addTerms(& data, & neuron_variables[0][j], 1);
+      j++;
+    }
+    data = region_constraints[i][j];
+    expr_buffer_0.addTerms(& data, & const_var, 1);
+
+    net_model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, -GRB_INFINITY, constraint_names[0][i][0]);
+    i++;
+  }
+
+  // Putting the constraint imposed by the network connections
+
+  i = 1;
+  while(i < (no_of_hidden_layers + 2))
+  {
+    j = 0;
+    while(j < total_network_configuration[i])
+    {
+      expr_buffer_0 = 0;
+      expr_buffer_1 = 0;
+      expr_buffer_2 = 0;
+      expr_buffer_3 = 0;
+
+      data = 1;
+      expr_buffer_0.addTerms(& data, & neuron_variables[i][j], 1);
+      data = -1;
+      expr_buffer_1.addTerms(& data, & neuron_variables[i][j], 1);
+      data = 1;
+      expr_buffer_2.addTerms(& data, & neuron_variables[i][j], 1);
+      data = -1;
+      expr_buffer_3.addTerms(& data, & neuron_variables[i][j], 1);
+
+      k = 0;
+      while(k < total_network_configuration[i-1])
+      {
+        data = -weights[i-1][j][k];   // negative since we are taking it to the left of the eq
+        expr_buffer_0.addTerms(& data, & neuron_variables[i-1][k], 1);
+
+        data = weights[i-1][j][k];
+        expr_buffer_1.addTerms(& data, & neuron_variables[i-1][k], 1);
+
+        k++;
+      }
+
+      data = -biases[i-1][j];   // negative since we are taking it to the left of the eq
+      expr_buffer_0.addTerms(& data, & const_var, 1);
+      data = 1;
+      expr_buffer_0.addTerms(& data, & epsilon_variables[i][j], 1);
+      net_model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0, constraint_names[i][j][0]);
+
+      data = biases[i-1][j];
+      expr_buffer_1.addTerms(& data, & const_var, 1);
+      data = 1;
+      expr_buffer_1.addTerms(& data, & epsilon_variables[i][j], 1);
+
+      if(sherlock_parameters.do_dynamic_M_computation)
+      {
+        data =  sherlock_parameters.scale_factor_for_M * M_values[i-1][j];
+      }
+      else
+      {
+        data = M;
+      }
+      expr_buffer_1.addTerms(& data, & delta_variables[i][j], 1);
+      net_model_ptr->addConstr(expr_buffer_1, GRB_GREATER_EQUAL, 0.0, constraint_names[i][j][1]);
+
+      net_model_ptr->addConstr(expr_buffer_2, GRB_GREATER_EQUAL, 0.0, constraint_names[i][j][2]);
+
+      if(sherlock_parameters.do_dynamic_M_computation)
+      {
+        data = sherlock_parameters.scale_factor_for_M * M_values[i-1][j];
+      }
+      else
+      {
+        data = M;
+      }
+      expr_buffer_3.addTerms(& data, & const_var, 1);
+      if(sherlock_parameters.do_dynamic_M_computation)
+      {
+        data = -sherlock_parameters.scale_factor_for_M * M_values[i-1][j];
+      }
+      else
+      {
+        data = -M;
+      }
+      expr_buffer_3.addTerms(& data, & delta_variables[i][j], 1);
+      net_model_ptr->addConstr(expr_buffer_3, GRB_GREATER_EQUAL, 0.0, constraint_names[i][j][3]);
+
+      j++;
+    }
+    i++;
+  }
+
+  // Putting the constant of '1'
+  expr_buffer_0 = expr_zero;
+  data = 1;
+  expr_buffer_0.addTerms(& data, & const_var, 1);
+  net_model_ptr->addConstr(expr_buffer_0, GRB_EQUAL, 1.0, "constant_constraint");
+
+  // Putting the epsilon bounds
+  i = 0;
+  while(i < (no_of_hidden_layers + 2))
+  {
+    var_vector.clear();
+    j = 0;
+    while(j < total_network_configuration[i])
+    {
+      expr_buffer_0 = expr_zero;
+      data = 1;
+      expr_buffer_0.addTerms(& data, & epsilon_variables[i][j], 1);
+      net_model_ptr->addConstr(expr_buffer_0, GRB_GREATER_EQUAL, 0.0,"epsilon_lower_con" );
+      j++;
+    }
+    i++;
+  }
+
+  // Epsilon sum constraint
+
+  expr_buffer_0 = expr_zero;
+  i = 0;
+  while(i < (no_of_hidden_layers + 2))
+  {
+      var_vector.clear();
+      j = 0;
+      while(j < total_network_configuration[i])
+      {
+          data = 1;
+          expr_buffer_0.addTerms(& data, & epsilon_variables[i][j], 1);
+          j++;
+      }
+      i++;
+  }
+
+  net_model_ptr->addConstr(expr_buffer_0, GRB_LESS_EQUAL, sherlock_parameters.MILP_e_tolerance,"epsilon_sum_con" );
+
+  input_variables = neuron_variables[0];
+  output_variable = neuron_variables[no_of_hidden_layers + 1][0];
+
+
+
+}
+
 datatype do_MILP_optimization(
   vector< vector< datatype > > region_constraints,
   vector< vector< vector< datatype > > > weights,
@@ -3587,8 +4106,8 @@ int find_size(
   }
 
   size = sum_vector(size_vector);
-  return size;
 
+  return size;
 }
 
 void find_the_non_overlap(

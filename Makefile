@@ -16,6 +16,8 @@ LINK_FLAGS = -g -L ./ -L /usr/local/lib/ -L$(GUROBI_LIBDIR)
 
 OBJS = ./src/propagate_intervals.o ./src/network_computation.o ./src/gurobi_interface.o ./src/configuration.o
 
+all: libs run_file
+
 libs: $(OBJS)
 	ar rcs ./lib/libsherlock.a $(OBJS)
 	ranlib ./lib/libsherlock.a

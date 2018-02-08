@@ -1,14 +1,3 @@
-/*
-
-Contributors to the tool : 
-Souradeep Dutta
-
-email : souradeep.dutta@colorado.edu
-
-LICENSE : Please see the license file, in the main directory
-
-*/
-
 #include "network_computation.h"
 
 
@@ -1305,6 +1294,133 @@ int find_random_sample(
   while( k < no_of_tries)
   {
     srand(k);
+
+    i = 0;
+    while(i < input_size)
+    {
+      counter_example[i] = limits_in_axes_directions[i][0] +
+       (datatype)(
+                   (
+                      (datatype)(rand() % scale) * (datatype)(limits_in_axes_directions[i][1] - limits_in_axes_directions[i][0])
+                   )
+                    /
+                  ((datatype)scale)
+                 ) ;
+      i++;
+    }
+
+    if(
+      check_counter_example(positive_constraint,
+                            list_of_negative_constraints,
+                            counter_example
+                            )
+    )
+    {
+
+      return 1;
+    }
+    k++;
+  }
+  return 0;
+
+
+
+}
+
+int find_random_sample_with_seed(
+  vector< vector< datatype > > positive_constraint,
+  vector< datatype >& counter_example,
+  int seed
+)
+{
+  // so, the way it is done here is very simple.
+  // First we are finding the centre of the poyhedral from the
+  // directions parallel to the axes. Then perturb  that point
+  // randomly to find an interior point
+
+  unsigned int i , j , k, size_1, size_2, input_size, no_of_constraints;
+  no_of_constraints = positive_constraint.size();
+  input_size = (positive_constraint[0]).size() - 1;
+  vector< vector< vector< datatype > > > list_of_negative_constraints;
+  unsigned int scale = 1e4;
+  unsigned int no_of_tries = 1e5;
+
+  vector< datatype > mid_point(input_size);
+
+  // Finding the constraints which actually refer to the main principal directions
+  vector< vector< datatype > > limits_in_axes_directions(input_size, vector< datatype >(2,0));
+
+  int direction, dimension;
+
+  i = 0;
+  while(i < no_of_constraints)
+  {
+    size_1 = 0; // Keeps a count of no_of 1's
+    size_2 = 0; // Keeps a count of no_of 0's
+    j = 0;
+    while(j < (input_size) )
+    {
+      if(
+        (  (positive_constraint[i][j] < (1 + sherlock_parameters.num_similar)) &&
+            (positive_constraint[i][j] > (1 - sherlock_parameters.num_similar))
+        ) ||
+        (  (positive_constraint[i][j] < (-1 + sherlock_parameters.num_similar)) &&
+            (positive_constraint[i][j] > (-1 - sherlock_parameters.num_similar))
+        )
+        )
+          {
+            size_1 += 1;
+            dimension = j;
+            if(positive_constraint[i][j] > 0)
+            {
+              direction = 1;
+            }
+            else
+            {
+              direction = -1;
+            }
+          }
+      else if(
+          (positive_constraint[i][j] < (0 + sherlock_parameters.num_similar)) &&
+          (positive_constraint[i][j] > (0 - sherlock_parameters.num_similar))
+          )
+          {
+            size_2 += 1;
+          }
+
+      j++;
+    }
+
+    if((size_1 == 1) && (size_2 == (input_size -1) ))
+    {
+      if(direction > 0)
+      {
+        limits_in_axes_directions[dimension][0] = -(positive_constraint[i][input_size]);
+        // Since for x > a , it is [1, 0 , ...,-a ] > 0
+      }
+      else if (direction < 0)
+      {
+        limits_in_axes_directions[dimension][1] = (positive_constraint[i][input_size]);
+        // Since for x < b , it is [-1, 0 , ..., b] > 0
+      }
+    }
+    i++;
+  }
+
+
+  i = 0;
+  while(i < input_size)
+  {
+    mid_point[i] = (limits_in_axes_directions[i][0] + limits_in_axes_directions[i][1]) * 0.5;
+    i++;
+  }
+  counter_example = mid_point;
+
+
+  k = 0;
+  while( k < no_of_tries)
+  {
+    srand(k + seed);
 
     i = 0;
     while(i < input_size)

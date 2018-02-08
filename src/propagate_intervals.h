@@ -1,13 +1,3 @@
-/*
-
-Contributors to the tool : 
-Souradeep Dutta
-
-email : souradeep.dutta@colorado.edu
-
-LICENSE : Please see the license file, in the main directory
-
-*/
 #ifndef propagate_intervals_h
 #define propagate_intervals_h
 
@@ -88,6 +78,10 @@ class network_handler
   void return_network_information( vector < vector < vector < datatype > > >& buffer_for_weights,
                               vector < vector < datatype > >& buffer_for_biases
                             );
+  void return_GUROBI_handle_of_network( GRBModel * milp_model,
+                                        GRBEnv * milp_env,
+                                        vector< GRBVar >& input_variables,
+                                        GRBVar & output_variables);
 };
 
 void merge_networks (datatype network_offset = 0,
