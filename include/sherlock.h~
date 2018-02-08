@@ -1,6 +1,0 @@
-#ifndef D__SHERLOCK__H__
-#define D__SHERLOCK__H__
-
-#include "network_handler.h"
-
-#endif
