@@ -26,7 +26,7 @@ class network_handler
   private :
   // string for the file which has the information
   // of the weights and biases and input range
-  char * name_of_file;
+  char name_of_file[256];
 
   // data structures for the neural net information
 
@@ -51,7 +51,7 @@ class network_handler
   network_handler( vector< vector< vector< datatype > > > weights,
                    vector< vector < datatype > > biases);
 
-  network_handler(char* name);
+  network_handler(const char* name);
   // the constructor which takes in the information file
 
   void update_information( vector< vector< vector< datatype > > > weights,

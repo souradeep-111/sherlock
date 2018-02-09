@@ -1,6 +1,7 @@
 #ifndef config_h
 #define config_h
-#define datatype double
+
+typedef  double datatype;
 
 
 struct parameter_values

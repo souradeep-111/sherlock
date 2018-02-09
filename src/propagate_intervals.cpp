@@ -1,10 +1,11 @@
+#include <cstdlib>
 #include "propagate_intervals.h"
 
-network_handler :: network_handler(char* name)
+network_handler :: network_handler(const char* name)
 {
-  name_of_file = name;
+  strncpy(this -> name_of_file, name, 255);
   ifstream file;
-  file.open(name_of_file);
+  file.open(name);
 
   // The expcted input format goes something like this,
   // no_of_inputs
