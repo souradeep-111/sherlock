@@ -1,14 +1,3 @@
-/*
-
-Contributors to the tool : 
-Souradeep Dutta
-
-email : souradeep.dutta@colorado.edu
-
-LICENSE : Please see the license file, in the main directory
-
-*/
-
 #ifndef network_computation_h
 #define network_computation_h
 #include <vector>
@@ -156,6 +145,11 @@ datatype parse_string(
 int find_random_sample(
   vector< vector< datatype > > positive_constraint,
   vector< datatype >& counter_example
+);
+int find_random_sample_with_seed(
+  vector< vector< datatype > > positive_constraint,
+  vector< datatype >& counter_example,
+  int seed
 );
 int find_uniform_counter_example(
   vector< vector< datatype > > positive_constraint,

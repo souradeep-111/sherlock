@@ -1,14 +1,3 @@
-/*
-
-Contributors to the tool : 
-Souradeep Dutta
-
-email : souradeep.dutta@colorado.edu
-
-LICENSE : Please see the license file, in the main directory
-
-*/
-
 #include "propagate_intervals.h"
 
 network_handler :: network_handler(char* name)
@@ -873,6 +862,29 @@ void network_handler :: return_network_information(
   buffer_for_weights = actual_weights;
   buffer_for_biases = actual_biases;
 }
+
+void network_handler :: return_GUROBI_handle_of_network(
+                                      GRBModel * milp_model,
+                                      GRBEnv * milp_env,
+                                      vector< GRBVar >& input_variables,
+                                      GRBVar & output_variables
+)
+{
+  vector< vector< vector< datatype > > > weights;
+  vector< vector< datatype > > biases;
+
+  return_network_information(weights, biases);
+
+  do_network_encoding(weights, biases, milp_model, milp_env, input_variables, output_variables);
+
+  if((milp_model == NULL) || (milp_env == NULL))
+  {
+    cout << "No network was encoded into GRB model pointer " << endl;
+    cout << "Exiting.. " << endl;
+    exit(0);
+  }
+}
+
 
 void merge_networks(datatype network_offset,
                     datatype scaling_factor,

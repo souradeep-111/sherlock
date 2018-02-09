@@ -1,14 +1,3 @@
-/*
-
-Contributors to the tool : 
-Souradeep Dutta
-
-email : souradeep.dutta@colorado.edu
-
-LICENSE : Please see the license file, in the main directory
-
-*/
-
 #ifndef gurobi_interface_h
 #define gurobi_interface_h
 
@@ -36,6 +25,14 @@ int find_counter_example_in_NN(
   vector< datatype >& counter_example,
   datatype& limit_found,
   int direction
+);
+void do_network_encoding(
+  vector< vector< vector< datatype > > > weights,
+  vector< vector< datatype > > biases,
+  GRBModel * net_model_ptr,
+  GRBEnv * net_env_ptr,
+  vector< GRBVar >& input_variables,
+  GRBVar & output_variable
 );
 datatype do_MILP_optimization(
   vector< vector< datatype > > region_constraints,

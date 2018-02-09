@@ -1,0 +1,2 @@
+GUROBI_PATH=/Library/gurobi752# change according to system and gurobi version
+HOST_ARCH=mac64# change to linux64
