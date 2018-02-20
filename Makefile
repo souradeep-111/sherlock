@@ -21,8 +21,8 @@ DEPENDS = ${OBJECTS:.o=.d}
 all: libs run_file
 
 libs: $(OBJS)
-	ar rcs ./lib/libsherlock.a $(OBJS)
-	ranlib ./lib/libsherlock.a
+	ar rcs ./src/libsherlock.a $(OBJS)
+	ranlib ./src/libsherlock.a
 	cp ./src/*.h ./include
 
 
