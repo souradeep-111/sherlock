@@ -12,11 +12,29 @@ LICENSE : Please see the license file, in the main directory
 #include "./src/propagate_intervals.h"
 // #include "./include/sherlock.h"
 
+
+// #include <iterator >
+#include <map>
+#include <utility>
+
 using namespace std;
 using namespace std::chrono;
 
 int main(int argc, char ** argv)
 {
+
+	map < int, pair< int, double > > map_of_pairs;
+
+	pair <int, double> mypair;
+	mypair.first = 101;
+	mypair.second = 10.1;
+
+	map_of_pairs.insert(pair<int, pair<int, double > > (1, mypair));
+	map_of_pairs.insert(pair<int, pair<int, double > > (2, mypair));
+
+	cout << "Number of maps = " << map_of_pairs.size() << endl;
+	cout << "Element number 2 in it equals = " << map_of_pairs[2].first << "  " << map_of_pairs[2].second << endl;
+
 	int run_benchmark_no = -1;
 	char key[] = "all";
 	char key_2[] = "-";
