@@ -12,39 +12,56 @@
 #include <ratio>
 #include <chrono>
 #include <assert.h>
+#include <math.h>
+#include <algorithm>
 #include "network_computation.h"
 #include "gurobi_interface.h"
 
+enum type {constant, _tanh_, _sigmoid_, _relu_, _none_ };
+
 class node{
   private:
-    enum type {constant, _tanh_, _sigmoid_, _relu_ };
-    type node_type;
 
+    // Node identifiers
+    type node_type;
     uint32_t node_id;
     string node_name;
+
+
     //  Computation specific values
-    vector< datatype > current_inputs;
+    map< uint32_t, datatype > current_inputs;
     datatype current_outputs;
-    vector< datatype > current_gradient;
+    map< uint32_t, datatype > current_gradient;
     datatype bias;
+    datatype constant_val;
 
     // Pointers backward and forward
-    map < int, pair< node * , datatype > > forward_nodes;
-    map < int, pair< node * , datatype > > backward_nodes;
+    map < uint32_t, pair< node * , datatype > > forward_nodes;
+    map < uint32_t, pair< node * , datatype > > backward_nodes;
 
   public:
     node();
-    node(int node_index,string type_name); // type_name = {"constant_node", "computation_node"}
+    node(uint32_t node_index,string type_name); // type_name = {"constant_node", "computation_node"}
+    node(uint32_t node_index);
+    int get_node_number();
+    string get_node_name();
+    void set_node_type(string type_name);
+    string return_node_type();
+
+    void set_node_val(datatype value);
 
     void add_forward_connection(node * forward_node_ptr, datatype weight );
     void add_backward_connection(node * backward_node_ptr, datatype weight );
     void set_bias(datatype bias_value);
+    void get_bias(datatype & bias_value);
+    void get_forward_connections(map< uint32_t , pair< node * , datatype > > & forward_nodes_container);
+    void get_backward_connections(map< uint32_t , pair< node * , datatype > > & backward_nodes_container);
 
-    void set_inputs(vector< datatype > inputs);
+    void set_inputs( map < uint32_t, datatype > & inputs);
     datatype return_current_output(void);
-    vector< datatype > return_gradient(void);
+    map< uint32_t, datatype > return_gradient(void);
 
-}
+};
 
 
 // Here is a list of capabilities I want from the objects here :

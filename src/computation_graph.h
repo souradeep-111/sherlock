@@ -9,18 +9,32 @@
 class computation_graph
 {
   private:
-    vector< nodes > all_nodes;
+    map< uint32_t, node > all_nodes;
+    vector< uint32_t > input_nodes;
+    vector< uint32_t > output_nodes;
+    uint32_t no_of_input_nodes, no_of_output_nodes;
+
   public:
     computation_graph();
+
+    void add_new_node(uint32_t node_id, node & node_to_add);
+
     void mark_node_as_input(int input_node_number);
     void mark_node_as_output(int output_node_number);
-    void add_new_node(int node_number);
-    void add_new_node(string node_name);
-    void connect_node1_to_node2_with_weight(int node_1_index, int node_2_index);
 
+    void connect_node1_to_node2_with_weight(uint32_t node_1_index, uint32_t node_2_index,
+                                            datatype weight);
+    void set_bias_of_node(node node_id, datatype bias);
 
-    void evaluate_graph(map < int , double > input_node_and_value );
-    vector< datatype > return_gradient_wrt_inputs(int node_index,  map < int, double > input_node_and_value );
+    datatype evaluate_node( uint32_t node_id , map< uint32_t , double > & table );
+    void evaluate_graph(map < uint32_t , double > input_node_and_value ,
+                        map < uint32_t, double > & output_node_and_value);
+    map< uint32_t, datatype > return_gradient_wrt_inputs(uint32_t node_id,
+                                                         map < uint32_t, double > & input_node_and_value );
+
+    map< uint32_t, datatype > compute_gradient_wrt_inputs(uint32_t node_id,
+                                                          map< uint32_t, double > & input_node_and_value,
+                                                          map< uint32_t, map< uint32_t,  double > > & memoized_table);
 
 
 };

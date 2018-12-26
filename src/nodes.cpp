@@ -12,29 +12,107 @@ node :: node()
     backward_nodes.clear();
 }
 
-node :: node(int node_index, string type_name)
+node :: node(uint32_t node_index, string type_name)
 {
   assert(node_index > 0);
   assert(strlen(type_name) > 0);
 
   node_id = node_index;
-  node_name = type_name;
+
+  string buffer_name = "n_" + to_string(node_index);
+  node_name = buffer_name;
+
+  if(type_name == "constant")
+  node_type = constant;
+  else if(type_name == "tanh")
+  node_type = _tanh_;
+  else if(type_name == "sigmoid")
+  node_type = _sigmoid_;
+  else if(type_name == "relu")
+  node_type = _relu_;
+  else if(type_name == "none")
+  node_type = _none_;
+  else assert(false)
+
+
+  forward_nodes.clear();
+  backward_nodes.clear();
+}
+node :: node(uint32_t node_index)
+{
+  node_id = node_index;
+  string buffer_name = "n_" + to_string(node_index);
+  node_name = buffer_name;
 
   forward_nodes.clear();
   backward_nodes.clear();
 }
 
+int node :: get_node_number()
+{
+  return node_id;
+}
+
+string node :: get_node_name()
+{
+  assert(!node_name.empty());
+  return node_name;
+}
+
+void node :: set_node_type(string type_name)
+{
+  assert(!type_name.empty());
+
+  if(type_name == "constant")
+  node_type = constant;
+  else if(type_name == "tanh")
+  node_type = _tanh_;
+  else if(type_name == "sigmoid")
+  node_type = _sigmoid_;
+  else if(type_name == "relu")
+  node_type = _relu_;
+  else if(type_name == "none")
+  node_type = _none_;
+  else assert(false);
+}
+
+
+string node :: return_node_type()
+{
+  string return_name;
+
+  if(node_type == constant)
+  return_name = "constant";
+  else if(node_type == _tanh_)
+  return_name = "tanh";
+  else if(node_type == _sigmoid_)
+  return_name = "sigmoid";
+  else if(node_type == _relu_)
+  return_name = "relu";
+  else if(node_type == _none_)
+  return_name = "none";
+  else assert(false);
+
+  return return_name;
+}
+
+void node :: set_node_val(datatype value)
+{
+  assert(node_type == constant);
+  constant_val = value;
+}
+
 
 void node :: add_forward_connection(node * forward_node_ptr, datatype weight)
 {
-  index_of_new_node = forward_nodes.size();
+  auto index_of_new_node = forward_node_ptr->get_node_number();
   pair< node * , datatype > connection = makepair( forward_node_ptr, weight );
   forward_nodes.push_back( makepair( index_of_new_node, connection) );
 }
 
 void node :: add_backward_connection(node * backward_node_ptr, datatype weight)
 {
-  index_of_new_node = backward_nodes.size();
+  auto index_of_new_node = backward_node_ptr->get_node_number();
   pair< node * , datatype > connection = makepair( backward_node_ptr, weight );
   backward_nodes.push_back( makepair( index_of_new_node, connection) );
 }
@@ -44,9 +122,128 @@ void node :: set_bias(datatype bias_value)
   bias = bias_value;
 }
 
-void node :: set_inputs( vector < datatype > inputs )
+void node :: get_bias(datatype & bias_value)
+{
+  bias_value = bias;
+}
+
+void node :: get_forward_connections(map< uint32_t , pair< node * , datatype > > & forward_nodes_container)
+{
+  assert(!forward_nodes.empty());
+  forward_nodes_container = forward_nodes;
+}
+void nodes :: get_backward_connections(map< uint32_t , pair< node * , datatype > > & backward_nodes_container);
+{
+  assert(!backward_nodes.empty());
+  backward_nodes_container = backward_nodes;
+}
+
+
+void node :: set_inputs( map < uint32_t, datatype > & inputs )
 {
   assert(!(inputs.empty()))
   assert(backward_nodes.size() == inputs.size());
   current_inputs = inputs;
+}
+
+datatype node :: return_current_output(void)
+{
+  if(node_type == constant)
+  {
+    return constant_val;
+  }
+
+  datatype argument = bias;
+  for(auto input_node : current_inputs)
+  {
+    argument += (backward_nodes[input_node.first].second * input_node.second ) ;
+  }
+
+  if(node_type == _tanh_ )
+  {
+    return tanh(argument);
+  }
+  else if(node_type == _sigmoid_ )
+  {
+
+    return (1.0/(1.0 + exp(-argument))
+  }
+  else if (node_type == _relu_)
+  {
+    return (argument > 0) ? argument : 0 ;
+  }
+  else if(node_type == _none_)
+  {
+    return argument;
+  }
+  else
+  {
+    cout << "Node type not included in the list of evaluation functions ! Exiting....  " << endl;
+    exit(0);
+  }
+
+}
+
+map< uint32_t, datatype > node :: return_gradient(void)
+{
+  map < uint32_t, datatype > gradient_info;
+
+
+  if(node_type == constant) // If constant then set the derivatives to zero
+  {
+    for(auto some_backward_node : backward_nodes)
+    {
+        gradient_info.push_back( make_pair(some_backward_node.first, 0.0) );
+    }
+    return gradient_info;
+  }
+
+  datatype argument = bias;
+  for( auto some_backward_node : backward_nodeds ) // compute the weighted sum of the inputs
+  {
+    argument += ( ( some_backward_node.second.second ) * ( current_inputs[some_backward_node.first] )  ); // weights * input_value
+  }
+
+  if(node_type == _tanh_ )
+  {
+    for(auto some_node : backward_nodes)
+    {
+      gradient_info.push_back( make_pair( some_node.first, some_node.second.second * (1 - pow(tanh(argument), 2)) ) );
+    }
+    return gradient_info;
+  }
+  else if(node_type == _sigmoid_ )
+  {
+    for(auto some_node : backward_nodes)
+    {
+      datatype buffer = (1.0/(1.0 + exp(-argument))) * (1.0 - (1.0/(1.0 + exp(-argument)))) ;
+      gradient_info.push_back( make_pair( some_node.first, some_node.second.second * buffer) );
+    }
+
+    return gradient_info;
+
+  }
+  else if (node_type == _relu_)
+  {
+    for(auto some_node : backward_nodes)
+    {
+      datatype buffer = ((argument > 0) ? argument : 0 ) ;
+      gradient_info.push_back( make_pair( some_node.first, some_node.second.second * buffer) );
+    }
+
+    return gradient_info;
+  }
+  else if (node_type == _none_)
+  {
+    for(auto some_node : backward_nodes)
+    {
+      gradient_info.push_back( make_pair( some_node.first, some_node.second.second );
+    }
+    return gradient_info;
+  }
+  else
+  {
+    cout << "Node type not included in the list of evaluation functions for derivative ! Exiting....  " << endl;
+    exit(0);
+  }
 }
