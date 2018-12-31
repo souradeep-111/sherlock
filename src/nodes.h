@@ -9,6 +9,7 @@
 #include <thread>
 #include <mutex>
 #include <ctime>
+#include <string>
 #include <ratio>
 #include <chrono>
 #include <assert.h>
@@ -16,8 +17,14 @@
 #include <algorithm>
 #include "network_computation.h"
 #include "gurobi_interface.h"
+#include <map>
 
 enum type {constant, _tanh_, _sigmoid_, _relu_, _none_ };
+const string const_string("constant");
+const string tanh_string("tanh");
+const string sigmoid_string("sigmoid");
+const string relu_string("relu");
+const string none_string("none");
 
 class node{
   private:
@@ -63,6 +70,7 @@ class node{
 
 };
 
+void print_map(map< uint32_t, double > some_map );
 
 // Here is a list of capabilities I want from the objects here :
 // There are two types of nodes, constant nodes, and computation nodes

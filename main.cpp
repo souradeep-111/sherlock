@@ -10,6 +10,7 @@ LICENSE : Please see the license file, in the main directory
 */
 
 #include "./src/propagate_intervals.h"
+#include "./src/computation_graph.h"
 // #include "./include/sherlock.h"
 
 
@@ -23,17 +24,74 @@ using namespace std::chrono;
 int main(int argc, char ** argv)
 {
 
-	map < int, pair< int, double > > map_of_pairs;
 
-	pair <int, double> mypair;
-	mypair.first = 101;
-	mypair.second = 10.1;
+	// testing the data structures built on a very small network which can be analysed etc
+	computation_graph sample_graph;
 
-	map_of_pairs.insert(pair<int, pair<int, double > > (1, mypair));
-	map_of_pairs.insert(pair<int, pair<int, double > > (2, mypair));
+	// The two input nodes to the graph declared as constants
+	node node_1(1, "constant");
+	sample_graph.add_new_node(1, node_1);
+	node node_2(2, "constant");
+	sample_graph.add_new_node(2, node_2);
 
-	cout << "Number of maps = " << map_of_pairs.size() << endl;
-	cout << "Element number 2 in it equals = " << map_of_pairs[2].first << "  " << map_of_pairs[2].second << endl;
+	// The internal nodes
+	node node_3(3, "relu");
+	sample_graph.add_new_node(3, node_3);
+	node node_4(4, "relu");
+	sample_graph.add_new_node(4, node_4);
+	node node_5(5, "relu");
+	sample_graph.add_new_node(5, node_5);
+	node node_6(6, "relu");
+	sample_graph.add_new_node(6, node_6);
+
+	// The output node
+	node node_7(7, "none");
+	sample_graph.add_new_node(7, node_7);
+
+
+	// First let's mark some of the nodes as inputs and outputs
+	sample_graph.mark_node_as_input(1);
+	sample_graph.mark_node_as_input(2);
+	sample_graph.mark_node_as_output(7);
+
+	// Now let's create the connections:
+
+	// first layer connections and bias
+	sample_graph.connect_node1_to_node2_with_weight(1,3,1.0);
+	sample_graph.connect_node1_to_node2_with_weight(1,4,1.0);
+	sample_graph.connect_node1_to_node2_with_weight(2,3,1.0);
+	sample_graph.connect_node1_to_node2_with_weight(2,4,-1.0);
+	sample_graph.set_bias_of_node(3, 0.0);
+	sample_graph.set_bias_of_node(4, 0.0);
+
+	sample_graph.connect_node1_to_node2_with_weight(3,5,1.0);
+	sample_graph.connect_node1_to_node2_with_weight(3,6,0.0);
+	sample_graph.connect_node1_to_node2_with_weight(4,5,0.0);
+	sample_graph.connect_node1_to_node2_with_weight(4,6,1.0);
+	sample_graph.set_bias_of_node(5,0.0);
+	sample_graph.set_bias_of_node(6,0.0);
+
+	sample_graph.connect_node1_to_node2_with_weight(5,7,0.5);
+	sample_graph.connect_node1_to_node2_with_weight(6,7,0.5);
+	sample_graph.set_bias_of_node(7, 0.0);
+
+	auto x = 5.0;
+	auto y = -2.0;
+	map< uint32_t, double > inputs;
+	inputs.insert(make_pair(1, x));
+	inputs.insert(make_pair(2, y));
+
+	map< uint32_t, double > outputs;
+	map< uint32_t, double > gradient;
+	sample_graph.evaluate_graph(inputs, outputs);
+	inputs.clear();
+	inputs.insert(make_pair(1, x));
+	inputs.insert(make_pair(2, y));
+	gradient = sample_graph.return_gradient_wrt_inputs(7, inputs);
+	cout << "Value at x = " << x << "  and y = " << y << " is " << outputs[7] << endl;
+	cout << "Gradient = [ " << gradient[1] << " , " << gradient[2] <<" ] " << endl;
+	exit(0);
+
 
 	int run_benchmark_no = -1;
 	char key[] = "all";

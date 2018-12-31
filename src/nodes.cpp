@@ -2,6 +2,7 @@
 
 using namespace std;
 
+bool debug_nodes = true;
 node :: node()
 {
     node_type = constant;
@@ -15,7 +16,7 @@ node :: node()
 node :: node(uint32_t node_index, string type_name)
 {
   assert(node_index > 0);
-  assert(strlen(type_name) > 0);
+  assert(type_name.length() > 0);
 
   node_id = node_index;
 
@@ -32,7 +33,7 @@ node :: node(uint32_t node_index, string type_name)
   node_type = _relu_;
   else if(type_name == "none")
   node_type = _none_;
-  else assert(false)
+  else assert(false);
 
 
   forward_nodes.clear();
@@ -106,15 +107,17 @@ void node :: set_node_val(datatype value)
 void node :: add_forward_connection(node * forward_node_ptr, datatype weight)
 {
   auto index_of_new_node = forward_node_ptr->get_node_number();
-  pair< node * , datatype > connection = makepair( forward_node_ptr, weight );
-  forward_nodes.push_back( makepair( index_of_new_node, connection) );
+  pair< node * , datatype > connection = make_pair( forward_node_ptr, weight );
+  forward_nodes.insert( make_pair( index_of_new_node, connection) );
 }
 
 void node :: add_backward_connection(node * backward_node_ptr, datatype weight)
 {
   auto index_of_new_node = backward_node_ptr->get_node_number();
-  pair< node * , datatype > connection = makepair( backward_node_ptr, weight );
-  backward_nodes.push_back( makepair( index_of_new_node, connection) );
+  pair< node * , datatype > connection = make_pair( backward_node_ptr, weight );
+  backward_nodes.insert( make_pair( index_of_new_node, connection) );
+
+
 }
 
 void node :: set_bias(datatype bias_value)
@@ -132,8 +135,9 @@ void node :: get_forward_connections(map< uint32_t , pair< node * , datatype > >
   assert(!forward_nodes.empty());
   forward_nodes_container = forward_nodes;
 }
-void nodes :: get_backward_connections(map< uint32_t , pair< node * , datatype > > & backward_nodes_container);
+void node :: get_backward_connections(map< uint32_t , pair< node * , datatype > > & backward_nodes_container)
 {
+
   assert(!backward_nodes.empty());
   backward_nodes_container = backward_nodes;
 }
@@ -141,7 +145,7 @@ void nodes :: get_backward_connections(map< uint32_t , pair< node * , datatype >
 
 void node :: set_inputs( map < uint32_t, datatype > & inputs )
 {
-  assert(!(inputs.empty()))
+  assert(!(inputs.empty()));
   assert(backward_nodes.size() == inputs.size());
   current_inputs = inputs;
 }
@@ -166,7 +170,7 @@ datatype node :: return_current_output(void)
   else if(node_type == _sigmoid_ )
   {
 
-    return (1.0/(1.0 + exp(-argument))
+    return (1.0/(1.0 + exp(-argument)));
   }
   else if (node_type == _relu_)
   {
@@ -186,6 +190,7 @@ datatype node :: return_current_output(void)
 
 map< uint32_t, datatype > node :: return_gradient(void)
 {
+
   map < uint32_t, datatype > gradient_info;
 
 
@@ -193,22 +198,25 @@ map< uint32_t, datatype > node :: return_gradient(void)
   {
     for(auto some_backward_node : backward_nodes)
     {
-        gradient_info.push_back( make_pair(some_backward_node.first, 0.0) );
+        gradient_info.insert( make_pair(some_backward_node.first, 0.0) );
     }
     return gradient_info;
   }
 
   datatype argument = bias;
-  for( auto some_backward_node : backward_nodeds ) // compute the weighted sum of the inputs
+  for( auto some_backward_node : backward_nodes ) // compute the weighted sum of the inputs
   {
     argument += ( ( some_backward_node.second.second ) * ( current_inputs[some_backward_node.first] )  ); // weights * input_value
   }
+
+
+
 
   if(node_type == _tanh_ )
   {
     for(auto some_node : backward_nodes)
     {
-      gradient_info.push_back( make_pair( some_node.first, some_node.second.second * (1 - pow(tanh(argument), 2)) ) );
+      gradient_info.insert( make_pair( some_node.first, some_node.second.second * (1 - pow(tanh(argument), 2)) ) );
     }
     return gradient_info;
   }
@@ -217,7 +225,7 @@ map< uint32_t, datatype > node :: return_gradient(void)
     for(auto some_node : backward_nodes)
     {
       datatype buffer = (1.0/(1.0 + exp(-argument))) * (1.0 - (1.0/(1.0 + exp(-argument)))) ;
-      gradient_info.push_back( make_pair( some_node.first, some_node.second.second * buffer) );
+      gradient_info.insert( make_pair( some_node.first, some_node.second.second * buffer) );
     }
 
     return gradient_info;
@@ -227,8 +235,8 @@ map< uint32_t, datatype > node :: return_gradient(void)
   {
     for(auto some_node : backward_nodes)
     {
-      datatype buffer = ((argument > 0) ? argument : 0 ) ;
-      gradient_info.push_back( make_pair( some_node.first, some_node.second.second * buffer) );
+      datatype buffer = ((argument > 0) ? 1.0 : 0.0 ) ;
+      gradient_info.insert( make_pair( some_node.first, some_node.second.second * buffer) );
     }
 
     return gradient_info;
@@ -237,7 +245,7 @@ map< uint32_t, datatype > node :: return_gradient(void)
   {
     for(auto some_node : backward_nodes)
     {
-      gradient_info.push_back( make_pair( some_node.first, some_node.second.second );
+      gradient_info.insert( make_pair( some_node.first, some_node.second.second ));
     }
     return gradient_info;
   }
@@ -246,4 +254,15 @@ map< uint32_t, datatype > node :: return_gradient(void)
     cout << "Node type not included in the list of evaluation functions for derivative ! Exiting....  " << endl;
     exit(0);
   }
+}
+
+
+void print_map(map< uint32_t, double > some_map )
+{
+  cout << "[ " ;
+  for(auto map_element : some_map)
+  {
+      cout <<  map_element.first  << " : " << map_element.second << " , ";
+  }
+  cout << " ] " << endl;
 }

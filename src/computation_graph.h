@@ -4,7 +4,8 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include "node.h"
+#include "nodes.h"
+#include <map>
 
 class computation_graph
 {
@@ -19,12 +20,12 @@ class computation_graph
 
     void add_new_node(uint32_t node_id, node & node_to_add);
 
-    void mark_node_as_input(int input_node_number);
-    void mark_node_as_output(int output_node_number);
+    void mark_node_as_input(uint32_t input_node_number);
+    void mark_node_as_output(uint32_t output_node_number);
 
     void connect_node1_to_node2_with_weight(uint32_t node_1_index, uint32_t node_2_index,
                                             datatype weight);
-    void set_bias_of_node(node node_id, datatype bias);
+    void set_bias_of_node(uint32_t node_id, datatype bias);
 
     datatype evaluate_node( uint32_t node_id , map< uint32_t , double > & table );
     void evaluate_graph(map < uint32_t , double > input_node_and_value ,
@@ -38,6 +39,8 @@ class computation_graph
 
 
 };
+
+
 
 // Here is the plan for generating constraints from the computation graph you have.
 // First, the terminal condition is the following :

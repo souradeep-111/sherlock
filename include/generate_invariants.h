@@ -8,6 +8,6 @@ class network_invariants
   private:
     int n;
 
-}
+};
 
 #endif

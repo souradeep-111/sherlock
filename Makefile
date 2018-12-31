@@ -14,7 +14,8 @@ CXXFLAGS = -MMD -I . -I ./src  -I /usr/local/include/ -I $(GUROBI_INCLUDEDIR) -g
 
 LINK_FLAGS = -g -L ./ -L /usr/local/lib/ -L $(GUROBI_LIBDIR)
 
-OBJS = ./src/propagate_intervals.o ./src/network_computation.o ./src/gurobi_interface.o ./src/configuration.o ./main.o
+OBJS = ./src/propagate_intervals.o ./src/network_computation.o ./src/gurobi_interface.o \
+./src/configuration.o ./src/nodes.o ./src/computation_graph.o ./main.o
 DEPENDS = ${OBJECTS:.o=.d}
 
 
@@ -30,7 +31,7 @@ run_file: main.o $(OBJS)
 	$(CXX) -O3 -w $(LINK_FLAGS) -o $@ $^ $(LIBS)
 
 %.o: %.cc
-	$(CXX) -O3 -c $(CXXFLAGS) -o $@ $< $(LIBS) 
+	$(CXX) -O3 -c $(CXXFLAGS) -o $@ $< $(LIBS)
 %.o: %.cpp
 	$(CXX) -O3 -c $(CXXFLAGS) -o $@ $< $(LIBS)
 %.o: %.c
@@ -39,6 +40,7 @@ run_file: main.o $(OBJS)
 clean:
 	rm -f ./src/*.o *.o ./run_file ./lib/* \
 	./include/configuration.h ./include/gurobi_interface.h \
-	./include/network_computation.h ./include/propagate_intervals.h
+	./include/network_computation.h ./include/propagate_intervals.h \
+	./include/nodes.h ./include/computation_graph.h
 
 -include ${DEPENDS}
