@@ -229,15 +229,14 @@ map< uint32_t, datatype > computation_graph :: compute_gradient_wrt_inputs(uint3
 
     if(debug)
     {
-      cout << "Gradient for node " << node_id << endl;
-      print_map(memoized_table[node_id]);
-      cout << "Done with gradient computation for node = " << node_id << endl;
+      cout << "Picking up gradient computed from memory for node " << node_id << endl;
     }
     return memoized_table[node_id];
   }
   else
     {
-        auto current_node = all_nodes[node_id];
+        auto & current_node = all_nodes[node_id];
+        map< uint32_t, double > grad_of_an_input_to_the_node_wrt_graph_inputs;
         map< uint32_t, double > gradient_wrt_inputs_to_the_node = current_node.return_gradient();
         map< uint32_t, pair< node * , double > > input_nodes_to_the_current_node;
         current_node.get_backward_connections( input_nodes_to_the_current_node );
@@ -246,17 +245,25 @@ map< uint32_t, datatype > computation_graph :: compute_gradient_wrt_inputs(uint3
         for(auto each_input_to_the_node : input_nodes_to_the_current_node )
         {
           auto input_node_index = each_input_to_the_node.first;
-          auto grad_of_an_input_to_the_node_wrt_graph_inputs = compute_gradient_wrt_inputs(input_node_index, input_node_and_value, memoized_table);
+
+          grad_of_an_input_to_the_node_wrt_graph_inputs = compute_gradient_wrt_inputs(input_node_index, input_node_and_value, memoized_table);
+          if(debug)
+          {
+            cout << "For node : " << node_id << " trying to get gradient for input number " << input_node_index << endl;
+            cout << "which has size = " << grad_of_an_input_to_the_node_wrt_graph_inputs.size() << " and contents " << endl;
+            print_map(grad_of_an_input_to_the_node_wrt_graph_inputs);
+          }
           gradient_matrix.insert(make_pair( input_node_index, grad_of_an_input_to_the_node_wrt_graph_inputs));
         }
 
         if(debug)
         {
           cout << "For node " << node_id << " gradient matrix computed :" << endl;
-          for(auto input_node : input_nodes)
+          cout << "Gradient matrix computed has size = " << gradient_matrix.size() << endl;
+          for(auto each_input_to_the_node : input_nodes_to_the_current_node)
           {
-            cout << "For input number : " << input_node << " gradient : " << endl;
-            print_map(gradient_matrix[input_node]);
+            cout << "For input number : " << each_input_to_the_node.first << " gradient : " << endl;
+            print_map(gradient_matrix[each_input_to_the_node.first]);
 
           }
 
