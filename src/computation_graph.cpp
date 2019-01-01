@@ -250,26 +250,10 @@ map< uint32_t, datatype > computation_graph :: compute_gradient_wrt_inputs(uint3
           if(debug)
           {
             cout << "For node : " << node_id << " trying to get gradient for input number " << input_node_index << endl;
-            cout << "which has size = " << grad_of_an_input_to_the_node_wrt_graph_inputs.size() << " and contents " << endl;
-            print_map(grad_of_an_input_to_the_node_wrt_graph_inputs);
           }
           gradient_matrix.insert(make_pair( input_node_index, grad_of_an_input_to_the_node_wrt_graph_inputs));
         }
 
-        if(debug)
-        {
-          cout << "For node " << node_id << " gradient matrix computed :" << endl;
-          cout << "Gradient matrix computed has size = " << gradient_matrix.size() << endl;
-          for(auto each_input_to_the_node : input_nodes_to_the_current_node)
-          {
-            cout << "For input number : " << each_input_to_the_node.first << " gradient : " << endl;
-            print_map(gradient_matrix[each_input_to_the_node.first]);
-
-          }
-
-          cout << "For node " << node_id << " gradient wrt node inputs : " << endl;
-          print_map(gradient_wrt_inputs_to_the_node) ;
-        }
         // Compute the gradient wrt inputs
         map < uint32_t, double > gradient_wrt_inputs_to_the_graph;
         for(auto each_input_to_the_comp_graph : input_node_and_value)

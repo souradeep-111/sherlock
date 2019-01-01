@@ -60,7 +60,7 @@ int main(int argc, char ** argv)
 	sample_graph.connect_node1_to_node2_with_weight(1,3,1.0);
 	sample_graph.connect_node1_to_node2_with_weight(1,4,1.0);
 	sample_graph.connect_node1_to_node2_with_weight(2,3,1.0);
-	sample_graph.connect_node1_to_node2_with_weight(2,4,-1.0);
+	sample_graph.connect_node1_to_node2_with_weight(2,4,-0.5);
 	sample_graph.set_bias_of_node(3, 0.0);
 	sample_graph.set_bias_of_node(4, 0.0);
 

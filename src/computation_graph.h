@@ -38,6 +38,7 @@ class computation_graph
                                                           map< uint32_t, map< uint32_t,  double > > & memoized_table);
 
 
+    void return_ref_to_all_nodes(map< uint32_t, node > & all_nodes);
 };
 
 
