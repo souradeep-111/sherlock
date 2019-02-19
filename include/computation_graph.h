@@ -8,6 +8,7 @@
 #include <mutex>
 #include <thread>
 #include <map>
+#include <time.h>
 
 class computation_graph
 {
@@ -31,14 +32,18 @@ class computation_graph
 
     friend void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t , double > & table,
                               int& threads_available , double & ret_val, int thread_id);
+
     void evaluate_graph(map < uint32_t , double > input_node_and_value ,
                         map < uint32_t, double > & output_node_and_value);
     map< uint32_t, datatype > return_gradient_wrt_inputs(uint32_t node_id,
                                                          map < uint32_t, double > & input_node_and_value );
 
-    map< uint32_t, datatype > compute_gradient_wrt_inputs(uint32_t node_id,
-                                                          map< uint32_t, double > & input_node_and_value,
-                                                          map< uint32_t, map< uint32_t,  double > > & memoized_table);
+    friend void compute_gradient_wrt_inputs( computation_graph & c_graph,
+                                             uint32_t node_id,
+                                             map< uint32_t, double > & input_node_and_value,
+                                             map< uint32_t, map< uint32_t,  double > > & memoized_table,
+                                             int & available_threads,
+                                             map< uint32_t, double > & result , int thread_id);
 
 
     void return_ref_to_all_nodes(map< uint32_t, node > & map_of_nodes);

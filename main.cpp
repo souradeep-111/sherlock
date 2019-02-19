@@ -173,12 +173,12 @@ int main(int argc, char ** argv)
 
 	map< uint32_t, double > outputs;
 	map< uint32_t, double > gradient;
-	sample_graph_b.evaluate_graph(inputs, outputs);
+	// sample_graph_b.evaluate_graph(inputs, outputs);
 	inputs.clear();
 	inputs.insert(make_pair(1, x));
 	inputs.insert(make_pair(2, y));
 	gradient = sample_graph_b.return_gradient_wrt_inputs(10, inputs);
-	cout << "Value at x = " << x << "  and y = " << y << " is " << outputs[10] << endl;
+	// cout << "Value at x = " << x << "  and y = " << y << " is " << outputs[10] << endl;
 	cout << "Gradient = [ " << gradient[1] << " , " << gradient[2] <<" ] " << endl;
 
 
