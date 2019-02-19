@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 #include "nodes.h"
+#include <mutex>
+#include <thread>
 #include <map>
 
 class computation_graph
@@ -27,7 +29,8 @@ class computation_graph
                                             datatype weight);
     void set_bias_of_node(uint32_t node_id, datatype bias);
 
-    datatype evaluate_node( uint32_t node_id , map< uint32_t , double > & table );
+    friend void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t , double > & table,
+                              int& threads_available , double & ret_val, int thread_id);
     void evaluate_graph(map < uint32_t , double > input_node_and_value ,
                         map < uint32_t, double > & output_node_and_value);
     map< uint32_t, datatype > return_gradient_wrt_inputs(uint32_t node_id,
@@ -38,6 +41,8 @@ class computation_graph
                                                           map< uint32_t, map< uint32_t,  double > > & memoized_table);
 
 
+    void return_ref_to_all_nodes(map< uint32_t, node > & map_of_nodes);
+    void return_id_of_input_output_nodes(vector< uint32_t > & in_nodes , vector< uint32_t > & op_nodes );
 };
 
 

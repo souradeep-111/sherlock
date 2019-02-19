@@ -1,6 +1,8 @@
 #include "computation_graph.h"
 bool debug = true;
+std::mutex mtx;
 
+using namespace std;
 computation_graph :: computation_graph()
 {
   all_nodes.clear();
@@ -94,53 +96,140 @@ void computation_graph :: evaluate_graph(map < uint32_t, double > input_node_and
 
   for(auto & output_values : output_node_and_value)
   {
-    output_values.second = evaluate_node(output_values.first, memoized_table);
+    evaluate_node(*this, output_values.first, memoized_table, sherlock_parameters.thread_count, output_values.second, output_values.first);
   }
 
 
 }
 
-datatype computation_graph :: evaluate_node( uint32_t node_id , map< uint32_t , double > & table )
+void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t , double > & table,
+                   int & available_threads, double & ret_val , int thread_id)
 {
 
-  auto & current_node = all_nodes[node_id];
 
-  map< uint32_t , pair< node * , datatype > > backward_connections;
-  current_node.get_backward_connections(backward_connections);
-  map< uint32_t, double > inputs_to_the_node;
+    mtx.lock();
+    auto & current_node = c_graph.all_nodes[node_id];
+    mtx.unlock();
 
+    map< uint32_t , pair< node * , datatype > > backward_connections;
+    current_node.get_backward_connections(backward_connections);
 
-  for(auto some_connection : backward_connections)
-  {
-    auto input_node_ptr = some_connection.second.first;
+    vector< thread > vector_of_threads_created;
 
-    if(  input_node_ptr->return_node_type() == const_string) // If a constant node then just get the value and store in the table
+    for(auto some_connection : backward_connections)
     {
-      pair< uint32_t , double > node_and_value = make_pair(some_connection.first, input_node_ptr->return_current_output()) ;
-      inputs_to_the_node.insert( node_and_value ) ;
-      table.insert(node_and_value);
+      auto input_node_ptr = some_connection.second.first;
+
+      if(  input_node_ptr->return_node_type() == const_string) // If a constant node then just get the value and store in the table
+      {
+        pair< uint32_t , double > node_and_value = make_pair(some_connection.first, input_node_ptr->return_current_output()) ;
+        mtx.lock();
+        table.insert(node_and_value);
+        mtx.unlock();
+        continue;
+      }
+
+      // check if the value is already in the table
+      mtx.lock();
+      bool value_in_the_table = ( ( table.find(input_node_ptr->get_node_number())  == table.end() ) ? (false) : (true) ) ;
+      mtx.unlock();
+      if( value_in_the_table )
+      {
+        mtx.lock();
+        pair< uint32_t , double > node_and_value = make_pair(some_connection.first, table[input_node_ptr->get_node_number()] ) ;
+        mtx.unlock();
+      }
+      else // make  a recursive call to the inputs, get the value and compute
+      {
+        if(available_threads == 1)
+        {
+          double buffer;
+          evaluate_node(c_graph, some_connection.first, table, available_threads, buffer, thread_id);
+          pair< uint32_t, double > node_and_value = make_pair(some_connection.first, buffer);
+          mtx.lock();
+          table.insert(node_and_value);
+          mtx.unlock();
+        }
+        else
+        {
+
+          available_threads--;
+          if(debug)
+          {
+            mtx.lock();
+            cout << "Starting a thread from node number = " << some_connection.first << endl;
+            cout << "Available threads = " << available_threads << endl;
+            mtx.unlock();
+          }
+
+          double buffer;
+          thread current_thread(evaluate_node,
+                                ref(c_graph),
+                                some_connection.first,
+                                ref(table),
+                                ref(available_threads),
+                                ref(buffer),
+                                some_connection.first) ;
+
+          vector_of_threads_created.push_back(move(current_thread));
+        }
+
+      }
 
     }
-    else if( table.find(input_node_ptr->get_node_number())  != table.end() ) // check if the value is already in the table
+
+    for (thread & some_thread : vector_of_threads_created)
     {
+    	if (some_thread.joinable())
+      {
+        some_thread.join();
+        available_threads++;
+        if(debug)
+        {
+          mtx.lock();
+          cout << "Some thread ended" << endl;
+          cout << "Available threads = " << available_threads << endl;
+          mtx.unlock();
+        }
+      }
+
+    }
+
+    // Since the input to all the nodes is ready, compute the output now
+
+    map< uint32_t, double > inputs_to_the_node;
+    for(auto some_connection : backward_connections)
+    {
+      auto input_node_ptr = some_connection.second.first;
+
+      mtx.lock();
+      bool value_in_the_table = ( ( table.find(input_node_ptr->get_node_number())  == table.end() ) ? (false) : (true) ) ;
+      mtx.unlock();
+      assert( value_in_the_table );
+
+      mtx.lock();
       pair< uint32_t , double > node_and_value = make_pair(some_connection.first, table[input_node_ptr->get_node_number()] ) ;
+      mtx.unlock();
+
       inputs_to_the_node.insert(node_and_value);
-
     }
-    else // make  a recursive call to the inputs, get the value and compute
+
+    current_node.set_inputs(inputs_to_the_node);
+    double result = current_node.return_current_output();
+
+    mtx.lock();
+    table.insert( make_pair ( node_id , result ) );
+    if(debug)
     {
-      inputs_to_the_node[some_connection.first] = evaluate_node(some_connection.first, table);
-      pair< uint32_t, double > node_and_value = make_pair(some_connection.first, inputs_to_the_node[some_connection.first]);
-      table.insert(node_and_value);
+      cout << "Computed value of node_id : " << node_id << " as " << result << " in thread id = " << thread_id <<  endl;
+      cout << "Available threads = " << available_threads << endl;
+
     }
+    mtx.unlock();
 
-  }
-  current_node.set_inputs(inputs_to_the_node);
-  datatype result = current_node.return_current_output();
+    ret_val = result;
 
-  table.insert( make_pair ( node_id , result ) );
 
-  return result;
 
 }
 
@@ -281,4 +370,15 @@ map< uint32_t, datatype > computation_graph :: compute_gradient_wrt_inputs(uint3
 
 
 
+}
+
+void computation_graph :: return_ref_to_all_nodes(map< uint32_t , node > & map_of_nodes)
+{
+  map_of_nodes = all_nodes;
+}
+
+void computation_graph :: return_id_of_input_output_nodes(vector< uint32_t > & in_nodes , vector< uint32_t > & op_nodes )
+{
+  in_nodes = input_nodes;
+  op_nodes = output_nodes;
 }

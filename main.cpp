@@ -26,54 +26,144 @@ int main(int argc, char ** argv)
 
 
 	// testing the data structures built on a very small network which can be analysed etc
-	computation_graph sample_graph;
+	// computation_graph sample_graph;
+	//
+	// // The two input nodes to the graph declared as constants
+	// node node_1(1, "constant");
+	// sample_graph.add_new_node(1, node_1);
+	// node node_2(2, "constant");
+	// sample_graph.add_new_node(2, node_2);
+	//
+	// // The internal nodes
+	// node node_3(3, "relu");
+	// sample_graph.add_new_node(3, node_3);
+	// node node_4(4, "relu");
+	// sample_graph.add_new_node(4, node_4);
+	// node node_5(5, "relu");
+	// sample_graph.add_new_node(5, node_5);
+	// node node_6(6, "relu");
+	// sample_graph.add_new_node(6, node_6);
+	//
+	// // The output node
+	// node node_7(7, "none");
+	// sample_graph.add_new_node(7, node_7);
+	//
+	//
+	// // First let's mark some of the nodes as inputs and outputs
+	// sample_graph.mark_node_as_input(1);
+	// sample_graph.mark_node_as_input(2);
+	// sample_graph.mark_node_as_output(7);
+	//
+	// // Now let's create the connections:
+	//
+	// // first layer connections and bias
+	// sample_graph.connect_node1_to_node2_with_weight(1,3,1.0);
+	// sample_graph.connect_node1_to_node2_with_weight(1,4,1.0);
+	// sample_graph.connect_node1_to_node2_with_weight(2,3,1.0);
+	// sample_graph.connect_node1_to_node2_with_weight(2,4,-0.5);
+	// sample_graph.set_bias_of_node(3, 0.0);
+	// sample_graph.set_bias_of_node(4, 0.0);
+	//
+	// sample_graph.connect_node1_to_node2_with_weight(3,5,1.0);
+	// sample_graph.connect_node1_to_node2_with_weight(3,6,0.0);
+	// sample_graph.connect_node1_to_node2_with_weight(4,5,0.0);
+	// sample_graph.connect_node1_to_node2_with_weight(4,6,1.0);
+	// sample_graph.set_bias_of_node(5,0.0);
+	// sample_graph.set_bias_of_node(6,0.0);
+	//
+	// sample_graph.connect_node1_to_node2_with_weight(5,7,0.5);
+	// sample_graph.connect_node1_to_node2_with_weight(6,7,0.5);
+	// sample_graph.set_bias_of_node(7, 0.0);
+	//
+	// auto x = 5.0;
+	// auto y = -2.0;
+	// map< uint32_t, double > inputs;
+	// inputs.insert(make_pair(1, x));
+	// inputs.insert(make_pair(2, y));
+	//
+	// map< uint32_t, double > outputs;
+	// map< uint32_t, double > gradient;
+	// sample_graph.evaluate_graph(inputs, outputs);
+	// inputs.clear();
+	// inputs.insert(make_pair(1, x));
+	// inputs.insert(make_pair(2, y));
+	// gradient = sample_graph.return_gradient_wrt_inputs(7, inputs);
+	// cout << "Value at x = " << x << "  and y = " << y << " is " << outputs[7] << endl;
+	// cout << "Gradient = [ " << gradient[1] << " , " << gradient[2] <<" ] " << endl;
 
+	computation_graph sample_graph_b;
+
+	sherlock_parameters.thread_count = 5;
 	// The two input nodes to the graph declared as constants
-	node node_1(1, "constant");
-	sample_graph.add_new_node(1, node_1);
-	node node_2(2, "constant");
-	sample_graph.add_new_node(2, node_2);
+	node node_1_b(1, "constant");
+	sample_graph_b.add_new_node(1, node_1_b);
+	node node_2_b(2, "constant");
+	sample_graph_b.add_new_node(2, node_2_b);
 
 	// The internal nodes
-	node node_3(3, "relu");
-	sample_graph.add_new_node(3, node_3);
-	node node_4(4, "relu");
-	sample_graph.add_new_node(4, node_4);
-	node node_5(5, "relu");
-	sample_graph.add_new_node(5, node_5);
-	node node_6(6, "relu");
-	sample_graph.add_new_node(6, node_6);
+	node node_3_b(3, "relu");
+	sample_graph_b.add_new_node(3, node_3_b);
+	node node_4_b(4, "relu");
+	sample_graph_b.add_new_node(4, node_4_b);
+	node node_5_b(5, "relu");
+	sample_graph_b.add_new_node(5, node_5_b);
+	node node_6_b(6, "relu");
+	sample_graph_b.add_new_node(6, node_6_b);
+	node node_7_b(7, "relu");
+	sample_graph_b.add_new_node(7, node_7_b);
+	node node_8_b(8, "relu");
+	sample_graph_b.add_new_node(8, node_8_b);
+	node node_9_b(9, "relu");
+	sample_graph_b.add_new_node(9, node_9_b);
 
 	// The output node
-	node node_7(7, "none");
-	sample_graph.add_new_node(7, node_7);
+	node node_10_b(10, "none");
+	sample_graph_b.add_new_node(10, node_10_b);
 
 
 	// First let's mark some of the nodes as inputs and outputs
-	sample_graph.mark_node_as_input(1);
-	sample_graph.mark_node_as_input(2);
-	sample_graph.mark_node_as_output(7);
+	sample_graph_b.mark_node_as_input(1);
+	sample_graph_b.mark_node_as_input(2);
+	sample_graph_b.mark_node_as_output(10);
 
 	// Now let's create the connections:
 
 	// first layer connections and bias
-	sample_graph.connect_node1_to_node2_with_weight(1,3,1.0);
-	sample_graph.connect_node1_to_node2_with_weight(1,4,1.0);
-	sample_graph.connect_node1_to_node2_with_weight(2,3,1.0);
-	sample_graph.connect_node1_to_node2_with_weight(2,4,-0.5);
-	sample_graph.set_bias_of_node(3, 0.0);
-	sample_graph.set_bias_of_node(4, 0.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(1,3,1.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(2,3,1.0);
+	sample_graph_b.set_bias_of_node(3, 0.0);
 
-	sample_graph.connect_node1_to_node2_with_weight(3,5,1.0);
-	sample_graph.connect_node1_to_node2_with_weight(3,6,0.0);
-	sample_graph.connect_node1_to_node2_with_weight(4,5,0.0);
-	sample_graph.connect_node1_to_node2_with_weight(4,6,1.0);
-	sample_graph.set_bias_of_node(5,0.0);
-	sample_graph.set_bias_of_node(6,0.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(1,4,1.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(2,4,1.0);
+	sample_graph_b.set_bias_of_node(4, 0.0);
 
-	sample_graph.connect_node1_to_node2_with_weight(5,7,0.5);
-	sample_graph.connect_node1_to_node2_with_weight(6,7,0.5);
-	sample_graph.set_bias_of_node(7, 0.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(3,5,1.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(4,5,0.0);
+	sample_graph_b.set_bias_of_node(5, 0.0);
+
+	sample_graph_b.connect_node1_to_node2_with_weight(3,6,1.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(4,6,0.0);
+	sample_graph_b.set_bias_of_node(6, 0.0);
+
+	sample_graph_b.connect_node1_to_node2_with_weight(3,7,1.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(4,7,1.0);
+	sample_graph_b.set_bias_of_node(7, 0.0);
+
+	sample_graph_b.connect_node1_to_node2_with_weight(3,8,0.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(4,8,1.0);
+	sample_graph_b.set_bias_of_node(8, 0.0);
+
+	sample_graph_b.connect_node1_to_node2_with_weight(3,9,0.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(4,9,1.0);
+	sample_graph_b.set_bias_of_node(9, 0.0);
+
+	sample_graph_b.connect_node1_to_node2_with_weight(5,10,1.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(6,10,1.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(7,10,1.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(8,10,1.0);
+	sample_graph_b.connect_node1_to_node2_with_weight(9,10,1.0);
+	sample_graph_b.set_bias_of_node(10, 0.0);
+
 
 	auto x = 5.0;
 	auto y = -2.0;
@@ -83,13 +173,16 @@ int main(int argc, char ** argv)
 
 	map< uint32_t, double > outputs;
 	map< uint32_t, double > gradient;
-	sample_graph.evaluate_graph(inputs, outputs);
+	sample_graph_b.evaluate_graph(inputs, outputs);
 	inputs.clear();
 	inputs.insert(make_pair(1, x));
 	inputs.insert(make_pair(2, y));
-	gradient = sample_graph.return_gradient_wrt_inputs(7, inputs);
-	cout << "Value at x = " << x << "  and y = " << y << " is " << outputs[7] << endl;
+	gradient = sample_graph_b.return_gradient_wrt_inputs(10, inputs);
+	cout << "Value at x = " << x << "  and y = " << y << " is " << outputs[10] << endl;
 	cout << "Gradient = [ " << gradient[1] << " , " << gradient[2] <<" ] " << endl;
+
+
+
 	exit(0);
 
 

@@ -8,7 +8,7 @@ GUROBI_INCLUDEDIR=$(strip $(GUROBI_PATH))/$(strip $(HOST_ARCH))/include/
 GUROBI_LIBDIR=$(strip $(GUROBI_PATH))/$(strip $(HOST_ARCH))/lib/
 
 
-LIBS = -lgurobi_c++ -lgurobi80 -lm -D_GLIBCXX_USE_CXX11_ABI=0 -m64 -w
+LIBS = -lgurobi_c++ -lgurobi80 -lm -D_GLIBCXX_USE_CXX11_ABI=0 -m64 -w -pthread
 
 CXXFLAGS = -MMD -I . -I ./src  -I /usr/local/include/ -I $(GUROBI_INCLUDEDIR) -g -O3 -std=c++11
 

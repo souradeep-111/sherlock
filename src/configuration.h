@@ -46,6 +46,9 @@ struct parameter_values
   bool do_incremental_MILP; // (1)
   bool do_LP_certificate;
 
+
+  int thread_count;
+
   parameter_values()
   {
     no_of_sub_divisions = 10;
@@ -87,6 +90,8 @@ struct parameter_values
     do_incremental_MILP = true;
 
     do_LP_certificate = false;
+
+    thread_count = 4;
   }
 
   // void print_parameter_values()

@@ -7,24 +7,31 @@
 #include <limits>
 #include "configuration.h"
 #include <map>
+#include "computation_graph.h"
+#include "region_constraints.h"
 using namespace std;
+
+extern parameter_values sherlock_parameters;
 
 class constraints_stack
 {
 private:
-  // some gurobi object
-  // some variable list for the real variables involved in the encoding
-  // some variaable list for the binary variables involved in the encoding
-  // some reference to all the nodes in the computation graph
-  // something which keeps track of the big - M for every node
+  GRBEnv * env_ptr;
+  GRBModel * model_ptr;
+  map< uint32_t, GRBVar > neurons;
+  vector< GRBVar > binaries;
+  map< uint32_t, node > & all_nodes;
+  map< uint32_t, pair< double , double > > input_ranges;
+
 public:
 
-  // some constructor
-  // some function which adds all the nodes in the graph to an instance of this class
-  // something which does a b-f-s traversal over the graph and creates the big-M things
-  // something which does a b-f-s traversal over the graph and generate the constraints
-  // something which relates the inputs and outputs of a node depending on which type of node it is
-  // and given the variables for the inputs and outputs, and also add the extra binary variables required
+  constraints_stack();
+  void feed_computation_graph(computation_graph & CG);
+  void create_the_input_overapproximation();
+  void generate_graph_constraints();
+  void generate_node_constraints();
+  void relate_input_output(type node_type, GRBVar input_var, GRBVar output_var);
+  void add_invariants();
 };
 
 #endif
