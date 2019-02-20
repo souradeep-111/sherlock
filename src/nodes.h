@@ -55,6 +55,7 @@ class node{
     void set_node_type(string type_name);
     string return_node_type();
 
+
     void set_node_val(datatype value);
 
     void add_forward_connection(node * forward_node_ptr, datatype weight );

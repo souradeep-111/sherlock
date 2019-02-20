@@ -44,6 +44,29 @@ void computation_graph :: mark_node_as_output(uint32_t node_id)
   no_of_output_nodes++;
 }
 
+string computation_graph :: return_node_position(uint32_t node_index)
+{
+  if(find(input_nodes.begin(), input_nodes.end(), node_index) == input_nodes.end())
+  {
+    string return_string("input_node");
+    return return_string;
+  }
+  else if(find(output_nodes.begin(), output_nodes.end(), node_index) == output_nodes.end())
+  {
+    string return_string("output_node");
+    return return_string;
+  }
+  else
+  {
+    string return_string("internal_node");
+    return return_string;
+  }
+
+  string return_string("none");
+  return return_string;
+}
+
+
 void computation_graph :: connect_node1_to_node2_with_weight(
   uint32_t node_1_index, uint32_t node_2_index, datatype weight)
 {
