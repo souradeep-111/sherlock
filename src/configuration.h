@@ -92,6 +92,7 @@ struct parameter_values
     do_LP_certificate = false;
 
     thread_count = 4;
+    thread_count_for_constraint_generation = 5;
   }
 
   // void print_parameter_values()
