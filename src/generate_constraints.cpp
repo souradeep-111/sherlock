@@ -284,3 +284,117 @@ void constraints_stack :: add_invariants()
   // Make a call to the right function in generate invariants and do the implementation
 
 }
+
+bool constraints_stack :: optimize(uint32_t node_index, bool direction, map< uint32_t, double > neuron_value)
+{
+  GRBLinExpr objective_expr;
+  objective_expr = 0;
+  double data = 1.0;
+
+  objective_expr.addTerms(& data, & neurons[node_index] , 1);
+
+   if(direction)
+   {
+     model_ptr->setObjective(objective_expr, GRB_MINIMIZE);
+   }
+   else
+   {
+     model_ptr->setObjective(objective_expr, GRB_MAXIMIZE);
+   }
+
+
+   model_ptr->optimize();
+   model_ptr->update();
+
+
+   string s = "./Gurobi_file_created/Linear_program_formed_as_txt";
+   model_ptr->write(s);
+
+   if(model_ptr->get(GRB_IntAttr_Status) == GRB_OPTIMAL)
+   {
+       neuron_value.clear();
+       for(auto & some_neuron : neurons)
+       {
+         neuron_value[some_neuron.first] = some_neuron.second.get(GRB_DoubleAttr_X);
+       }
+       nodes_explored_last_optimization = model_ptr->get(GRB_DoubleAttr_NodeCount);
+       return true;
+   }
+   else if(model_ptr->get(GRB_IntAttr_Status) == GRB_INFEASIBLE)
+   {
+       neuron_value.clear();
+       nodes_explored_last_optimization = model_ptr->get(GRB_DoubleAttr_NodeCount);
+       return false;
+   }
+   else
+   {
+       cout << "Some unkown Gurobi flag !" << endl;
+       cout << "Flag returned - " << model_ptr->get(GRB_IntAttr_Status) << endl;
+       assert(false);
+       return false;
+   }
+
+   return false;
+
+
+}
+
+bool constraints_stack :: optimize_enough(uint32_t node_index, double current_optima, bool direction, map< uint32_t, double > neuron_value)
+{
+  GRBLinExpr objective_expr;
+  objective_expr = 0;
+  double data = 1.0;
+
+  objective_expr.addTerms(& data, & neurons[node_index] , 1);
+
+   if(direction)
+   {
+     data = current_optima + sherlock_parameters.MILP_tolerance;
+     model_ptr->getEnv().set(GRB_IntParam_SolutionLimit, 1);
+     model_ptr->getEnv().set(GRB_DoubleParam_Cutoff, data);
+
+     model_ptr->setObjective(objective_expr, GRB_MINIMIZE);
+   }
+   else
+   {
+     data = current_optima - sherlock_parameters.MILP_tolerance;
+     model_ptr->getEnv().set(GRB_IntParam_SolutionLimit, 1);
+     model_ptr->getEnv().set(GRB_DoubleParam_Cutoff, data);
+
+     model_ptr->setObjective(objective_expr, GRB_MAXIMIZE);
+   }
+
+
+   model_ptr->update();
+   model_ptr->optimize();
+
+
+   string s = "./Gurobi_file_created/Linear_program_formed_as_txt";
+   model_ptr->write(s);
+
+   if((model_ptr->get(GRB_IntAttr_Status) == GRB_OPTIMAL) || (model_ptr->get(GRB_IntAttr_Status) == GRB_SOLUTION_LIMIT) )
+   {
+       neuron_value.clear();
+       for(auto & some_neuron : neurons)
+       {
+         neuron_value[some_neuron.first] = some_neuron.second.get(GRB_DoubleAttr_X);
+       }
+       nodes_explored_last_optimization = model_ptr->get(GRB_DoubleAttr_NodeCount);
+       return true;
+   }
+   else if((model_ptr->get(GRB_IntAttr_Status) == GRB_INFEASIBLE) || (model_ptr->get(GRB_IntAttr_Status) == GRB_CUTOFF) )
+   {
+       neuron_value.clear();
+       nodes_explored_last_optimization = model_ptr->get(GRB_DoubleAttr_NodeCount);
+       return false;
+   }
+   else
+   {
+       cout << "Some unkown Gurobi flag !" << endl;
+       cout << "Flag returned - " << model_ptr->get(GRB_IntAttr_Status) << endl;
+       assert(false);
+       return false;
+   }
+
+   return false;
+}

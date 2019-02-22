@@ -28,6 +28,7 @@ private:
 
 public:
 
+  uint32_t nodes_explored_last_optimization;
   constraints_stack();
   void feed_computation_graph(computation_graph & CG);
   void create_the_input_overapproximation();
