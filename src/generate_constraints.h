@@ -35,9 +35,10 @@ public:
   void generate_graph_constraints();
   void generate_node_constraints();
   void relate_input_output(type node_type, GRBVar input_var, GRBVar output_var);
+  void delete_and_reinitialize();
   void add_invariants();
 
-  void optimize(uint32_t node_number);
+  void optimize(uint32_t node_number, bool direction);
   void optimize_enough(uint32_t node_number, double level);
 
   friend void add_constraints_for_node();

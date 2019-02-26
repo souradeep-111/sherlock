@@ -279,13 +279,31 @@ void constraints_stack :: relate_input_output(type node_type, node current_node,
   }
 }
 
+void constraints_stack :: delete_and_reinitialize()
+{
+  if(model_ptr)
+    delete model_ptr;
+  if(delete_ptr)
+    delete env_ptr;
+
+  env_ptr = new GRBEnv();
+  erase_line();
+  env_ptr->set(GRB_IntParam_OutputFlag, 0);
+  model_ptr = new GRBModel(*env_ptr);
+
+  neurons.clear();
+  binaries.clear();
+  input_ranges.clear();
+
+}
+
 void constraints_stack :: add_invariants()
 {
   // Make a call to the right function in generate invariants and do the implementation
 
 }
 
-bool constraints_stack :: optimize(uint32_t node_index, bool direction, map< uint32_t, double > neuron_value)
+bool constraints_stack :: optimize(uint32_t node_index, bool direction, map< uint32_t, double >& neuron_value, double & result)
 {
   GRBLinExpr objective_expr;
   objective_expr = 0;
@@ -317,6 +335,9 @@ bool constraints_stack :: optimize(uint32_t node_index, bool direction, map< uin
        {
          neuron_value[some_neuron.first] = some_neuron.second.get(GRB_DoubleAttr_X);
        }
+
+       result = neuron_value[node_index].get(GRB_DoubleAttr_X);
+
        nodes_explored_last_optimization = model_ptr->get(GRB_DoubleAttr_NodeCount);
        return true;
    }
@@ -369,7 +390,7 @@ bool constraints_stack :: optimize_enough(uint32_t node_index, double current_op
    model_ptr->optimize();
 
 
-   string s = "./Gurobi_file_created/Linear_program_formed_as_txt";
+   string s = "./Gurobi_file_created/Linear_program.txt";
    model_ptr->write(s);
 
    if((model_ptr->get(GRB_IntAttr_Status) == GRB_OPTIMAL) || (model_ptr->get(GRB_IntAttr_Status) == GRB_SOLUTION_LIMIT) )

@@ -151,6 +151,12 @@ int find_random_sample_with_seed(
   vector< datatype >& counter_example,
   int seed
 );
+/* ****** New functions being added ********* */
+// check if input region is a box before implementing this
+bool return_random_sample(region_constraints region, map< uint32_t, double > & point, int seed);
+bool handle_bad_gradients(map< uint32_t, double > vector_of_gradients );
+
+/******* Done with adding new functions ***** */
 int find_uniform_counter_example(
   vector< vector< datatype > > positive_constraint,
   vector< vector< vector< datatype > > > list_of_negative_constraints,

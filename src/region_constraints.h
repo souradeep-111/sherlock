@@ -38,6 +38,8 @@ public:
 
   void update(vector< linear_inequality > & region_ineq);
 
+  bool check(map<uint32_t, double>& point);
+
   void clear();
 
   // Some function which given the input variables to the network, imposes constraints

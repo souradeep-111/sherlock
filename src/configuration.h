@@ -93,6 +93,11 @@ struct parameter_values
 
     thread_count = 4;
     thread_count_for_constraint_generation = 5;
+
+    do_signed_gradient = true;
+    do_random_restarts = true;
+    no_of_random_restarts = 10;
+
   }
 
   // void print_parameter_values()
