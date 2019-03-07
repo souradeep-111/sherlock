@@ -37,6 +37,17 @@ void sherlock :: optimize_node(uint32_t node_index, double & optima_achived)
 
 void sherlock :: compute_output_range(uint32_t node_index, region_constraints & input_region, pair < double, double >& output_range )
 {
+
+  // Maximizing
+  gradient_driven_optimization(node_index, input_region, true, output_range.second);
+
+  // Minimizing :
+  gradient_driven_optimization(node_index, input_region, false, output_range.first);
+
+}
+
+void sherlock :: gradient_driven_optimization(uint32_t node_index, region_constraints & input_region, bool direction, double & optima)
+{
   vector< uint32_t > indices_of_input_nodes, indices_of_output_nodes;
   neural_network.return_id_of_input_output_nodes(indices_of_input_nodes, indices_of_output_nodes);
   double current_optima;
@@ -48,26 +59,24 @@ void sherlock :: compute_output_range(uint32_t node_index, region_constraints & 
   network_constraints.create_the_input_overapproximation(input_region);
   network_constraints.generate_graph_constraints();
 
-  bool constraints_stack :: optimize_enough(uint32_t node_index, double current_optima, bool direction, map< uint32_t, double > neuron_value)
-
-  // Maximizing :
   if(!return_random_sample(input_region, search_point))
   {
     cout << "Failed to compute random sample, input region might be infeasible " << endl;
     assert(false);
   }
 
-  current_optima = -1e30;
+  current_optima = ((direction) ? (-1e30) : (1e30)) ;
+
   do{
     if(sherlock_parameters.do_random_restarts)
     {
-      perform_gradient_search_with_random_restarts(node_index, true, input_region, search_point, current_optima);
+      perform_gradient_search_with_random_restarts(node_index, direction, input_region, search_point, current_optima);
     }
     else
     {
-      perform_gradient_search(node_index, true, input_region, search_point, current_optima);
+      perform_gradient_search(node_index, direction, input_region, search_point, current_optima);
     }
-    bool res = network_constraints.optimize_enough(node_index, current_optima, true, neuron_values);
+    bool res = network_constraints.optimize_enough(node_index, current_optima, direction, neuron_values);
     if(!neuron_values.empty())
     {
       for(auto input_index : indices_of_input_nodes)
@@ -83,44 +92,11 @@ void sherlock :: compute_output_range(uint32_t node_index, region_constraints & 
 
   }while(res)
 
-  output_range.second = current_optima;
+  optima = current_optima;
 
-  // Minimizing :
-  if(!return_random_sample(input_region, search_point))
-  {
-    cout << "Failed to compute random sample, input region might be infeasible " << endl;
-    assert(false);
-  }
-
-  current_optima = 1e30;
-  do{
-    if(sherlock_parameters.do_random_restarts)
-    {
-      perform_gradient_search_with_random_restarts(node_index, false, input_region, search_point, current_optima);
-    }
-    else
-    {
-      perform_gradient_search(node_index, false, input_region, search_point, current_optima);
-    }
-    bool res = network_constraints.optimize_enough(node_index, current_optima, false, neuron_values);
-    if(!neuron_values.empty())
-    {
-      for(auto input_index : indices_of_input_nodes)
-      {
-        search_point[input_index] = neuron_values[input_index];
-      }
-    }
-    else if(res)
-    {
-      cout << "Gurobi counter example generation feasible, but didn't return the value " << endl;
-      assert(false);
-    }
-
-  }while(res)
-
-  output_range.first = current_optima;
 
 }
+
 
 void sherlock :: compute_output_region(region_constraints & input_region, region_constraints & output_region)
 {
@@ -275,5 +251,61 @@ void sherlock :: increment_point_in_direction(map<uint32_t, double >& current_va
 
   }
 
+
+}
+
+
+void create_computation_graph_from_file(string filename,
+                                        computation_graph & CG)
+{
+  CG.clear();
+  ifstream file;
+  file.open(filename.c_str(), ios::open);
+
+  int no_of_inputs, no_of_outputs, no_of_hidden_layers;
+  int i, j, k, node_index;
+  vector < uint32_t > indices_of_previous_layer_nodes;
+  double buffer;
+  file >> buffer; no_of_inputs = (int) buffer;
+  file >> buffer; no_of_outpus = (int) buffer;
+  file >> buffer; no_of_hidden_layers = (int) buffer;
+
+  vector< uint32_t > network_configuration;
+  i = 0;
+  while(i < no_of_hidden_layers)
+  {
+    file >> buffer;
+    network_configuration.push_back((uint32_t) buffer);
+    i++;
+  }
+
+  // Creating the input nodes, and adding them to the computation graph
+  i = 0;
+  while(i < no_of_inputs )
+  {
+    node node_x(node_index, "constant");
+    CG.add_new_node(node_index, node_x);
+    CG.mark_node_as_input(node_index);
+
+    node_index ++;
+    i++:
+  }
+  node_index = 0;
+  // Reading the hidden neurons if any
+  for( i = 0; i < no_of_hidden_layers; i++)
+  {
+
+    for( j = 0 ; j < network_configuration[i] ; j++ )
+    {
+      node node_x(node_index, "relu");
+      CG.add_new_node(node_index, node_x);
+      node_index ++;
+      // create a neuron node
+      // read all the weights leading into it
+      // read the bias term for this one,
+    }
+  }
+
+  // Reading the output mapping
 
 }

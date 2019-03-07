@@ -13,6 +13,14 @@ computation_graph :: computation_graph()
   no_of_output_nodes = 0;
 }
 
+void computation_graph :: clear()
+{
+  all_nodes.clear();
+  input_nodes.clear();
+  output_nodes.clear();
+  no_of_input_nodes = 0;
+  no_of_output_nodes = 0;
+}
 
 void computation_graph :: add_new_node(uint32_t node_id, node & node_to_add)
 {

@@ -20,6 +20,7 @@ class computation_graph
 
   public:
     computation_graph();
+    void clear();
 
     void add_new_node(uint32_t node_id, node & node_to_add);
 

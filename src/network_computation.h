@@ -153,7 +153,6 @@ int find_random_sample_with_seed(
 );
 /* ****** New functions being added ********* */
 // check if input region is a box before implementing this
-bool return_random_sample(region_constraints region, map< uint32_t, double > & point, int seed);
 bool handle_bad_gradients(map< uint32_t, double > vector_of_gradients );
 
 /******* Done with adding new functions ***** */

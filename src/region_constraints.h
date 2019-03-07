@@ -4,18 +4,27 @@
 #include "gurobi_c++.h"
 #include <iostream>
 #include "configuration.h"
+#include <algorithm>
+
+
 
 class linear_inequality
 {
 private:
   uint32_t dimension;
-  map < uint32_t, double > linear_inequality;
+
+  // The  stuff is mapped in the following fashion :
+  // -x_0 + 2x_1 + x_2 + 3 > 0
+  // <=> lin_ineq[-1] = 3, lin_ineq[0] = -1, lin_ineq[1] = 2, lin_ineq[2] = 1
+
+  map < int, double > linear_inequality;
 public:
   linear_inequality();
   linear_inequality(int dim);
-  linear_inequality(map< uint32_t,  double > & lin_ineq);
-  void update(map< uint32_t,  double > & lin_ineq)
-  void add_this_constraint_to_MILP_model(map< uint32_t, GRBVar > grb_variables, GRBModel * grb_model );
+  linear_inequality(map< int,  double > & lin_ineq);
+  void update(map< int,  double > & lin_ineq)
+  void add_this_constraint_to_MILP_model(map< int, GRBVar >& grb_variables, GRBModel * grb_model );
+  bool if_true(map<uint32_t, double > & point);
 
 };
 
@@ -47,8 +56,23 @@ public:
 
   void add_this_region_to_MILP_model(map< uint32_t, GRBVar > & grb_variables, GRBModel * grb_model);
 
+  int get_space_dimension();
+  int get_number_of_constraints();
+
+  bool return_sample(map<uint32_t, double> & point, int seed);
 
 };
 
+void overapproximate_polyhedron_as_rectangle(
+  region_constraint & region,
+  vector< vector< double > >& interval
+);
+
+
+bool optimize_in_direction(
+  vector< int > direction_vector,
+  region_constraints & region,
+  double & value
+);
 
 #endif

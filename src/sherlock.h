@@ -4,7 +4,8 @@
 #include < iostream >
 #include < vector >
 #include < queue >
-#include
+#include "computation_graph.h"
+#include < string >
 
 class sherlock
 {
@@ -15,6 +16,7 @@ public:
   sherlock();
   sherlock(computation_graph & CG);
   void optimize_node(uint32_t node_index, double & optima_achieved);
+  void gradient_driven_optimization(uint32_t node_index, region_constraints & input_region, bool direction, double & optima);
   void compute_output_range(region_constraints & input_region, pair< double, double >& output_range );
   void compute_output_region(region_constraints & input_region, region_constraints & output_region);
 
@@ -22,5 +24,9 @@ public:
   void perform_gradient_search_with_random_restarts(uint32_t node_index, bool direction,
                                               region_constraints & region, double & val);
 };
+
+
+void create_computation_graph_from_file(string filename, computation_graph & CG);
+
 
 #endif
