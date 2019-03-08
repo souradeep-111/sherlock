@@ -26,7 +26,9 @@ public:
 };
 
 
-void create_computation_graph_from_file(string filename, computation_graph & CG);
+void create_computation_graph_from_file(string filename,
+                                        computation_graph & CG,
+                                        bool has_output_relu);
 
 
 #endif

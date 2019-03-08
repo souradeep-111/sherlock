@@ -256,15 +256,17 @@ void sherlock :: increment_point_in_direction(map<uint32_t, double >& current_va
 
 
 void create_computation_graph_from_file(string filename,
-                                        computation_graph & CG)
+                                        computation_graph & CG,
+                                        bool has_output_relu)
 {
   CG.clear();
   ifstream file;
   file.open(filename.c_str(), ios::open);
 
   int no_of_inputs, no_of_outputs, no_of_hidden_layers;
-  int i, j, k, node_index;
-  vector < uint32_t > indices_of_previous_layer_nodes;
+  int i, j, k, node_index, no_of_neurons_in_previous_layer;
+  vector < uint32_t > indices_of_previous_layer_nodes, indices_of_current_layer_nodes;
+
   double buffer;
   file >> buffer; no_of_inputs = (int) buffer;
   file >> buffer; no_of_outpus = (int) buffer;
@@ -279,33 +281,207 @@ void create_computation_graph_from_file(string filename,
     i++;
   }
 
+  node_index = 0;
+
   // Creating the input nodes, and adding them to the computation graph
+  indices_of_previous_layer_nodes.clear();
   i = 0;
   while(i < no_of_inputs )
   {
     node node_x(node_index, "constant");
     CG.add_new_node(node_index, node_x);
     CG.mark_node_as_input(node_index);
+    indices_of_previous_layer_nodes.push_back(node_index);
 
     node_index ++;
     i++:
   }
-  node_index = 0;
   // Reading the hidden neurons if any
   for( i = 0; i < no_of_hidden_layers; i++)
   {
-
+    indices_of_current_layer_nodes.clear();
     for( j = 0 ; j < network_configuration[i] ; j++ )
     {
       node node_x(node_index, "relu");
       CG.add_new_node(node_index, node_x);
+      indices_of_current_layer_nodes.push_back();
+
+      no_of_neurons_in_previous_layer = (i == 0) ? (no_of_inputs):(network_configuration[i-1]) ;
+      assert(no_of_neurons_in_previous_layer == indices_of_previous_layer_nodes.size());
+      // Reading the weights
+      for(k = 0; k < no_of_neurons_in_previous_layer; k++)
+      {
+        file >> buffer;
+        CG.connect_node1_to_node2_with_weight(indices_of_previous_layer_nodes[k], node_index, buffer);
+      }
+      // Reading the bias
+      file >> buffer;
+      CG.set_bias_of_node(node_index, buffer);
       node_index ++;
-      // create a neuron node
-      // read all the weights leading into it
-      // read the bias term for this one,
     }
+    indices_of_previous_layer_nodes = indices_of_current_layer_nodes;
+  }
+
+  i = 0;
+  while(i < no_of_outputs )
+  {
+    node node_x(node_index, "relu");
+    CG.add_new_node(node_index, node_x);
+    CG.mark_node_as_output(node_index);
+    indices_of_previous_layer_nodes.push_back(node_index);
+    node_index ++;
+    i++:
   }
 
   // Reading the output mapping
+  for( j = 0 ; j < no_of_outputs ; j++ )
+  {
+    string type = (has_output_relu) ? ("relu") : ("none");
+
+    node node_x(node_index, type);
+    CG.add_new_node(node_index, node_x);
+
+    no_of_neurons_in_previous_layer = network_configuration[no_of_hidden_layers - 1] ;
+    // Reading the weights
+    for(k = 0; k < no_of_neurons_in_previous_layer; k++)
+    {
+      file >> buffer;
+      CG.connect_node1_to_node2_with_weight(indices_of_previous_layer_nodes[k], node_index, buffer);
+    }
+    // Reading the bias
+    file >> buffer;
+    CG.set_bias_of_node(node_index, buffer);
+    node_index ++;
+  }
+
+}
+
+
+
+void test_network_1(computation_graph & CG)
+{
+  CG.clear();
+  // The two input nodes to the graph declared as constants
+  node node_1_b(1, "constant");
+  CG.add_new_node(1, node_1_b);
+  node node_2_b(2, "constant");
+  CG.add_new_node(2, node_2_b);
+
+  // The internal nodes
+  node node_3_b(3, "relu");
+  CG.add_new_node(3, node_3_b);
+  node node_4_b(4, "relu");
+  CG.add_new_node(4, node_4_b);
+  node node_5_b(5, "relu");
+  CG.add_new_node(5, node_5_b);
+  node node_6_b(6, "relu");
+  CG.add_new_node(6, node_6_b);
+  node node_7_b(7, "relu");
+  CG.add_new_node(7, node_7_b);
+  node node_8_b(8, "relu");
+  CG.add_new_node(8, node_8_b);
+  node node_9_b(9, "relu");
+  CG.add_new_node(9, node_9_b);
+
+  // The output node
+  node node_10_b(10, "none");
+  CG.add_new_node(10, node_10_b);
+
+
+  // First let's mark some of the nodes as inputs and outputs
+  CG.mark_node_as_input(1);
+  CG.mark_node_as_input(2);
+  CG.mark_node_as_output(10);
+
+  // Now let's create the connections:
+
+  // first layer connections and bias
+  CG.connect_node1_to_node2_with_weight(1,3,1.0);
+  CG.connect_node1_to_node2_with_weight(2,3,1.0);
+  CG.set_bias_of_node(3, 0.0);
+
+  CG.connect_node1_to_node2_with_weight(1,4,1.0);
+  CG.connect_node1_to_node2_with_weight(2,4,1.0);
+  CG.set_bias_of_node(4, 0.0);
+
+  CG.connect_node1_to_node2_with_weight(3,5,1.0);
+  CG.connect_node1_to_node2_with_weight(4,5,0.0);
+  CG.set_bias_of_node(5, 0.0);
+
+  CG.connect_node1_to_node2_with_weight(3,6,1.0);
+  CG.connect_node1_to_node2_with_weight(4,6,0.0);
+  CG.set_bias_of_node(6, 0.0);
+
+  CG.connect_node1_to_node2_with_weight(3,7,1.0);
+  CG.connect_node1_to_node2_with_weight(4,7,1.0);
+  CG.set_bias_of_node(7, 0.0);
+
+  CG.connect_node1_to_node2_with_weight(3,8,0.0);
+  CG.connect_node1_to_node2_with_weight(4,8,1.0);
+  CG.set_bias_of_node(8, 0.0);
+
+  CG.connect_node1_to_node2_with_weight(3,9,0.0);
+  CG.connect_node1_to_node2_with_weight(4,9,1.0);
+  CG.set_bias_of_node(9, 0.0);
+
+  CG.connect_node1_to_node2_with_weight(5,10,1.0);
+  CG.connect_node1_to_node2_with_weight(6,10,1.0);
+  CG.connect_node1_to_node2_with_weight(7,10,1.0);
+  CG.connect_node1_to_node2_with_weight(8,10,1.0);
+  CG.connect_node1_to_node2_with_weight(9,10,1.0);
+  CG.set_bias_of_node(10, 0.0);
+
+
+}
+
+void test_network_2(computation_graph & CG)
+{
+  CG.clear();
+  // The two input nodes to the graph declared as constants
+  node node_1(1, "constant");
+  CG.add_new_node(1, node_1);
+  node node_2(2, "constant");
+  CG.add_new_node(2, node_2);
+
+  // The internal nodes
+  node node_3(3, "relu");
+  CG.add_new_node(3, node_3);
+  node node_4(4, "relu");
+  CG.add_new_node(4, node_4);
+  node node_5(5, "relu");
+  CG.add_new_node(5, node_5);
+  node node_6(6, "relu");
+  CG.add_new_node(6, node_6);
+
+  // The output node
+  node node_7(7, "none");
+  CG.add_new_node(7, node_7);
+
+
+  // First let's mark some of the nodes as inputs and outputs
+  CG.mark_node_as_input(1);
+  CG.mark_node_as_input(2);
+  CG.mark_node_as_output(7);
+
+  // Now let's create the connections:
+
+  // first layer connections and bias
+  CG.connect_node1_to_node2_with_weight(1,3,1.0);
+  CG.connect_node1_to_node2_with_weight(1,4,1.0);
+  CG.connect_node1_to_node2_with_weight(2,3,1.0);
+  CG.connect_node1_to_node2_with_weight(2,4,-0.5);
+  CG.set_bias_of_node(3, 0.0);
+  CG.set_bias_of_node(4, 0.0);
+
+  CG.connect_node1_to_node2_with_weight(3,5,1.0);
+  CG.connect_node1_to_node2_with_weight(3,6,0.0);
+  CG.connect_node1_to_node2_with_weight(4,5,0.0);
+  CG.connect_node1_to_node2_with_weight(4,6,1.0);
+  CG.set_bias_of_node(5,0.0);
+  CG.set_bias_of_node(6,0.0);
+
+  CG.connect_node1_to_node2_with_weight(5,7,0.5);
+  CG.connect_node1_to_node2_with_weight(6,7,0.5);
+  CG.set_bias_of_node(7, 0.0);
 
 }
