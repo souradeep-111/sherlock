@@ -37,6 +37,8 @@ private:
 public:
   region_constraints();
   region_constraints(int dim);
+
+  void set_dimension(int dim);
   // some function using which you can add linear inequalities to it one by one,
   // which also checks if things are making sense
   void add(linear_inequality & some_ineq);
@@ -59,7 +61,7 @@ public:
   int get_space_dimension();
   int get_number_of_constraints();
 
-  bool return_sample(map<uint32_t, double> & point, int seed);
+  bool return_sample(map< uint32_t, double > & point, int seed);
 
 };
 

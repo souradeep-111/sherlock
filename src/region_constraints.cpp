@@ -56,6 +56,7 @@ void linear_inequality :: add_this_constraint_to_MILP_model(map< int, GRBVar >& 
 
 bool linear_inequality :: if_true(map< uint32_t, double > & point )
 {
+  assert(!linear_inequality.empty());
   auto sum = 0.0;
   for(auto term : linear_inequality)
   {
@@ -64,6 +65,9 @@ bool linear_inequality :: if_true(map< uint32_t, double > & point )
   sum += linear_inequality[-1];
   return ((sum > 0) ? (true) : (false));
 }
+
+
+
 
 region_constraints :: region_constraints()
 {
@@ -77,6 +81,13 @@ region_constraints :: region_constraints(int dim)
   dimension = dim;
   polytope.clear();
 }
+
+void region_constraints :: set_dimension(int dim)
+{
+  assert(dim > 0);
+  dimension = dim;
+}
+
 
 void region_constraints :: add(linear_inequality & some_input)
 {
@@ -102,6 +113,7 @@ void region_constraints :: update( vector< linear_inequality > & region_ineq )
 {
   assert(!region_ineq.empty());
   assert(region_ineq[0].size() == dimension + 1);
+  polytope = region_ineq;
 }
 
 bool region_constraints :: check(map< uint32_t, double > & point )
@@ -145,7 +157,7 @@ int region_constraints :: get_number_of_constraints()
   return polytope.size();
 }
 
-bool region_constraints :: return_sample(map<uint32_t, double> & point, int seed)
+bool region_constraints :: return_sample(map< uint32_t, double > & point, int seed)
 {
   // so, the way it is done here is very simple.
   // First we are finding the centre of the poyhedral from the
@@ -222,10 +234,12 @@ void overapproximate_polyhedron_as_rectangle(
     fill(direction_vector.begin(), direction_vector.end(), 0);
     direction_vector[i] = -1;
     optimize_in_direction(direction_vector, region, range[0]);
+
     // Get the upper limit
     fill(direction_vector.begin(), direction_vector.end(), 0);
     direction_vector[i] = 1;
     optimize_in_direction(direction_vector, region, range[1]);
+
     interval.push_back(range);
   }
 

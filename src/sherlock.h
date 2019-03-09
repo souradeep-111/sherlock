@@ -30,5 +30,7 @@ void create_computation_graph_from_file(string filename,
                                         computation_graph & CG,
                                         bool has_output_relu);
 
+void test_network_1(computation_graph & CG);
+void test_network_2(computation_graph & CG);
 
 #endif
