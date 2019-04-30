@@ -10,7 +10,6 @@ sherlock :: sherlock()
 sherlock :: sherlock(computation_graph & CG)
 {
   neural_network = CG;
-  network_constraints.feed_computation_graph(CG);
 }
 
 void sherlock :: clear()
@@ -30,8 +29,10 @@ void sherlock :: optimize_node(uint32_t node_index, bool direction,
 {
   map< uint32_t, double > neuron_values;
   network_constraints.delete_and_reinitialize();
-  network_constraints.create_the_input_overapproximation_for_each_neuron(input_region);
-  network_constraints.generate_graph_constraints();
+  network_constraints.create_the_input_overapproximation_for_each_neuron(
+                      neural_network, input_region);
+  network_constraints.generate_graph_constraints(
+                      input_region, neural_network, node_index);
 
   if( network_constraints.optimize(node_index, direction, neuron_values, optima_achieved) )
   {
@@ -71,9 +72,8 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index,
 
   assert(indices_of_output_nodes.size() == 1);
   network_constraints.delete_and_reinitialize();
-  network_constraints.feed_computation_graph(neural_network);
-  network_constraints.create_the_input_overapproximation_for_each_neuron(input_region);
-  network_constraints.generate_graph_constraints();
+  network_constraints.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
+  network_constraints.generate_graph_constraints(input_region, neural_network, node_index);
 
   bool res = true;
 

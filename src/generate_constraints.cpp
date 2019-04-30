@@ -10,22 +10,12 @@ constraints_stack :: constraints_stack()
 
   neurons.clear();
   binaries.clear();
-  input_ranges.clear();
-  map<uint32_t, node > some_1;
-  all_nodes = some_1;
-  
-  input_indices.clear();
-  output_indices.clear();
+
   neuron_bounds.clear();
 }
 
-void constraints_stack :: feed_computation_graph(computation_graph & CG)
-{
-  all_nodes = CG.return_ref_to_all_nodes();
-  CG.return_id_of_input_output_nodes(input_indices, output_indices);
-}
-
 void constraints_stack :: create_the_input_overapproximation_for_each_neuron(
+                          computation_graph & CG,
                           region_constraints & input
 )
 {
@@ -34,6 +24,8 @@ void constraints_stack :: create_the_input_overapproximation_for_each_neuron(
   // analysis to give over and under approximtion of the input ranges to each neuron
 
   input_region = input;
+  map< uint32_t, node > & all_nodes;
+  CG.return_ref_to_all_nodes(all_nodes);
 
   for(auto each_node : all_nodes)
   {
@@ -55,6 +47,10 @@ void constraints_stack :: generate_graph_constraints(region_constraints & region
   // Create a map for explored nodes in the graph
   vector < uint32_t > explored_nodes;
 
+  // Getting a reference to all the nodes in the computation graph
+  map< uint32_t, node >& all_nodes;
+  CG.return_ref_to_all_nodes(all_nodes);
+
   // Declaring the neurons for the input nodes of the computation graph
   vector< uint32_t > & input_node_indices, output_node_indices;
   CG.return_id_of_input_output_nodes(input_node_indices, output_node_indices);
@@ -75,13 +71,12 @@ void constraints_stack :: generate_graph_constraints(region_constraints & region
     explored_nodes.push_back(each_input_index);
   }
   // Call generate_node_constraints on the output of the graph
-  generate_node_constraints(explored_nodes ,output_node_id);
+  generate_node_constraints(CG, explored_nodes ,output_node_id);
 }
 
-void constraints_stack :: generate_node_constraints( computation_graph & CS
-                                                     vector< uint32_t > explored nodes,
-                                                     uint32_t output_node_id,
-                                                     GRBModel * model_ptr )
+void constraints_stack :: generate_node_constraints( computation_graph & CG,
+                                                     vector< uint32_t > explored_nodes,
+                                                     uint32_t output_node_id)
 {
   // NOTE: ALGORITHM--
   // Create a queue for unexplored nodes in the graph
@@ -93,35 +88,41 @@ void constraints_stack :: generate_node_constraints( computation_graph & CS
           // pop a node , ..... (basically everything that you did in the main loop )
       // wait for all the threads you started to end
 
+  map< uint32_t, node >& all_nodes;
+  CG.return_ref_to_all_nodes(all_nodes);
+
   queue < uint32_t > unexplored_nodes;
 
-  GRBVar output_var = model_ptr->addVar(-GRB_INFINITY, GRB_INFINITY, 0.0, GRB_CONTINUOUS,  CS.all_nodes[output_node_id].get_node_name());
-  CS.neurons.insert(make_pair(output_node_id, output_var));
+  GRBVar output_var = model_ptr->addVar(-GRB_INFINITY, GRB_INFINITY, 0.0, GRB_CONTINUOUS,  all_nodes[output_node_id].get_node_name());
+  neurons.insert(make_pair(output_node_id, output_var));
 
   vector< threads > threads_currently_running;
   set< uint32_t > nodes_to_explore;
 
   unexplored_nodes.push(output_node_id);
-  uint32_t current_node;
+  uint32_t current_node_id;
 
-  int available_threads = sherlock_parameters.thread_count_for_constraint_generation;
+  int available_threads; = sherlock_parameters.thread_count_for_constraint_generation;
   while(!unexplored_nodes.empty())
   {
-    current_node = unexplored_nodes.pop();
-    add_constraint_for_node( CS, current_node, model_ptr, unexplored_nodes)
-
+    current_node_id = unexplored_nodes.pop();
+    add_constraint_for_node( *this, current_node_id, model_ptr, unexplored_nodes)
+    explored_nodes.push_back(current_node_id);
+    available_threads = sherlock_parameters.thread_count_for_constraint_generation;
     threads_currently_running.clear();
     // Launch all the threads here
     while( (available_threads > 1) && (!unexplored_nodes.empty()) )
     {
-      current_node = unexplored_nodes.pop();
+      current_node_id = unexplored_nodes.pop();
       available_threads--;
       thread current_thread( add_constraint_for_node,
-                             ref(CS),
-                             current_node,
+                             ref(*this),
+                             current_node_id,
+                             CG,
                              model_ptr,
                              ref(nodes_to_explore)
                            );
+      explored_nodes.push_back(current_node_id);
       threads_currently_running.push_back(move(current_thread));
     }
     // Wait for all threads to complete
@@ -136,29 +137,28 @@ void constraints_stack :: generate_node_constraints( computation_graph & CS
 
     // Adding all the new nodes to explore  to the list
     for(set<uint32_t> iterator = nodes_to_explore.begin(); iterator < nodes_to_explore.end(); iterator ++)
-      unexplored_nodes.push(*it);
-
-
-
+      unexplored_nodes.push(*iterator);
 
   }
 
 }
 
-void add_constraint_for_node(constraints_stack & CS, node current_node,
-                             GRBModel * model_ptr,
+void add_constraint_for_node(constraints_stack & CS, uint32_t current_node_id,
+                             computation_graph & CG, GRBModel * model_ptr,
                              set < uint32_t >& nodes_to_explore )
 {
   map< uint32_t, GRBVar > input_nodes_to_the_current_node;
   auto list_of_backward_nodes;
 
-  mtx.lock();
-  CS.all_nodes[current_node].get_backward_connections(list_of_backward_nodes);
-  mtx.unlock();
+  // mtx.lock();
+  map< uint32_t, node >& all_nodes;
+  CG.return_ref_to_all_nodes(all_nodes);
+  all_nodes[current_node].get_backward_connections(list_of_backward_nodes);
+  // mtx.unlock();
 
   mtx.lock();
   GRBVar ip_sum = model_ptr->addVar(-GRB_INFINITY, GRB_INFINITY, 0.0, GRB_CONTINUOUS,
-                                     CS.all_nodes[current_node].get_node_name() + "_ip_sum" );
+                                     all_nodes[current_node_id].get_node_name() + "_ip_sum" );
 
   mtx.unlock();
 
@@ -169,7 +169,7 @@ void add_constraint_for_node(constraints_stack & CS, node current_node,
     string check_string("input_node");
 
     mtx.lock();
-    auto is_an_input_node = ((CS.all_nodes[backward_node.first]).return_node_type()).compare(check_string);
+    auto is_an_input_node = ((all_nodes[backward_node.first]).return_node_type()).compare(check_string);
     mtx.unlock();
 
     if( is_an_input_node != 0)
@@ -181,7 +181,7 @@ void add_constraint_for_node(constraints_stack & CS, node current_node,
       // Create a  gurobi variable which will be used for adding constraints using that backward
       // nodes' output.
       GRBVar gurobi_var = model_ptr->addVar(-GRB_INFINITY, GRB_INFINITY, 0.0, GRB_CONTINUOUS,
-                                             CS.all_nodes[backward_node.first].get_node_name());
+                                             all_nodes[backward_node.first].get_node_name());
 
       CS.neurons.insert(make_pair(backward_node.first, gurobi_var));
       mtx.unlock();
@@ -191,8 +191,8 @@ void add_constraint_for_node(constraints_stack & CS, node current_node,
     }
   }
 
-  create_sum_of_inputs_and_return_var(input_nodes_to_the_current_node, current_node, ip_sum, model_ptr);
-  relate_input_output(current_node.get_node_type(), neurons[current_node.get_node_number()], model_ptr);
+  create_sum_of_inputs_and_return_var(input_nodes_to_the_current_node, all_nodes[current_node_id], ip_sum, model_ptr);
+  relate_input_output(all_nodes[current_node_id].get_node_type(), neurons[current_node_id], model_ptr);
 
 }
 

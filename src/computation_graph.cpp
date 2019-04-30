@@ -720,6 +720,16 @@ void computation_graph :: return_ref_to_all_nodes(map< uint32_t , node > & map_o
   map_of_nodes = all_nodes;
 }
 
+void computation_graph :: return_id_of_all_nodes(vector< uint32_t >& node_indices)
+{
+  node_indices.clear();
+  for(auto node : all_nodes)
+  {
+    node_indices.push_back(node.first);
+  }
+}
+
+
 void computation_graph :: return_id_of_input_output_nodes(vector< uint32_t > & in_nodes , vector< uint32_t > & op_nodes )
 {
   in_nodes = input_nodes;

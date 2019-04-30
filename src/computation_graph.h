@@ -50,6 +50,7 @@ class computation_graph
 
 
     void return_ref_to_all_nodes(map< uint32_t, node > & map_of_nodes);
+    void return_id_of_all_nodes(vector< uint32_t >& node_indices);
     void return_id_of_input_output_nodes(vector< uint32_t > & in_nodes , vector< uint32_t > & op_nodes );
 };
 
