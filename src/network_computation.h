@@ -7,6 +7,7 @@
 #include <string.h>
 #include <string>
 #include <math.h>
+#include <map>
 #include <stdint.h>
 #include "gurobi_interface.h"
 #include "configuration.h"

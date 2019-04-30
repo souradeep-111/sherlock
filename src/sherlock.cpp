@@ -13,15 +13,27 @@ sherlock :: sherlock(computation_graph & CG)
   network_constraints.feed_computation_graph(CG);
 }
 
-void sherlock :: optimize_node(uint32_t node_index, double & optima_achived)
+void sherlock :: clear()
 {
-  uint32_t node_index;
+  neural_network.clear();
+  network_constraints.delete_and_reinitialize();
+}
+
+void sherlock :: set_computation_graph(computation_graph & CG)
+{
+  neural_network = CG;
+}
+
+void sherlock :: optimize_node(uint32_t node_index, bool direction,
+                               region_constraints & input_region,
+                               double & optima_achieved)
+{
   map< uint32_t, double > neuron_values;
   network_constraints.delete_and_reinitialize();
-  network_constraints.create_the_input_overapproximation();
+  network_constraints.create_the_input_overapproximation_for_each_neuron(input_region);
   network_constraints.generate_graph_constraints();
 
-  if( network_constraints.optimize(node_index, direction, neuron_values, optima_achived) )
+  if( network_constraints.optimize(node_index, direction, neuron_values, optima_achieved) )
   {
     return;
   }
@@ -35,7 +47,9 @@ void sherlock :: optimize_node(uint32_t node_index, double & optima_achived)
 
 }
 
-void sherlock :: compute_output_range(uint32_t node_index, region_constraints & input_region, pair < double, double >& output_range )
+void sherlock :: compute_output_range(uint32_t node_index,
+                                      region_constraints & input_region,
+                                      pair < double, double >& output_range )
 {
 
   // Maximizing
@@ -46,7 +60,9 @@ void sherlock :: compute_output_range(uint32_t node_index, region_constraints & 
 
 }
 
-void sherlock :: gradient_driven_optimization(uint32_t node_index, region_constraints & input_region, bool direction, double & optima)
+void sherlock :: gradient_driven_optimization(uint32_t node_index,
+                                      region_constraints & input_region, bool direction,
+                                      double & optima)
 {
   vector< uint32_t > indices_of_input_nodes, indices_of_output_nodes;
   neural_network.return_id_of_input_output_nodes(indices_of_input_nodes, indices_of_output_nodes);
@@ -56,10 +72,12 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index, region_constr
   assert(indices_of_output_nodes.size() == 1);
   network_constraints.delete_and_reinitialize();
   network_constraints.feed_computation_graph(neural_network);
-  network_constraints.create_the_input_overapproximation(input_region);
+  network_constraints.create_the_input_overapproximation_for_each_neuron(input_region);
   network_constraints.generate_graph_constraints();
 
-  if(!return_random_sample(input_region, search_point))
+  bool res = true;
+
+  if(!input_region.return_sample(search_point, 19))
   {
     cout << "Failed to compute random sample, input region might be infeasible " << endl;
     assert(false);
@@ -70,13 +88,14 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index, region_constr
   do{
     if(sherlock_parameters.do_random_restarts)
     {
-      perform_gradient_search_with_random_restarts(node_index, direction, input_region, search_point, current_optima);
+      perform_gradient_search_with_random_restarts(node_index, direction, input_region,
+                                                   search_point, current_optima);
     }
     else
     {
       perform_gradient_search(node_index, direction, input_region, search_point, current_optima);
     }
-    bool res = network_constraints.optimize_enough(node_index, current_optima, direction, neuron_values);
+    res = network_constraints.optimize_enough(node_index, current_optima, direction, neuron_values);
     if(!neuron_values.empty())
     {
       for(auto input_index : indices_of_input_nodes)
@@ -90,7 +109,7 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index, region_constr
       assert(false);
     }
 
-  }while(res)
+  }while(res);
 
   optima = current_optima;
 
@@ -98,7 +117,8 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index, region_constr
 }
 
 
-void sherlock :: compute_output_region(region_constraints & input_region, region_constraints & output_region)
+void sherlock :: compute_output_region(region_constraints & input_region,
+                                      region_constraints & output_region)
 {
 
 
@@ -106,12 +126,14 @@ void sherlock :: compute_output_region(region_constraints & input_region, region
 
 
 
-void sherlock :: perform_gradient_search(uint32_t node_index, bool direction, region_constraints & region,
-                                         map< uint32_t, double > & starting_point, double & val)
+void sherlock :: perform_gradient_search(uint32_t node_index, bool direction,
+                                       region_constraints & region,
+                                       map< uint32_t, double > & starting_point, double & val)
 {
   double improvement = 1e30;
-  auto network_gradient;
+  map< uint32_t, double > network_gradient;
   map<uint32_t, double > current_point, next_point, network_output_value_1, network_output_value_2;
+  double value_prev, value_curr;
 
   while(improvement > sherlock_parameters.grad_termination_limit)
   {
@@ -122,9 +144,9 @@ void sherlock :: perform_gradient_search(uint32_t node_index, bool direction, re
     increment_point_in_direction(next_point, network_gradient, region);
 
     neural_network.evaluate_graph(current_point, network_output_value_1);
-    auto value_prev = network_output_value_1[node_index];
-    neural_network.evaluate_graph(next_point, network_output_value_2)
-    auto value_curr = network_output_value_2[node_index];
+    value_prev = network_output_value_1[node_index];
+    neural_network.evaluate_graph(next_point, network_output_value_2);
+    value_curr = network_output_value_2[node_index];
 
     improvement = value_curr - value_prev;
     improvement = (direction) ? (improvement) : (-improvement);
@@ -136,13 +158,15 @@ void sherlock :: perform_gradient_search(uint32_t node_index, bool direction, re
 
 }
 
-void sherlock :: perform_gradient_search_with_random_restarts(uint32_t node_index, bool direction, region_constraints & region,
-                                                              map< uint32_t, double > & starting_point, double & val )
+void sherlock :: perform_gradient_search_with_random_restarts(uint32_t node_index,
+                                      bool direction, region_constraints & region,
+                                      map< uint32_t, double > & starting_point, double & val )
 {
   double improvement = 1e30;
-  auto network_gradient;
-  map<uint32_t, double > current_point, next_point, network_output_value_1, network_output_value_2, trial_point;
-  auto trial_val;
+  map<uint32_t, double > current_point, next_point, network_output_value_1,
+                         network_output_value_2, trial_point, network_gradient;
+
+  double trial_val, val_curr, val_prev;
 
   int restart_count = -1;
   while(restart_count < sherlock_parameters.no_of_random_restarts)
@@ -156,42 +180,44 @@ void sherlock :: perform_gradient_search_with_random_restarts(uint32_t node_inde
       increment_point_in_direction(next_point, network_gradient, region);
 
       neural_network.evaluate_graph(current_point, network_output_value_1);
-      auto value_prev = network_output_value_1[node_index];
-      neural_network.evaluate_graph(next_point, network_output_value_2)
-      auto value_curr = network_output_value_2[node_index];
+      val_prev = network_output_value_1[node_index];
+      neural_network.evaluate_graph(next_point, network_output_value_2);
+      val_curr = network_output_value_2[node_index];
 
-      improvement = value_curr - value_prev;
+      improvement = val_curr - val_prev;
       improvement = (direction) ? (improvement) : (-improvement);
     }
 
-    return_random_sample(region, trial_point, restart_count * 17 + 100);
-    neural_network.evaluate_graph(trial_point, trial_val);
-    if((direction && (trial_val > value_curr)) || (!direction) && (trial_val < value_curr))
+    region.return_sample(trial_point, restart_count * 17 + 100);
+    neural_network.evaluate_graph(trial_point, network_output_value_1);
+    trial_val = network_output_value_1[node_index];
+    if((direction && (trial_val > val_curr)) || (!direction) && (trial_val < val_curr))
     {
       current_point = trial_point;
     }
     restart_count ++;
   }
 
-  val = value_curr;
+  val = val_curr;
   return;
 
 }
 
-void sherlock :: increment_point_in_direction(map<uint32_t, double >& current_values, map<uint32_t, double > direction, region_constraints& region)
+void sherlock :: increment_point_in_direction(map<uint32_t, double >& current_values,
+                                      map<uint32_t, double > direction, region_constraints& region)
 {
   map< uint32_t, bool> directions_map;
   if(sherlock_parameters.do_signed_gradient)
   {
     for(auto gradient_in_some_direction : direction )
     {
-      bool b = (gradient_in_some_direction.second > 0.0) ? (true) : (false)
-      directions_map.insert(make_pair< uint32_t, bool > ( gradient_in_some_direction.first , b ));
+      bool b = (gradient_in_some_direction.second > 0.0) ? (true) : (false);
+      directions_map.insert(make_pair( gradient_in_some_direction.first , b ));
     }
 
     for(auto some_direction_bool : directions_map)
     {
-      double movement_amount = (some_direction_bool.second) ? (gradient_rate) : (-1.0 * gradient_rate) ;
+      double movement_amount = (some_direction_bool.second) ? (sherlock_parameters.gradient_rate) : (-1.0 * sherlock_parameters.gradient_rate) ;
       current_values[some_direction_bool.first] += (movement_amount) ;
       if(!region.check(current_values))
       {
@@ -203,9 +229,9 @@ void sherlock :: increment_point_in_direction(map<uint32_t, double >& current_va
   else
   {
 
-    for(auto some_direction : directions)
+    for(auto some_direction : direction)
     {
-      double movement_amount = some_direction.second * gradient_rate ;
+      double movement_amount = some_direction.second * sherlock_parameters.gradient_rate ;
       current_values[some_direction.first] += (movement_amount) ;
       if(!region.check(current_values))
       {
@@ -220,20 +246,23 @@ void sherlock :: increment_point_in_direction(map<uint32_t, double >& current_va
 
 }
 
-void sherlock :: increment_point_in_direction(map<uint32_t, double >& current_values, map<uint32_t, double > direction)
+void sherlock :: increment_point_in_direction(map<uint32_t, double >& current_values,
+                                      map<uint32_t, double > direction)
 {
   map< uint32_t, bool> directions_map;
   if(sherlock_parameters.do_signed_gradient)
   {
     for(auto gradient_in_some_direction : direction )
     {
-      bool b = (gradient_in_some_direction.second > 0.0) ? (true) : (false)
-      directions_map.insert(make_pair< uint32_t, bool > ( gradient_in_some_direction.first , b ));
+      bool b = (gradient_in_some_direction.second > 0.0) ? (true) : (false);
+      directions_map.insert(make_pair ( gradient_in_some_direction.first , b ));
     }
 
     for(auto some_direction_bool : directions_map)
     {
-      double movement_amount = (some_direction_bool.second) ? (gradient_rate) : (-1.0 * gradient_rate) ;
+      double movement_amount = (some_direction_bool.second) ?
+                               (sherlock_parameters.gradient_rate) :
+                               (-1.0 * sherlock_parameters.gradient_rate) ;
       current_values[some_direction_bool.first] += (movement_amount) ;
     }
     return;
@@ -241,9 +270,9 @@ void sherlock :: increment_point_in_direction(map<uint32_t, double >& current_va
   else
   {
 
-    for(auto some_direction : directions)
+    for(auto some_direction : direction)
     {
-      double movement_amount = some_direction.second * gradient_rate ;
+      double movement_amount = some_direction.second * sherlock_parameters.gradient_rate ;
       current_values[some_direction.first] += (movement_amount) ;
     }
 
@@ -254,6 +283,32 @@ void sherlock :: increment_point_in_direction(map<uint32_t, double >& current_va
 
 }
 
+void sherlock :: compute_output_range_by_sampling(region_constraints & input_region,
+                                                  uint32_t output_node_index,
+                                                  pair < double , double > & output_range,
+                                                  uint32_t sample_count)
+{
+  assert(sample_count > 1e2);
+  map < uint32_t, double > input_point;
+  map < uint32_t, double > output_val;
+  output_range.first = 1e30;
+  output_range.second = -1e30;
+
+  for(int i = 0; i < sample_count; i++)
+  {
+    input_region.return_sample(input_point, i);
+    neural_network.evaluate_graph(input_point, output_val);
+    if(output_val[output_node_index] < output_range.first)
+    {
+      output_range.first = output_val[output_node_index];
+    }
+    if(output_val[output_node_index] > output_range.second)
+    {
+      output_range.second = output_val[output_node_index];
+    }
+  }
+  return;
+}
 
 void create_computation_graph_from_file(string filename,
                                         computation_graph & CG,
@@ -261,7 +316,7 @@ void create_computation_graph_from_file(string filename,
 {
   CG.clear();
   ifstream file;
-  file.open(filename.c_str(), ios::open);
+  file.open(filename.c_str(), ios::in);
 
   int no_of_inputs, no_of_outputs, no_of_hidden_layers;
   int i, j, k, node_index, no_of_neurons_in_previous_layer;
@@ -269,7 +324,7 @@ void create_computation_graph_from_file(string filename,
 
   double buffer;
   file >> buffer; no_of_inputs = (int) buffer;
-  file >> buffer; no_of_outpus = (int) buffer;
+  file >> buffer; no_of_outputs = (int) buffer;
   file >> buffer; no_of_hidden_layers = (int) buffer;
 
   vector< uint32_t > network_configuration;
@@ -294,7 +349,7 @@ void create_computation_graph_from_file(string filename,
     indices_of_previous_layer_nodes.push_back(node_index);
 
     node_index ++;
-    i++:
+    i++;
   }
   // Reading the hidden neurons if any
   for( i = 0; i < no_of_hidden_layers; i++)
@@ -304,7 +359,7 @@ void create_computation_graph_from_file(string filename,
     {
       node node_x(node_index, "relu");
       CG.add_new_node(node_index, node_x);
-      indices_of_current_layer_nodes.push_back();
+      indices_of_current_layer_nodes.push_back(node_index);
 
       no_of_neurons_in_previous_layer = (i == 0) ? (no_of_inputs):(network_configuration[i-1]) ;
       assert(no_of_neurons_in_previous_layer == indices_of_previous_layer_nodes.size());
@@ -330,7 +385,7 @@ void create_computation_graph_from_file(string filename,
     CG.mark_node_as_output(node_index);
     indices_of_previous_layer_nodes.push_back(node_index);
     node_index ++;
-    i++:
+    i++;
   }
 
   // Reading the output mapping

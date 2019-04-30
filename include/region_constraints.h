@@ -4,18 +4,28 @@
 #include "gurobi_c++.h"
 #include <iostream>
 #include "configuration.h"
+#include <algorithm>
+
+
 
 class linear_inequality
 {
 private:
   uint32_t dimension;
-  map < uint32_t, double > linear_inequality;
+
+  // The  stuff is mapped in the following fashion :
+  // -x_0 + 2x_1 + x_2 + 3 > 0
+  // <=> lin_ineq[-1] = 3, lin_ineq[0] = -1, lin_ineq[1] = 2, lin_ineq[2] = 1
+
+  map < int, double > inequality;
 public:
   linear_inequality();
   linear_inequality(int dim);
-  linear_inequality(map< uint32_t,  double > & lin_ineq);
-  void update(map< uint32_t,  double > & lin_ineq)
-  void add_this_constraint_to_MILP_model(map< uint32_t, GRBVar > grb_variables, GRBModel * grb_model );
+  uint32_t get_dim();
+  linear_inequality(map< int,  double > & lin_ineq);
+  void update(map< int,  double > & lin_ineq);
+  void add_this_constraint_to_MILP_model(map< int, GRBVar >& grb_variables, GRBModel * grb_model );
+  bool if_true(map<uint32_t, double > & point);
 
 };
 
@@ -28,6 +38,8 @@ private:
 public:
   region_constraints();
   region_constraints(int dim);
+
+  void set_dimension(int dim);
   // some function using which you can add linear inequalities to it one by one,
   // which also checks if things are making sense
   void add(linear_inequality & some_ineq);
@@ -38,6 +50,8 @@ public:
 
   void update(vector< linear_inequality > & region_ineq);
 
+  bool check(map<uint32_t, double>& point);
+
   void clear();
 
   // Some function which given the input variables to the network, imposes constraints
@@ -45,7 +59,24 @@ public:
 
   void add_this_region_to_MILP_model(map< uint32_t, GRBVar > & grb_variables, GRBModel * grb_model);
 
+  int get_space_dimension();
+  int get_number_of_constraints();
+
+  bool return_sample(map< uint32_t, double > & point, int seed);
+
+  void create_region_from_interval(map< uint32_t, pair < double, double > > interval);
 };
 
+void overapproximate_polyhedron_as_rectangle(
+  region_constraints & region,
+  vector< vector< double > >& interval
+);
+
+
+bool optimize_in_direction(
+  vector< int > direction_vector,
+  region_constraints & region,
+  double & value
+);
 
 #endif

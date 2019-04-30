@@ -7,7 +7,8 @@ class network_invariants
 {
   private:
     int n;
-
+public:
+  //
 };
 
 #endif

@@ -5,7 +5,7 @@ using namespace std;
 linear_inequality :: linear_inequality()
 {
   dimension = 0;
-  linear_inequality.clear();
+  inequality.clear();
 }
 
 linear_inequality :: linear_inequality(int dim)
@@ -17,21 +17,26 @@ linear_inequality :: linear_inequality(int dim)
 linear_inequality :: linear_inequality(map< int,  double > & lin_ineq)
 {
   assert(!lin_ineq.empty());
-  dimension = lin_ineq.size();
-  linear_inequality = lin_ineq;
+  dimension = lin_ineq.size() - 1;
+  inequality = lin_ineq;
 }
 
+uint32_t linear_inequality :: get_dim()
+{
+  return dimension;
+}
 void linear_inequality :: update(map< int,  double > & lin_ineq)
 {
   assert(!lin_ineq.empty());
   dimension = lin_ineq.size();
 
-  linear_inequality = lin_ineq;
+  inequality = lin_ineq;
 }
 
-void linear_inequality :: add_this_constraint_to_MILP_model(map< int, GRBVar >& grb_variables, GRBModel * grb_model)
+void linear_inequality :: add_this_constraint_to_MILP_model(map< uint32_t, GRBVar >& grb_variables,
+                                GRBModel * grb_model)
 {
-  assert(!grb_moddel);
+  assert(!grb_model);
   assert(!grb_variables.empty());
 
   GRBVar gurobi_one = grb_model->addVar(1.0, 1.0, 0.0, GRB_CONTINUOUS, "grb_one_input");
@@ -43,11 +48,11 @@ void linear_inequality :: add_this_constraint_to_MILP_model(map< int, GRBVar >& 
   {
     if(some_var.first < 0)
       continue;
-    data = linear_inequality[some_var.first];
+    data = inequality[some_var.first];
     expression.addTerms(& data, & grb_variables[some_var.first], 1);
   }
 
-  data = linear_inequality[-1];
+  data = inequality[-1];
   expression.addTerms(& data, & gurobi_one, 1);
 
   grb_model->addConstr(expression, GRB_GREATER_EQUAL, 0.0, "_some_input_constraint_");
@@ -56,18 +61,25 @@ void linear_inequality :: add_this_constraint_to_MILP_model(map< int, GRBVar >& 
 
 bool linear_inequality :: if_true(map< uint32_t, double > & point )
 {
-  assert(!linear_inequality.empty());
+  assert(!inequality.empty());
   auto sum = 0.0;
-  for(auto term : linear_inequality)
+  for(auto term : inequality)
   {
     sum += (point[term.first] * term.second) ;
   }
-  sum += linear_inequality[-1];
+  sum += inequality[-1];
   return ((sum > 0) ? (true) : (false));
 }
 
+bool linear_inequality :: empty()
+{
+  return inequality.empty();
+}
 
-
+uint32_t linear_inequality :: size()
+{
+  return inequality.size();
+}
 
 region_constraints :: region_constraints()
 {
@@ -112,7 +124,6 @@ void region_constraints :: add(vector< linear_inequality > & region_ineq)
 void region_constraints :: update( vector< linear_inequality > & region_ineq )
 {
   assert(!region_ineq.empty());
-  assert(region_ineq[0].size() == dimension + 1);
   polytope = region_ineq;
 }
 
@@ -133,8 +144,9 @@ void region_constraints :: clear()
   polytope.clear();
 }
 
-void region_constraints :: add_this_region_to_MILP_model(map< uint32_t, GRBVar > & grb_variables,
-                                                         GRBModel * grb_model)
+void region_constraints :: add_this_region_to_MILP_model(
+                                 map< uint32_t, GRBVar > & grb_variables,
+                                 GRBModel * grb_model)
 {
   assert(!grb_variables.empty());
   assert(grb_model);
@@ -214,10 +226,56 @@ bool region_constraints :: return_sample(map< uint32_t, double > & point, int se
 
 }
 
+void region_constraints :: create_region_from_interval(
+                            map< uint32_t, pair < double, double > > interval)
+{
+  assert(!interval.empty());
+  dimension = interval.size();
+  polytope.clear();
+  linear_inequality lin_ineq(dimension);
+
+  map< int, double > coeffs;
+  for(auto node_range_1 : interval)
+  {
+    // add the upper limit
+    coeffs.clear();
+
+    for(auto node_range_2 : interval)
+    {
+      coeffs[node_range_2.first] = 0.0;
+      if(node_range_1.first == node_range_2.first)
+      {
+        coeffs[node_range_2.first] = -1.0;
+        coeffs[-1] = interval[node_range_2.first].second;
+      }
+    }
+    lin_ineq.update(coeffs);
+    polytope.push_back(lin_ineq);
+
+    // add the lower limit
+    coeffs.clear();
+    for(auto node_range_2 : interval)
+    {
+      coeffs[node_range_2.first] = 0.0;
+      if(node_range_1.first == node_range_2.first)
+      {
+        coeffs[node_range_2.first] = 1.0;
+        coeffs[-1] = -interval[node_range_2.first].second;
+      }
+    }
+    lin_ineq.update(coeffs);
+    polytope.push_back(lin_ineq);
+
+
+  }
+
+  return;
+}
+
 
 void overapproximate_polyhedron_as_rectangle(
-  region_constraint & region,
-  vector< vector< double > >& interval
+  region_constraints & region,
+  map< uint32_t, pair< double, double > >& interval
 )
 {
 
@@ -225,7 +283,7 @@ void overapproximate_polyhedron_as_rectangle(
   vector< int > direction_vector(no_of_inputs, 0);
 
   interval.clear();
-  vector< double > range(2);
+  pair< double, double > range;
 
   for(int i = 0; i < no_of_inputs; i++)
   {
@@ -233,14 +291,14 @@ void overapproximate_polyhedron_as_rectangle(
     // Get the lower limit
     fill(direction_vector.begin(), direction_vector.end(), 0);
     direction_vector[i] = -1;
-    optimize_in_direction(direction_vector, region, range[0]);
+    optimize_in_direction(direction_vector, region, range.first);
 
     // Get the upper limit
     fill(direction_vector.begin(), direction_vector.end(), 0);
     direction_vector[i] = 1;
-    optimize_in_direction(direction_vector, region, range[1]);
+    optimize_in_direction(direction_vector, region, range.second);
 
-    interval.push_back(range);
+    interval[i] = range;
   }
 
 }
@@ -294,7 +352,7 @@ bool optimize_in_direction(
                              0.0,
                              GRB_CONTINUOUS,
                              var_name);
-    basic_variables.insert( make_pair < uint32_t, GRBVar > (i, var) );
+    basic_variables.insert( make_pair (i, var) );
     i++;
   }
 
@@ -307,7 +365,7 @@ bool optimize_in_direction(
   GRBLinExpr objective_expr;
   objective_expr = 0;
   i = 0;
-  while(i < dimenson)
+  while(i < dimension)
   {
     data = direction_vector[i];
     objective_expr.addTerms(& data, & basic_variables[i], 1);

@@ -11,26 +11,44 @@ constraints_stack :: constraints_stack()
   neurons.clear();
   binaries.clear();
   input_ranges.clear();
+  map<uint32_t, node > some_1;
+  all_nodes = some_1;
+  
+  input_indices.clear();
+  output_indices.clear();
+  neuron_bounds.clear();
 }
 
 void constraints_stack :: feed_computation_graph(computation_graph & CG)
 {
   all_nodes = CG.return_ref_to_all_nodes();
+  CG.return_id_of_input_output_nodes(input_indices, output_indices);
 }
 
-void constraints_stack :: create_the_input_overapproximation()
+void constraints_stack :: create_the_input_overapproximation_for_each_neuron(
+                          region_constraints & input
+)
 {
   // Need to write this :
   // Takes in as input some description of the input region and does an
   // analysis to give over and under approximtion of the input ranges to each neuron
-  for(auto & some_input_range : input_ranges)
+
+  input_region = input;
+
+  for(auto each_node : all_nodes)
   {
-    some_input_range.second.first = -sherlock_parameters.MILP_M;
-    some_input_range.second.second = sherlock_parameters.MILP_M;
+     auto  = find(input_indices.begin(), input_indices.end(), each_node.first);
+     if(auto == input_indices.end())
+     {
+       neuron_bounds[each_node.first] = make_pair(-sherlock_parameters.MILP_M, sherlock_parameters.MILP_M);
+     }
   }
+
 }
 
-void constraints_stack :: generate_graph_constraints(region_constraints & region, computation_graph & CG, uint32_t output_node_id)
+void constraints_stack :: generate_graph_constraints(region_constraints & region,
+                                                     computation_graph & CG,
+                                                     uint32_t output_node_id)
 {
   // Basically encode the whole network here
 
@@ -65,10 +83,6 @@ void constraints_stack :: generate_node_constraints( computation_graph & CS
                                                      uint32_t output_node_id,
                                                      GRBModel * model_ptr )
 {
-  // START CODING HERE
-  // Basically we are doing a b-f-s traversal of the computation graph in a backward fashion
-  // and adding the constraints to the Gurobi model file, as we discover it.
-
   // NOTE: ALGORITHM--
   // Create a queue for unexplored nodes in the graph
   // Until the queue is empty
@@ -131,7 +145,9 @@ void constraints_stack :: generate_node_constraints( computation_graph & CS
 
 }
 
-void add_constraint_for_node(constraints_stack & CS, node current_node, GRBModel * model_ptr, set < uint32_t >& nodes_to_explore )
+void add_constraint_for_node(constraints_stack & CS, node current_node,
+                             GRBModel * model_ptr,
+                             set < uint32_t >& nodes_to_explore )
 {
   map< uint32_t, GRBVar > input_nodes_to_the_current_node;
   auto list_of_backward_nodes;
@@ -224,11 +240,24 @@ void constraints_stack :: create_sum_of_inputs_and_return_var(map< uint32_t, GRB
 
 double constraints_stack :: get_M_val_for_node(uint32_t node_index)
 {
-  return sherlock_parameters.MILP_M;
+  assert(input_ranges[node_index].first < input_ranges[node_index].second);
+  auto max;
+  if(abs(input_ranges[node_index].first) > abs(input_ranges[nodex_index].second))
+  {
+    max = abs(input_ranges[node_index].first);
+  }
+  else
+  {
+    max = abs(input_ranges[node_index].second);
+  }
+
+  return max;
 }
 // Remember this function might be implemented inside several threads, need to keep in mind
 // how the different threads behave
-void constraints_stack :: relate_input_output(type node_type, node current_node, GRBVar input_var, GRBVar output_var, GRBModel * model_ptr)
+void constraints_stack :: relate_input_output(type node_type, node current_node,
+                                              GRBVar input_var, GRBVar output_var,
+                                              GRBModel * model_ptr)
 {
   // Basically input some switch-case type implementation
   // if node_type is a _none_, then just say input = output
@@ -303,7 +332,9 @@ void constraints_stack :: add_invariants()
 
 }
 
-bool constraints_stack :: optimize(uint32_t node_index, bool direction, map< uint32_t, double >& neuron_value, double & result)
+bool constraints_stack :: optimize(uint32_t node_index, bool direction,
+                                   map< uint32_t, double >& neuron_value,
+                                   double & result)
 {
   GRBLinExpr objective_expr;
   objective_expr = 0;
@@ -360,7 +391,9 @@ bool constraints_stack :: optimize(uint32_t node_index, bool direction, map< uin
 
 }
 
-bool constraints_stack :: optimize_enough(uint32_t node_index, double current_optima, bool direction, map< uint32_t, double > neuron_value)
+bool constraints_stack :: optimize_enough(uint32_t node_index,
+                                          double current_optima, bool direction,
+                                          map< uint32_t, double > neuron_value)
 {
   GRBLinExpr objective_expr;
   objective_expr = 0;
