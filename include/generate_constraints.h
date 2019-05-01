@@ -24,23 +24,31 @@ private:
   GRBModel * model_ptr;
   map< uint32_t, GRBVar > neurons;
   vector< GRBVar > binaries;
-  map< uint32_t, node > & all_nodes;
-  vector< uint32_t > & input_indices, output_indices;
+  // vector< uint32_t > indices_of_all_nodes;
+  // vector< uint32_t > input_indices, output_indices;
 
   map< uint32_t, pair< double , double > > neuron_bounds;
-  region_constraints & input_region;
+  region_constraints input_region;
 
 public:
 
   uint32_t nodes_explored_last_optimization;
   constraints_stack();
-  void feed_computation_graph(computation_graph & CG);
   void create_the_input_overapproximation_for_each_neuron(
+                              computation_graph & CG,
                               region_constraints & input_region);
-  void generate_graph_constraints();
-  void generate_node_constraints();
-  void relate_input_output(type node_type, GRBVar input_var,
-                           GRBVar output_var);
+  void generate_graph_constraints(region_constraints & region,
+                                  computation_graph & CG,
+                                  uint32_t output_node_id);
+
+  void generate_node_constraints(computation_graph & CG,
+                                 vector< uint32_t > explored_nodes,
+                                 uint32_t output_node_id);
+
+  void relate_input_output(node current_node,
+                           GRBVar input_var, GRBVar output_var,
+                           GRBModel * model_ptr);
+
   void delete_and_reinitialize();
   void add_invariants();
 
@@ -58,7 +66,16 @@ public:
                                            GRBVar & sum_variable,
                                            GRBModel * model_ptr);
 
-  friend void add_constraints_for_node();
+  friend void add_constraints_for_node(constraints_stack & CS,
+                                       uint32_t current_node_id,
+                                       computation_graph & CG,
+                                       GRBModel * model_ptr,
+                                       set < uint32_t >& nodes_to_explore );
 };
 
+void add_constraints_for_node(constraints_stack & CS,
+                              uint32_t current_node_id,
+                              computation_graph & CG,
+                              GRBModel * model_ptr,
+                              set < uint32_t >& nodes_to_explore );
 #endif

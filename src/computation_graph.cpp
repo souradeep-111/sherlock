@@ -715,9 +715,9 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
 
 }
 
-void computation_graph :: return_ref_to_all_nodes(map< uint32_t , node > & map_of_nodes)
+map< uint32_t , node > & computation_graph :: return_ref_to_all_nodes()
 {
-  map_of_nodes = all_nodes;
+  return all_nodes;
 }
 
 void computation_graph :: return_id_of_all_nodes(vector< uint32_t >& node_indices)

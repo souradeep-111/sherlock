@@ -74,7 +74,7 @@ public:
 
 void overapproximate_polyhedron_as_rectangle(
   region_constraints & region,
-  vector< vector< double > >& interval
+  map< uint32_t, pair< double, double > >& interval
 );
 
 

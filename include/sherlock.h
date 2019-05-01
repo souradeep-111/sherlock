@@ -11,6 +11,7 @@
 #include <string>
 #include "configuration.h"
 #include "region_constraints.h"
+#include "network_computation.h"
 
 class sherlock
 {

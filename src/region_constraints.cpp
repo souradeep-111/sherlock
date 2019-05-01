@@ -186,7 +186,7 @@ bool region_constraints :: return_sample(map< uint32_t, double > & point, int se
 
 
   // Finding the constraints which actually refer to the main principal directions
-  vector< vector< datatype > > limits_in_axes_directions(input_size, vector< datatype >(2,0));
+  map< uint32_t, pair< double, double > > limits_in_axes_directions;
 
   int direction, dimension;
 
@@ -201,18 +201,17 @@ bool region_constraints :: return_sample(map< uint32_t, double > & point, int se
   {
     srand(k + seed);
 
-    i = 0;
-    while(i < input_size)
+    point.clear();
+    for(auto axis_limits : limits_in_axes_directions)
     {
-      point[i] = limits_in_axes_directions[i][0] +
+      point[axis_limits.first] = limits_in_axes_directions[axis_limits.first].first +
        (double)(
                    (
-                      (double) (rand() % scale) * (datatype)(limits_in_axes_directions[i][1] - limits_in_axes_directions[i][0])
+                      (double) (rand() % scale) * (datatype)(limits_in_axes_directions[axis_limits.first].second - limits_in_axes_directions[axis_limits.first].first)
                    )
                     /
                   ((double)scale)
                  ) ;
-      i++;
     }
 
     if( check(point) )

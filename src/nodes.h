@@ -54,7 +54,7 @@ class node{
     string get_node_name();
     void set_node_type(string type_name);
     string return_node_type();
-
+    type get_node_type();
 
     void set_node_val(datatype value);
 

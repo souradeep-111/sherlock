@@ -77,6 +77,10 @@ void node :: set_node_type(string type_name)
   else assert(false);
 }
 
+type node :: get_node_type()
+{
+  return node_type;
+}
 
 string node :: return_node_type()
 {

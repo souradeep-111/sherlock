@@ -28,7 +28,7 @@ private:
   // vector< uint32_t > input_indices, output_indices;
 
   map< uint32_t, pair< double , double > > neuron_bounds;
-  // region_constraints & input_region;
+  region_constraints input_region;
 
 public:
 
@@ -45,8 +45,10 @@ public:
                                  vector< uint32_t > explored_nodes,
                                  uint32_t output_node_id);
 
-  void relate_input_output(type node_type, GRBVar input_var,
-                           GRBVar output_var);
+  void relate_input_output(node current_node,
+                           GRBVar input_var, GRBVar output_var,
+                           GRBModel * model_ptr);
+
   void delete_and_reinitialize();
   void add_invariants();
 
@@ -71,4 +73,9 @@ public:
                                        set < uint32_t >& nodes_to_explore );
 };
 
+void add_constraints_for_node(constraints_stack & CS,
+                              uint32_t current_node_id,
+                              computation_graph & CG,
+                              GRBModel * model_ptr,
+                              set < uint32_t >& nodes_to_explore );
 #endif

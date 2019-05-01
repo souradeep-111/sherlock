@@ -4740,3 +4740,8 @@ void plotting_data :: plot(int mode)
     exit(0);
   }
 }
+
+bool handle_bad_gradients(map< uint32_t, double > vector_of_gradients )
+{
+  // Does nothing
+}

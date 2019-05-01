@@ -5,8 +5,12 @@
 #include <iostream>
 #include "configuration.h"
 #include <algorithm>
+#include <map>
+#include <vector>
+#include <assert.h>
+#include "network_computation.h"
 
-
+using namespace std;
 
 class linear_inequality
 {
@@ -17,16 +21,17 @@ private:
   // -x_0 + 2x_1 + x_2 + 3 > 0
   // <=> lin_ineq[-1] = 3, lin_ineq[0] = -1, lin_ineq[1] = 2, lin_ineq[2] = 1
 
-  map < int, double > inequality;
+  map< int, double > inequality;
 public:
   linear_inequality();
   linear_inequality(int dim);
   uint32_t get_dim();
   linear_inequality(map< int,  double > & lin_ineq);
   void update(map< int,  double > & lin_ineq);
-  void add_this_constraint_to_MILP_model(map< int, GRBVar >& grb_variables, GRBModel * grb_model );
+  void add_this_constraint_to_MILP_model(map< uint32_t, GRBVar >& grb_variables, GRBModel * grb_model );
   bool if_true(map<uint32_t, double > & point);
-
+  bool empty();
+  uint32_t size();
 };
 
 
@@ -69,7 +74,7 @@ public:
 
 void overapproximate_polyhedron_as_rectangle(
   region_constraints & region,
-  vector< vector< double > >& interval
+  map< uint32_t, pair< double, double > >& interval
 );
 
 
