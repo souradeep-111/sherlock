@@ -154,18 +154,13 @@ int find_random_sample_with_seed(
 );
 /* ****** New functions being added ********* */
 // check if input region is a box before implementing this
-bool handle_bad_gradients(map< uint32_t, double > vector_of_gradients );
+bool bad_gradients(map< uint32_t, double > vector_of_gradients );
 
 /******* Done with adding new functions ***** */
 int find_uniform_counter_example(
   vector< vector< datatype > > positive_constraint,
   vector< vector< vector< datatype > > > list_of_negative_constraints,
   vector< datatype >& counter_example, uint64_t& sample_number
-);
-
-void create_sub_boxes(
-  vector< vector< datatype > >& input_interval,
-  vector< vector< vector < datatype > > >& output_collection
 );
 
 vector< datatype > scale_vector(
@@ -424,6 +419,8 @@ public:
   void collect_and_merge_reach_sets(vector< set_info > time_stamped_reach_sets);
   void plot(int mode);  // 1 for just the trace , 2 for just the reach sets, 3 for overlaying the plots
 };
+
+void print_point( map< uint32_t, double > point );
 
 #endif
 

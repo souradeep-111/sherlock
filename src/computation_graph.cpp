@@ -1,5 +1,5 @@
 #include "computation_graph.h"
-bool debug_eval = false;
+bool debug_eval = true;
 bool debug_deriv = false;
 std::mutex mtx;
 
@@ -128,7 +128,7 @@ void computation_graph :: evaluate_graph(map < uint32_t, double > input_node_and
 
   for(auto & output_values : output_node_and_value)
   {
-    evaluate_node(*this, output_values.first, memoized_table, sherlock_parameters.thread_count, output_values.second, output_values.first);
+    evaluate_node(*this, output_values.first, memoized_table, sherlock_parameters.thread_count, output_values.second, 0);
   }
 
 
@@ -139,7 +139,7 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
 {
 
 
-    mtx.lock();
+    while(!mtx.try_lock());
     auto & current_node = c_graph.all_nodes[node_id];
     mtx.unlock();
 
@@ -158,6 +158,7 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
     {
       direction = false;
     }
+
     // for(auto some_connection : backward_connections)
     if(direction == true)
     {
@@ -171,19 +172,19 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
         {
           // pair< uint32_t , double > node_and_value = make_pair(some_connection.first, input_node_ptr->return_current_output()) ;
           pair< uint32_t , double > node_and_value = make_pair(it->first, input_node_ptr->return_current_output()) ;
-          mtx.lock();
+          while(!mtx.try_lock());
           table.insert(node_and_value);
           mtx.unlock();
           continue;
         }
 
         // check if the value is already in the table
-        mtx.lock();
+        while(!mtx.try_lock());
         bool value_in_the_table = ( ( table.find(input_node_ptr->get_node_number())  == table.end() ) ? (false) : (true) ) ;
         mtx.unlock();
         if( value_in_the_table )
         {
-          mtx.lock();
+          while(!mtx.try_lock());
           // pair< uint32_t , double > node_and_value = make_pair(some_connection.first, table[input_node_ptr->get_node_number()] ) ;
           pair< uint32_t , double > node_and_value = make_pair(it->first, table[input_node_ptr->get_node_number()] ) ;
           mtx.unlock();
@@ -197,17 +198,19 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
             evaluate_node(c_graph, it->first, table, available_threads, buffer, thread_id);
             // pair< uint32_t, double > node_and_value = make_pair(some_connection.first, buffer);
             pair< uint32_t, double > node_and_value = make_pair(it->first, buffer);
-            mtx.lock();
+            while(!mtx.try_lock());
             table.insert(node_and_value);
             mtx.unlock();
           }
           else
           {
 
+            while(!mtx.try_lock());
             available_threads--;
+            mtx.unlock();
             if(debug_eval)
             {
-              mtx.lock();
+              while(!mtx.try_lock());
               // cout << "Starting a thread from node number = " << some_connection.first << endl;
               cout << "Starting a thread from node number = " << it->first << endl;
               cout << "Available threads = " << available_threads << endl;
@@ -245,19 +248,19 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
         {
           // pair< uint32_t , double > node_and_value = make_pair(some_connection.first, input_node_ptr->return_current_output()) ;
           pair< uint32_t , double > node_and_value = make_pair(it->first, input_node_ptr->return_current_output()) ;
-          mtx.lock();
+          while(!mtx.try_lock());
           table.insert(node_and_value);
           mtx.unlock();
           continue;
         }
 
         // check if the value is already in the table
-        mtx.lock();
+        while(!mtx.try_lock());
         bool value_in_the_table = ( ( table.find(input_node_ptr->get_node_number())  == table.end() ) ? (false) : (true) ) ;
         mtx.unlock();
         if( value_in_the_table )
         {
-          mtx.lock();
+          while(!mtx.try_lock());
           // pair< uint32_t , double > node_and_value = make_pair(some_connection.first, table[input_node_ptr->get_node_number()] ) ;
           pair< uint32_t , double > node_and_value = make_pair(it->first, table[input_node_ptr->get_node_number()] ) ;
           mtx.unlock();
@@ -271,17 +274,18 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
             evaluate_node(c_graph, it->first, table, available_threads, buffer, thread_id);
             // pair< uint32_t, double > node_and_value = make_pair(some_connection.first, buffer);
             pair< uint32_t, double > node_and_value = make_pair(it->first, buffer);
-            mtx.lock();
+            while(!mtx.try_lock());
             table.insert(node_and_value);
             mtx.unlock();
           }
           else
           {
-
+            while(!mtx.try_lock());
             available_threads--;
+            mtx.unlock();
             if(debug_eval)
             {
-              mtx.lock();
+              while(!mtx.try_lock());
               // cout << "Starting a thread from node number = " << some_connection.first << endl;
               cout << "Starting a thread from node number = " << it->first << endl;
               cout << "Available threads = " << available_threads << endl;
@@ -316,10 +320,12 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
     	if (some_thread.joinable())
       {
         some_thread.join();
+        while(!mtx.try_lock());
         available_threads++;
+        mtx.unlock();
         if(debug_eval)
         {
-          mtx.lock();
+          while(!mtx.try_lock());
           cout << "Some thread ended" << endl;
           cout << "Available threads = " << available_threads << endl;
           mtx.unlock();
@@ -335,12 +341,12 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
     {
       auto input_node_ptr = some_connection.second.first;
 
-      mtx.lock();
+      while(!mtx.try_lock());
       bool value_in_the_table = ( ( table.find(input_node_ptr->get_node_number())  == table.end() ) ? (false) : (true) ) ;
       mtx.unlock();
       assert( value_in_the_table );
 
-      mtx.lock();
+      while(!mtx.try_lock());
       pair< uint32_t , double > node_and_value = make_pair(some_connection.first, table[input_node_ptr->get_node_number()] ) ;
       mtx.unlock();
 
@@ -350,7 +356,7 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
     current_node.set_inputs(inputs_to_the_node);
     double result = current_node.return_current_output();
 
-    mtx.lock();
+    while(!mtx.try_lock());
     table.insert( make_pair ( node_id , result ) );
     if(debug_eval)
     {
@@ -362,7 +368,7 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
 
     ret_val = result;
 
-
+    return;
 
 }
 

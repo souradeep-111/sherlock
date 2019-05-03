@@ -54,6 +54,15 @@ public:
 
   void increment_point_in_direction(map<uint32_t, double >& current_values,
                                     map<uint32_t, double > direction);
+
+  bool increment_point_in_direction(map<uint32_t, double >& current_values, double step_size,
+                                    map<uint32_t, double > direction, region_constraints& region);
+
+  bool return_best_effort_random_counter_example(bool direction,
+                                    map< uint32_t , double >& current_point,
+                                    double val_curr, uint32_t node_index,
+                                    region_constraints & region);
+
 };
 
 

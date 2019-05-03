@@ -32,6 +32,8 @@ public:
   bool if_true(map<uint32_t, double > & point);
   bool empty();
   uint32_t size();
+  void print();
+  friend class region_constraints;
 };
 
 
@@ -55,7 +57,7 @@ public:
 
   void update(vector< linear_inequality > & region_ineq);
 
-  bool check(map<uint32_t, double>& point);
+  bool check(map<uint32_t, double> point);
 
   void clear();
 
@@ -70,16 +72,20 @@ public:
   bool return_sample(map< uint32_t, double > & point, int seed);
 
   void create_region_from_interval(map< uint32_t, pair < double, double > > interval);
+
+  void overapproximate_polyhedron_as_rectangle( map< uint32_t, pair< double, double > >& interval);
+  void print();
+
 };
 
-void overapproximate_polyhedron_as_rectangle(
-  region_constraints & region,
-  map< uint32_t, pair< double, double > >& interval
-);
+// void overapproximate_polyhedron_as_rectangle(
+//   region_constraints & region,
+//   map< uint32_t, pair< double, double > >& interval
+// );
 
 
 bool optimize_in_direction(
-  vector< int > direction_vector,
+  map< uint32_t, double > direction_vector,
   region_constraints & region,
   double & value
 );

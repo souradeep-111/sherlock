@@ -6,7 +6,9 @@ typedef  double datatype;
 
 struct parameter_values
 {
-  int no_of_sub_divisions;
+  int exponential_limit_upper;
+  int exponential_limit_lower;
+  int triggering_limit;
   double gradient_rate;
   unsigned int grad_switch_count;
   double grad_termination_limit;
@@ -31,6 +33,7 @@ struct parameter_values
 
   int max_digits_in_var_names; // (2)
   double tool_zero; //(1e-30)
+  double tool_high;
   double constr_comb_offset; // ((-4 * 100))
   double split_threshold; // (0.5)
 
@@ -50,13 +53,16 @@ struct parameter_values
   bool do_random_restarts;
   int no_of_random_restarts;
 
+  int random_counter_example_count;
 
 
 
 
   parameter_values()
   {
-    no_of_sub_divisions = 10;
+    triggering_limit = 5;
+    exponential_limit_upper = 10;
+    exponential_limit_lower = -10;
     gradient_rate = 1e-3;
     grad_termination_limit = 1e-7;
     switch_to_modified_gradient_search = true;
@@ -73,13 +79,14 @@ struct parameter_values
     scale_factor_for_M = 1.0;
 
 
-    verbosity = false;
+    verbosity = true;
     time_verbosity = false;
-    grad_search_point_verbosity = false;
+    grad_search_point_verbosity = true;
 
 
     max_digits_in_var_names = 2;
     tool_zero = 1e-30;
+    tool_high = 1e30;
     constr_comb_offset = -400;
     split_threshold = 0.9;
 
@@ -99,6 +106,7 @@ struct parameter_values
     do_signed_gradient = true;
     do_random_restarts = true;
     no_of_random_restarts = 10;
+    random_counter_example_count = 1e2;
 
   }
 

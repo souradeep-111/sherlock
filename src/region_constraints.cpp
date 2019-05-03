@@ -36,7 +36,7 @@ void linear_inequality :: update(map< int,  double > & lin_ineq)
 void linear_inequality :: add_this_constraint_to_MILP_model(map< uint32_t, GRBVar >& grb_variables,
                                 GRBModel * grb_model)
 {
-  assert(!grb_model);
+  assert(grb_model);
   assert(!grb_variables.empty());
 
   GRBVar gurobi_one = grb_model->addVar(1.0, 1.0, 0.0, GRB_CONTINUOUS, "grb_one_input");
@@ -80,6 +80,17 @@ uint32_t linear_inequality :: size()
 {
   return inequality.size();
 }
+
+void linear_inequality :: print()
+{
+  cout << " [ ";
+  for(auto each_term : inequality)
+  {
+    cout << each_term.first << " : " << each_term.second  << " , ";
+  }
+  cout << " ] ";
+}
+
 
 region_constraints :: region_constraints()
 {
@@ -127,7 +138,7 @@ void region_constraints :: update( vector< linear_inequality > & region_ineq )
   polytope = region_ineq;
 }
 
-bool region_constraints :: check(map< uint32_t, double > & point )
+bool region_constraints :: check(map< uint32_t, double >  point )
 {
   for(auto some_linear_inequality : polytope)
   {
@@ -192,7 +203,7 @@ bool region_constraints :: return_sample(map< uint32_t, double > & point, int se
 
 
   limits_in_axes_directions.clear();
-  overapproximate_polyhedron_as_rectangle(*this, limits_in_axes_directions);
+  overapproximate_polyhedron_as_rectangle( limits_in_axes_directions);
 
   point.clear();
 
@@ -202,6 +213,7 @@ bool region_constraints :: return_sample(map< uint32_t, double > & point, int se
     srand(k + seed);
 
     point.clear();
+
     for(auto axis_limits : limits_in_axes_directions)
     {
       point[axis_limits.first] = limits_in_axes_directions[axis_limits.first].first +
@@ -213,7 +225,6 @@ bool region_constraints :: return_sample(map< uint32_t, double > & point, int se
                   ((double)scale)
                  ) ;
     }
-
     if( check(point) )
     {
       return true;
@@ -259,7 +270,7 @@ void region_constraints :: create_region_from_interval(
       if(node_range_1.first == node_range_2.first)
       {
         coeffs[node_range_2.first] = 1.0;
-        coeffs[-1] = -interval[node_range_2.first].second;
+        coeffs[-1] = -interval[node_range_2.first].first;
       }
     }
     lin_ineq.update(coeffs);
@@ -272,43 +283,76 @@ void region_constraints :: create_region_from_interval(
 }
 
 
-void overapproximate_polyhedron_as_rectangle(
-  region_constraints & region,
-  map< uint32_t, pair< double, double > >& interval
+void region_constraints :: overapproximate_polyhedron_as_rectangle(
+                           map< uint32_t, pair< double, double > >& interval
 )
 {
 
-  int no_of_inputs = region.get_space_dimension(); // -1 for the constant term involved
-  vector< int > direction_vector(no_of_inputs, 0);
+  interval.clear();
+  assert(!polytope.empty());
+
+  map< uint32_t, double > direction_vector;
 
   interval.clear();
   pair< double, double > range;
 
-  for(int i = 0; i < no_of_inputs; i++)
+
+  for(auto each_term_1 : polytope[0].inequality)
   {
+    if(!(each_term_1.first < 0))
+    {
 
-    // Get the lower limit
-    fill(direction_vector.begin(), direction_vector.end(), 0);
-    direction_vector[i] = -1;
-    optimize_in_direction(direction_vector, region, range.first);
+      // Get the lower limit
+      direction_vector.clear();
+      for(auto each_term_2 : polytope[0].inequality )
+      {
+        if(! (each_term_2.first < 0))
+        {
+          direction_vector[each_term_2.first] = 0.0;
+        }
+      }
 
-    // Get the upper limit
-    fill(direction_vector.begin(), direction_vector.end(), 0);
-    direction_vector[i] = 1;
-    optimize_in_direction(direction_vector, region, range.second);
+      direction_vector[each_term_1.first] = -1.0;
+      optimize_in_direction(direction_vector, *this, range.first);
 
-    interval[i] = range;
+      // Get the upper limit
+      direction_vector.clear();
+      for(auto each_term_2 : polytope[0].inequality )
+      {
+        if(!(each_term_2.first < 0))
+        {
+          direction_vector[each_term_2.first] = 0.0;
+        }
+      }
+      direction_vector[each_term_1.first] = 1.0;
+      optimize_in_direction(direction_vector, *this, range.second);
+
+      interval[each_term_1.first] = range;
+    }
   }
 
 }
 
+void region_constraints :: print()
+{
+  cout << "Region is bounded by the following inequalities : [ -1 is for the constant ;-) ] " << endl;
+
+  for(auto each_inequality : polytope)
+  {
+    cout << "\t ----------- ";
+    each_inequality.print();
+    cout << endl;
+  }
+}
+
 
 bool optimize_in_direction(
-  vector< int > direction_vector,
+  map< uint32_t, double > direction_vector,
   region_constraints & region,
   double & value
 )
 {
+
   unsigned int i, j , k, no_of_inputs;
   unsigned int no_of_constraints;
   double data;
@@ -343,53 +387,55 @@ bool optimize_in_direction(
   map< uint32_t, GRBVar > basic_variables;
   GRBVar var;
 
-  i = 0;
-  while(i < dimension)
+  for(auto direction : direction_vector)
   {
     var = model_ptr->addVar(-GRB_INFINITY,
                              GRB_INFINITY,
                              0.0,
                              GRB_CONTINUOUS,
                              var_name);
-    basic_variables.insert( make_pair (i, var) );
-    i++;
+    basic_variables.insert( make_pair (direction.first, var) );
   }
 
   // Adding the region constraints
-  region.add_this_region_to_MILP_model(basic_variables, model_ptr);
 
+  region.add_this_region_to_MILP_model(basic_variables, model_ptr);
 
   // Setting the objective
   int direction = 0;
   GRBLinExpr objective_expr;
   objective_expr = 0;
-  i = 0;
-  while(i < dimension)
+  int maximizing = -1;
+
+  for(auto some_direction : direction_vector)
   {
-    data = direction_vector[i];
-    objective_expr.addTerms(& data, & basic_variables[i], 1);
-    i++;
+    data = some_direction.second;
+    objective_expr.addTerms(& data, & basic_variables[some_direction.first], 1);
+    if(data == 1.0)
+    {
+      maximizing = 1.0;
+    }
+
+    if (data == -1.0)
+    {
+      maximizing = 0.0;
+    }
   }
 
   model_ptr->setObjective(objective_expr, GRB_MAXIMIZE);
   model_ptr->optimize();
 
-  // model_ptr->update();
-  // string s = "check_file_find_counter_ex.lp";
-  // model_ptr->write(s);
-
   if(model_ptr->get(GRB_IntAttr_Status) == GRB_OPTIMAL)
   {
-    if(direction == 1)
+    value = model_ptr->get(GRB_DoubleAttr_ObjVal);
+    if(maximizing == 0.0)
     {
-      value = model_ptr->get(GRB_DoubleAttr_ObjVal);
+      value = -value;
     }
-    else if(direction == (-1))
-    {
-      value = - model_ptr->get(GRB_DoubleAttr_ObjVal);
-    }
+
     delete model_ptr;
     delete env_ptr;
+
     return true;
   }
   else if(model_ptr->get(GRB_IntAttr_Status) == GRB_INFEASIBLE)
@@ -413,7 +459,7 @@ bool optimize_in_direction(
     delete model_ptr;
     delete env_ptr;
     cout << "Exiting.. " << endl;
-    exit(0);
+    assert(false);
     return false;
   }
 

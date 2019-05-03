@@ -1542,66 +1542,6 @@ int find_uniform_counter_example(
 
 }
 
-void create_sub_boxes(
-  vector< vector< datatype > >& input_interval,
-  vector< vector< vector < datatype > > >& output_collection
-)
-{
-  vector< vector< datatype > > interval_received;
-  vector< datatype > return_val(2,0);
-  interval_received  = input_interval;
-  int i , j ,k;
-  unsigned int no_of_inputs, size_1, size_2, no_of_sub_boxes;
-  vector< unsigned int > grid_point(no_of_inputs,0);
-
-  no_of_inputs = input_interval.size();
-  vector< vector< datatype > > temp_box(no_of_inputs,vector< datatype >(2,0));
-
-
-  vector< vector< vector< datatype > > > collection_of_sub_intervals;
-
-  // Finding the size of the sub boxes
-  vector< datatype > unit_size(no_of_inputs);
-  j = 0;
-  while(j < no_of_inputs)
-  {
-    unit_size[j] = (input_interval[j][1] - input_interval[j][0] )/ sherlock_parameters.no_of_sub_divisions ;
-    j++;
-  }
-
-  // Making the sub_boxes
-  no_of_sub_boxes = (unsigned int)(pow(sherlock_parameters.no_of_sub_divisions,no_of_inputs));
-
-  i = 0;
-  while(i < no_of_sub_boxes)
-  {
-    j = 0;
-    while(j < no_of_inputs)
-    {
-      temp_box[j][0] = interval_received[j][0] + grid_point[j] * unit_size[j];
-      temp_box[j][1] = interval_received[j][0] + (grid_point[j] + 1) * unit_size[j];
-      j++;
-    }
-
-    output_collection.push_back(temp_box);
-    // Making the grid point
-      grid_point[0]++;
-      j = 0;
-      while(j < no_of_inputs-1)
-      {
-        if(grid_point[j] >= sherlock_parameters.no_of_sub_divisions)
-        {
-          grid_point[j] = 0;
-          grid_point[j+1]++;
-        }
-        j++;
-      }
-
-    i++;
-  }
-
-
-}
 
 vector< datatype > scale_vector(
   vector< datatype > input_vector,
@@ -4741,7 +4681,31 @@ void plotting_data :: plot(int mode)
   }
 }
 
-bool handle_bad_gradients(map< uint32_t, double > vector_of_gradients )
+bool bad_gradients(map< uint32_t, double > vector_of_gradients )
 {
   // Does nothing
+  for(auto each_grad : vector_of_gradients)
+  {
+    if(isnan(each_grad.second))
+    {
+      return true;
+    }
+    else if((abs(each_grad.second) > sherlock_parameters.tool_high) ||
+           (abs(each_grad.second) < sherlock_parameters.tool_zero))
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void print_point( map< uint32_t, double > point )
+{
+  cout << " Point = [";
+  for(auto some_dim : point)
+  {
+    cout << some_dim.first << " : " << some_dim.second << " , ";
+  }
+  cout << "]" << endl;
 }
