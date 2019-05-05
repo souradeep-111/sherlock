@@ -23,7 +23,7 @@ private:
   GRBEnv * env_ptr;
   GRBModel * model_ptr;
   map< uint32_t, GRBVar > neurons;
-  vector< GRBVar > binaries;
+  map< uint32_t, GRBVar > binaries;
   // vector< uint32_t > indices_of_all_nodes;
   // vector< uint32_t > input_indices, output_indices;
 

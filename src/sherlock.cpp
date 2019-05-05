@@ -38,6 +38,16 @@ void sherlock :: optimize_node(uint32_t node_index, bool direction,
 
   if( network_constraints.optimize(node_index, direction, neuron_values, optima_achieved) )
   {
+    cout << "Values = [" << "1 -- " << neuron_values[1] << " , " ;
+    cout << " 2 -- " << neuron_values[2] << " , ";
+    cout << " 3 -- " << neuron_values[3] << " , ";
+    cout << " 4 -- " << neuron_values[4] << " , ";
+    cout << " 5 -- " << neuron_values[5] << " , ";
+    cout << " 6 -- " << neuron_values[6] << " , ";
+    cout << " 7 -- " << neuron_values[7] << " , ";
+    cout << endl;
+
+
     return;
   }
   else
@@ -56,7 +66,7 @@ void sherlock :: compute_output_range(uint32_t node_index,
 {
   if(debug_sherlock)
   {
-    cout << "Enterring compute_output_range " << endl;
+    cout << "Entering compute_output_range " << endl;
   }
 
   // Maximizing
@@ -76,7 +86,7 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index,
   double current_optima;
   map<uint32_t, double > neuron_values, search_point;
 
-  assert(indices_of_output_nodes.size() == 1);
+  // assert(indices_of_output_nodes.size() == 1);
   network_constraints.delete_and_reinitialize();
   network_constraints.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
   network_constraints.generate_graph_constraints(input_region, neural_network, node_index);
@@ -88,6 +98,7 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index,
     cout << "Failed to compute random sample, input region might be infeasible " << endl;
     assert(false);
   }
+
 
   current_optima = ((direction) ? (-1e30) : (1e30)) ;
 
@@ -411,7 +422,7 @@ void sherlock :: compute_output_range_by_sampling(region_constraints & input_reg
   {
     cout << "Entering compute_output_range by random sampling " << endl;
   }
-  // assert(sample_count > 1e2);
+  // assert(sample_count > 10);
   map < uint32_t, double > input_point;
   map < uint32_t, double > output_val;
   output_range.first = 1e30;
@@ -420,7 +431,6 @@ void sherlock :: compute_output_range_by_sampling(region_constraints & input_reg
   for(int i = 0; i < sample_count; i++)
   {
     input_region.return_sample(input_point, i);
-    cout << "[" << input_point[0] << " , " << input_point[1] << " ] " << endl;
     neural_network.evaluate_graph(input_point, output_val);
     if(output_val[output_node_index] < output_range.first)
     {

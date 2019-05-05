@@ -1,5 +1,5 @@
 #include "computation_graph.h"
-bool debug_eval = true;
+bool debug_eval = false;
 bool debug_deriv = false;
 std::mutex mtx;
 
@@ -54,12 +54,12 @@ void computation_graph :: mark_node_as_output(uint32_t node_id)
 
 string computation_graph :: return_node_position(uint32_t node_index)
 {
-  if(find(input_nodes.begin(), input_nodes.end(), node_index) == input_nodes.end())
+  if(find(input_nodes.begin(), input_nodes.end(), node_index) != input_nodes.end())
   {
     string return_string("input_node");
     return return_string;
   }
-  else if(find(output_nodes.begin(), output_nodes.end(), node_index) == output_nodes.end())
+  else if(find(output_nodes.begin(), output_nodes.end(), node_index) != output_nodes.end())
   {
     string return_string("output_node");
     return return_string;
@@ -112,6 +112,7 @@ void computation_graph :: evaluate_graph(map < uint32_t, double > input_node_and
   {
     assert( all_nodes[input_node.first].return_node_type() == const_string );
     all_nodes[input_node.first].set_node_val(input_node.second);
+    memoized_table[input_node.first] = input_node.second;
     if(debug_eval)
     {
       cout << "Setting node val of node id " << all_nodes[input_node.first].get_node_number() << " as " << all_nodes[input_node.first].return_current_output() << endl;
@@ -128,7 +129,7 @@ void computation_graph :: evaluate_graph(map < uint32_t, double > input_node_and
 
   for(auto & output_values : output_node_and_value)
   {
-    evaluate_node(*this, output_values.first, memoized_table, sherlock_parameters.thread_count, output_values.second, 0);
+    evaluate_node(*this, output_values.first, memoized_table, sherlock_parameters.thread_count, output_values.second, output_values.first);
   }
 
 
@@ -141,10 +142,13 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
 
     while(!mtx.try_lock());
     auto & current_node = c_graph.all_nodes[node_id];
+    map< uint32_t , pair< node * , datatype > > backward_connections_, backward_connections;
+    current_node.get_backward_connections(backward_connections_);
+    backward_connections = backward_connections_;
     mtx.unlock();
 
-    map< uint32_t , pair< node * , datatype > > backward_connections;
-    current_node.get_backward_connections(backward_connections);
+
+
 
     vector< thread > vector_of_threads_created;
 
@@ -212,7 +216,7 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
             {
               while(!mtx.try_lock());
               // cout << "Starting a thread from node number = " << some_connection.first << endl;
-              cout << "Starting a thread from node number = " << it->first << endl;
+              cout << "Starting a thread with node number = " << it->first << " from thread " << thread_id << endl;
               cout << "Available threads = " << available_threads << endl;
               mtx.unlock();
             }
@@ -287,7 +291,7 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
             {
               while(!mtx.try_lock());
               // cout << "Starting a thread from node number = " << some_connection.first << endl;
-              cout << "Starting a thread from node number = " << it->first << endl;
+              cout << "Starting a thread with node number = " << it->first << " from thread " << thread_id << endl;
               cout << "Available threads = " << available_threads << endl;
               mtx.unlock();
             }
@@ -314,6 +318,7 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
 
 
 
+    int threads_counter = 0;
 
     for (thread & some_thread : vector_of_threads_created)
     {
@@ -343,25 +348,29 @@ void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t
 
       while(!mtx.try_lock());
       bool value_in_the_table = ( ( table.find(input_node_ptr->get_node_number())  == table.end() ) ? (false) : (true) ) ;
-      mtx.unlock();
       assert( value_in_the_table );
-
-      while(!mtx.try_lock());
       pair< uint32_t , double > node_and_value = make_pair(some_connection.first, table[input_node_ptr->get_node_number()] ) ;
       mtx.unlock();
 
       inputs_to_the_node.insert(node_and_value);
     }
 
-    current_node.set_inputs(inputs_to_the_node);
-    double result = current_node.return_current_output();
+
 
     while(!mtx.try_lock());
+
+    current_node.set_inputs(inputs_to_the_node);
+    double result = current_node.return_current_output();
     table.insert( make_pair ( node_id , result ) );
     if(debug_eval)
     {
       cout << "Computed value of node_id : " << node_id << " as " << result << " in thread id = " << thread_id <<  endl;
-      cout << "Available threads = " << available_threads << endl;
+      cout << "Current table : " << " [ " ;
+      for(auto each_entry : table)
+      {
+        cout << each_entry.first << " --- " << each_entry.second << " , ";
+      }
+      cout << " ] " << endl;
 
     }
     mtx.unlock();
@@ -433,12 +442,12 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
 
   if(debug_deriv)
   {
-    mtx.lock();
+    while(!mtx.try_lock());
     cout << "Started gradient computation for node = " << node_id << " in thread = " << thread_id << endl;
     mtx.unlock();
   }
 
-  mtx.lock();
+  while(!mtx.try_lock());
   bool check_if_input = ( ( find(c_graph.input_nodes.begin(), c_graph.input_nodes.end(), node_id) == c_graph.input_nodes.end() ) ?
                           (false) : (true)  );
   mtx.unlock();
@@ -457,14 +466,14 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
 
       if(debug_deriv)
       {
-        mtx.lock();
+        while(!mtx.try_lock());
         cout << "Gradient for node " << node_id << endl;
         print_map(gradient_wrt_inputs_to_the_graph);
         cout << "Done with gradient computation for node = " << node_id  << " in thread " << thread_id << endl;
         mtx.unlock();
       }
       result = gradient_wrt_inputs_to_the_graph;
-      mtx.lock();
+      while(!mtx.try_lock());
       memoized_table.insert(make_pair(node_id, gradient_wrt_inputs_to_the_graph));
       mtx.unlock();
 
@@ -472,7 +481,7 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
 
   }
 
-  mtx.lock();
+  while(!mtx.try_lock());
   bool check_if_already_in_the_table = ( ( memoized_table.find(node_id) == memoized_table.end() ) ?
                           (false) : (true)  );
   mtx.unlock();
@@ -484,18 +493,18 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
 
     if(debug_deriv)
     {
-      mtx.lock();
+      while(!mtx.try_lock());
       cout << "Picking up gradient computed from memory for node " << node_id << endl;
       mtx.unlock();
     }
-    mtx.lock();
+    while(!mtx.try_lock());
     result = memoized_table[node_id];
     mtx.unlock();
     return;
   }
 
 
-    mtx.lock();
+    while(!mtx.try_lock());
     auto & current_node = c_graph.all_nodes[node_id];
     mtx.unlock();
     vector< thread > vector_of_threads_created;
@@ -541,7 +550,7 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
           available_threads--;
           if(debug_deriv)
           {
-            mtx.lock();
+            while(!mtx.try_lock());
             cout << "Starting a thread from node number = " << input_node_index << endl;
             cout << "Available threads = " << available_threads << endl;
             mtx.unlock();
@@ -563,7 +572,7 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
         // grad_of_an_input_to_the_node_wrt_graph_inputs = compute_gradient_wrt_inputs(input_node_index, input_node_and_value, memoized_table);
         if(debug_deriv)
         {
-          mtx.lock();
+          while(!mtx.try_lock());
           cout << "For node : " << node_id << " trying to get gradient for input number " << input_node_index << endl;
           mtx.unlock();
         }
@@ -579,7 +588,7 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
           available_threads++;
           if(debug_deriv)
           {
-            mtx.lock();
+            while(!mtx.try_lock());
             cout << "Some thread ended" << endl;
             cout << "Available threads = " << available_threads << endl;
             mtx.unlock();
@@ -603,13 +612,13 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
         gradient_wrt_inputs_to_the_graph.insert(make_pair( current_network_input_node_index, grad_buff ));
       }
 
-      mtx.lock();
+      while(!mtx.try_lock());
       memoized_table.insert(make_pair(node_id, gradient_wrt_inputs_to_the_graph));
       mtx.unlock();
 
       if(debug_deriv)
       {
-        mtx.lock();
+        while(!mtx.try_lock());
         cout << "Gradient for node " << node_id << endl;
         print_map(gradient_wrt_inputs_to_the_graph);
         cout << "Done with gradient computation for node = " << node_id << " in thread " << thread_id << endl;
@@ -639,7 +648,7 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
           available_threads--;
           if(debug_deriv)
           {
-            mtx.lock();
+            while(!mtx.try_lock());
             cout << "Starting a thread from node number = " << input_node_index << endl;
             cout << "Available threads = " << available_threads << endl;
             mtx.unlock();
@@ -661,7 +670,7 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
         // grad_of_an_input_to_the_node_wrt_graph_inputs = compute_gradient_wrt_inputs(input_node_index, input_node_and_value, memoized_table);
         if(debug_deriv)
         {
-          mtx.lock();
+          while(!mtx.try_lock());
           cout << "For node : " << node_id << " trying to get gradient for input number " << input_node_index << endl;
           mtx.unlock();
         }
@@ -677,7 +686,7 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
           available_threads++;
           if(debug_deriv)
           {
-            mtx.lock();
+            while(!mtx.try_lock());
             cout << "Some thread ended" << endl;
             cout << "Available threads = " << available_threads << endl;
             mtx.unlock();
@@ -701,13 +710,13 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
         gradient_wrt_inputs_to_the_graph.insert(make_pair( current_network_input_node_index, grad_buff ));
       }
 
-      mtx.lock();
+      while(!mtx.try_lock());
       memoized_table.insert(make_pair(node_id, gradient_wrt_inputs_to_the_graph));
       mtx.unlock();
 
       if(debug_deriv)
       {
-        mtx.lock();
+        while(!mtx.try_lock());
         cout << "Gradient for node " << node_id << endl;
         print_map(gradient_wrt_inputs_to_the_graph);
         cout << "Done with gradient computation for node = " << node_id << " in thread " << thread_id << endl;

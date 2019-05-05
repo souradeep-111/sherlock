@@ -16,7 +16,7 @@ using namespace std::chrono;
 
 int main(int argc, char ** argv)
 {
-	sherlock_parameters.thread_count = 3;
+	sherlock_parameters.thread_count = 1;
 
 
 	// testing the data structures built on a very small network which can be analysed etc
@@ -43,15 +43,18 @@ int main(int argc, char ** argv)
 	sherlock sherlock_handler(sample_graph_a);
 	map<uint32_t, pair< double, double > > interval;
 	pair< double, double > output_range;
-	interval[0] = make_pair(-5,5);
 	interval[1] = make_pair(-5,5);
+	interval[2] = make_pair(-5,5);
 	region_constraints region;
 	region.create_region_from_interval(interval);
 
-	sherlock_handler.compute_output_range_by_sampling(region, 7, output_range, 1);
+	sherlock_handler.compute_output_range_by_sampling(region, 7, output_range, 1000);
 	cout << "Computed output range from random sampling = [" <<
 	output_range.first << " , " << output_range.second << " ] " << endl;
 
+	double max;
+	sherlock_handler.optimize_node(7, true, region, max);
+	cout << "Result by optimization = " << max << endl;
 
 	sherlock_handler.compute_output_range(7, region, output_range);
 	cout << "Computed output range by Sherlock = [" <<
@@ -79,8 +82,8 @@ int main(int argc, char ** argv)
 	sherlock_handler.clear();
 	sherlock_handler.set_computation_graph(sample_graph_b);
 	interval.clear();
-	interval[0] = make_pair(-1,1);
 	interval[1] = make_pair(-1,1);
+	interval[2] = make_pair(-1,1);
 	region.create_region_from_interval(interval);
 	sherlock_handler.compute_output_range_by_sampling(region, 10, output_range, 1000);
 	cout << "Computed output range from random sampling = [" <<
