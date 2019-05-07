@@ -18,6 +18,8 @@ struct parameter_values
   double num_similar;
   double delta_inflection;
 
+  double epsilon;
+  double int_tolerance;
   double MILP_M ; // 1e10
   double MILP_tolerance ; // 5e-2 // 1e-3
   double MILP_e_tolerance; //(1e-25)  // 1e-6
@@ -54,6 +56,8 @@ struct parameter_values
   int no_of_random_restarts;
 
   int random_counter_example_count;
+  bool encode_relu_new;
+
 
 
 
@@ -71,7 +75,11 @@ struct parameter_values
     num_similar = 1e-5;
     delta_inflection = 2e-3;
 
-    MILP_M = 1e10;
+    // 0 >> M \times tolerance
+    // epsilon < M \times \tolerance
+    epsilon = 1e-7;
+    int_tolerance = 1e-9;
+    MILP_M = 1e6;
     MILP_tolerance = 5e-2;
     MILP_e_tolerance = 1e-25;
     epsilon_degeneracy = 1e-10;
@@ -107,6 +115,9 @@ struct parameter_values
     do_random_restarts = true;
     no_of_random_restarts = 10;
     random_counter_example_count = 1e2;
+
+    encode_relu_new = true;
+
 
   }
 

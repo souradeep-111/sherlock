@@ -188,15 +188,19 @@ void sherlock :: perform_gradient_search(uint32_t node_index, bool direction,
   bool steps_in_region = false;
   int exponent_number = 0;
   int gradient_step = 0;
+  current_point = starting_point;
   while(improvement > sherlock_parameters.grad_termination_limit)
   {
 
-    /* Do gradient step */
+    /* Do gradient compuutation */
+    cout << "Trying to compute gradient : " << endl;
     network_gradient = neural_network.return_gradient_wrt_inputs(node_index, current_point);
+    cout << "Computed gradient " << endl;
     if(bad_gradients(network_gradient))
     {
       neural_network.evaluate_graph(current_point, network_output_value_1);
       val = network_output_value_1[node_index];
+      starting_point = current_point;
       return;
     }
 
@@ -204,15 +208,25 @@ void sherlock :: perform_gradient_search(uint32_t node_index, bool direction,
     next_point = current_point;
     steps_in_region = increment_point_in_direction(next_point, step_size,  network_gradient, region);
 
+    cout << "Steps in region = " << steps_in_region << endl;
+
     neural_network.evaluate_graph(current_point, network_output_value_1);
     value_prev = network_output_value_1[node_index];
 
     neural_network.evaluate_graph(next_point, network_output_value_2);
     value_curr = network_output_value_2[node_index];
 
+
     improvement = value_curr - value_prev;
     improvement = (direction ) ? (improvement) : (-improvement);
 
+
+    if(debug_sherlock)
+    {
+      cout << "Steps in region = " << steps_in_region << endl;
+      cout << "Current Value = " << value_curr << endl;
+      // exit(0);
+    }
 
     if((improvement > 0.0) && (steps_in_region))
     {
@@ -243,10 +257,14 @@ void sherlock :: perform_gradient_search(uint32_t node_index, bool direction,
       print_point(next_point);
     }
 
+    current_point = next_point;
+
   }
 
+  starting_point = current_point;
 
   val = value_curr;
+
   return;
 
 
@@ -268,6 +286,13 @@ void sherlock :: perform_gradient_search_with_random_restarts(uint32_t node_inde
 
     perform_gradient_search(node_index, direction, region, starting_point, val);
     current_point = starting_point;
+
+    if(debug_sherlock)
+    {
+      cout << "Gradient search ends : " << endl;
+      cout << "Val = " << val << endl;
+      exit(0);
+    }
 
     if(!return_best_effort_random_counter_example(direction, current_point, val, node_index, region))
     {
@@ -684,10 +709,10 @@ void test_network_2(computation_graph & CG)
   // Now let's create the connections:
 
   // first layer connections and bias
-  CG.connect_node1_to_node2_with_weight(1,3,1.0);
-  CG.connect_node1_to_node2_with_weight(1,4,1.0);
-  CG.connect_node1_to_node2_with_weight(2,3,1.0);
-  CG.connect_node1_to_node2_with_weight(2,4,-0.5);
+  CG.connect_node1_to_node2_with_weight(1,3,-10.0);
+  CG.connect_node1_to_node2_with_weight(1,4,10.0);
+  CG.connect_node1_to_node2_with_weight(2,3,-10.0);
+  CG.connect_node1_to_node2_with_weight(2,4,0.5);
   CG.set_bias_of_node(3, 0.0);
   CG.set_bias_of_node(4, 0.0);
 

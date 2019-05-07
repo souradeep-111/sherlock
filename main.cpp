@@ -43,8 +43,8 @@ int main(int argc, char ** argv)
 	sherlock sherlock_handler(sample_graph_a);
 	map<uint32_t, pair< double, double > > interval;
 	pair< double, double > output_range;
-	interval[1] = make_pair(-5,5);
-	interval[2] = make_pair(-5,5);
+	interval[1] = make_pair(0,5);
+	interval[2] = make_pair(0,5);
 	region_constraints region;
 	region.create_region_from_interval(interval);
 
