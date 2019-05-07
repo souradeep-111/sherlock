@@ -87,9 +87,9 @@ struct parameter_values
     scale_factor_for_M = 1.0;
 
 
-    verbosity = true;
+    verbosity = false;
     time_verbosity = false;
-    grad_search_point_verbosity = true;
+    grad_search_point_verbosity = false;
 
 
     max_digits_in_var_names = 2;

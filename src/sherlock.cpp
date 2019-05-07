@@ -2,7 +2,7 @@
 
 using namespace std;
 
-bool debug_sherlock = true;
+bool debug_sherlock = false;
 
 sherlock :: sherlock()
 {
@@ -297,10 +297,8 @@ void sherlock :: perform_gradient_search_with_random_restarts(uint32_t node_inde
   while(restart_count < sherlock_parameters.no_of_random_restarts)
   {
 
-    cout << "Val before starting the gradient search " << val << endl;
     perform_gradient_search(node_index, direction, region, current_point, val);
 
-    cout << "Val before attempting counter example search randomly : " << val << endl;
     if(return_best_effort_random_counter_example(direction, current_point, val, node_index, region))
     {
       if(sherlock_parameters.grad_search_point_verbosity)
@@ -510,8 +508,6 @@ bool sherlock :: return_best_effort_random_counter_example(bool direction,
     trial_val = network_output_value[node_index];
     if( (direction && (trial_val > val_curr)) || ( (!direction) && (trial_val < val_curr)) )
     {
-      cout << "Returning +ve result : " << endl;
-      cout << "Val current = " << val_curr << " Counter example val = " << trial_val << endl;
       current_point = trial_point;
       val_curr = trial_val;
       return true;

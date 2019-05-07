@@ -527,7 +527,6 @@ bool constraints_stack :: optimize_enough(uint32_t node_index,
        {
          neuron_value[some_neuron.first] = some_neuron.second.get(GRB_DoubleAttr_X);
        }
-       cout << "Objective = " << model_ptr->get(GRB_DoubleAttr_ObjVal) << endl;
        nodes_explored_last_optimization = model_ptr->get(GRB_DoubleAttr_NodeCount);
        return true;
    }
