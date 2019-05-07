@@ -60,7 +60,7 @@ public:
 
   bool return_best_effort_random_counter_example(bool direction,
                                     map< uint32_t , double >& current_point,
-                                    double val_curr, uint32_t node_index,
+                                    double& val_curr, uint32_t node_index,
                                     region_constraints & region);
 
 };

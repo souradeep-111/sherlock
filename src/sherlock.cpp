@@ -121,7 +121,7 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index,
 
     if(sherlock_parameters.verbosity)
     {
-      cout << "Gradient search ends at : ";
+      cout << "Gradient search ends at : " << current_optima << "  ";
       print_point(search_point);
       cout << endl;
     }
@@ -139,6 +139,13 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index,
     {
       cout << "Gurobi counter example generation feasible, but didn't return the value " << endl;
       assert(false);
+    }
+    else
+    {
+      if(sherlock_parameters.grad_search_point_verbosity)
+      {
+        cout << " No Counter example found in Gurobi " << endl;
+      }
     }
 
     if(sherlock_parameters.verbosity)
@@ -169,7 +176,7 @@ void sherlock :: compute_output_region(region_constraints & input_region,
                                       region_constraints & output_region)
 {
 
-
+  // Does nothing at this point
 }
 
 
@@ -189,13 +196,12 @@ void sherlock :: perform_gradient_search(uint32_t node_index, bool direction,
   int exponent_number = 0;
   int gradient_step = 0;
   current_point = starting_point;
+
   while(improvement > sherlock_parameters.grad_termination_limit)
   {
 
     /* Do gradient compuutation */
-    cout << "Trying to compute gradient : " << endl;
     network_gradient = neural_network.return_gradient_wrt_inputs(node_index, current_point);
-    cout << "Computed gradient " << endl;
     if(bad_gradients(network_gradient))
     {
       neural_network.evaluate_graph(current_point, network_output_value_1);
@@ -208,8 +214,6 @@ void sherlock :: perform_gradient_search(uint32_t node_index, bool direction,
     next_point = current_point;
     steps_in_region = increment_point_in_direction(next_point, step_size,  network_gradient, region);
 
-    cout << "Steps in region = " << steps_in_region << endl;
-
     neural_network.evaluate_graph(current_point, network_output_value_1);
     value_prev = network_output_value_1[node_index];
 
@@ -220,13 +224,6 @@ void sherlock :: perform_gradient_search(uint32_t node_index, bool direction,
     improvement = value_curr - value_prev;
     improvement = (direction ) ? (improvement) : (-improvement);
 
-
-    if(debug_sherlock)
-    {
-      cout << "Steps in region = " << steps_in_region << endl;
-      cout << "Current Value = " << value_curr << endl;
-      // exit(0);
-    }
 
     if((improvement > 0.0) && (steps_in_region))
     {
@@ -239,31 +236,42 @@ void sherlock :: perform_gradient_search(uint32_t node_index, bool direction,
           step_size *= 2.0;
           exponent_number++;
         }
+        else
+        {
+          break;
+        }
       }
     }
     else
     {
+      next_point = current_point;
       if(exponent_number > sherlock_parameters.exponential_limit_lower)
       {
         step_size /= 2.0;
         exponent_number--;
+      }
+      else
+      {
+        break;
       }
     }
 
     gradient_step++;
     if(sherlock_parameters.grad_search_point_verbosity)
     {
-      cout << "At step = " << gradient_step << " ";
-      print_point(next_point);
+      cout << "At step = " << gradient_step << " "  << "  value = " << value_curr ;
+      print_point(next_point) ;
     }
 
     current_point = next_point;
 
   }
 
-  starting_point = current_point;
 
-  val = value_curr;
+  if(!improvement < 0.0)
+  {
+    val = value_curr;
+  }
 
   return;
 
@@ -280,30 +288,45 @@ void sherlock :: perform_gradient_search_with_random_restarts(uint32_t node_inde
 
   double trial_val, val_curr, val_prev, trial_count;
 
+  neural_network.evaluate_graph(starting_point, network_output_value_1);
+  val_curr = network_output_value_1[node_index];
+  val = val_curr;
+
+  current_point = starting_point;
   int restart_count = -1;
   while(restart_count < sherlock_parameters.no_of_random_restarts)
   {
 
-    perform_gradient_search(node_index, direction, region, starting_point, val);
-    current_point = starting_point;
+    cout << "Val before starting the gradient search " << val << endl;
+    perform_gradient_search(node_index, direction, region, current_point, val);
 
-    if(debug_sherlock)
+    cout << "Val before attempting counter example search randomly : " << val << endl;
+    if(return_best_effort_random_counter_example(direction, current_point, val, node_index, region))
     {
-      cout << "Gradient search ends : " << endl;
-      cout << "Val = " << val << endl;
-      exit(0);
+      if(sherlock_parameters.grad_search_point_verbosity)
+      {
+        cout << "Random counter example found = " ;
+        print_point(current_point);
+        neural_network.evaluate_graph(current_point, network_output_value_1);
+        cout << " Which has value : " << network_output_value_1[node_index] << endl;
+      }
+
+
     }
-
-    if(!return_best_effort_random_counter_example(direction, current_point, val, node_index, region))
+    else
     {
+      val_curr = val;
       break;
     }
 
-    starting_point = current_point;
     restart_count ++;
   }
 
-  val = val_curr;
+
+  if(debug_sherlock)
+  {
+    cout << "Randomized gradient descent ends at value : " << val << endl;
+  }
   return;
 
 }
@@ -331,7 +354,6 @@ bool sherlock :: increment_point_in_direction(map<uint32_t, double >& current_va
     }
     else
     {
-      current_values.clear();
       return false;
     }
   }
@@ -350,7 +372,6 @@ bool sherlock :: increment_point_in_direction(map<uint32_t, double >& current_va
     }
     else
     {
-      current_values.clear();
       return false;
     }
   }
@@ -471,7 +492,7 @@ void sherlock :: compute_output_range_by_sampling(region_constraints & input_reg
 
 bool sherlock :: return_best_effort_random_counter_example(bool direction,
                                       map< uint32_t , double >& current_point,
-                                      double val_curr, uint32_t node_index,
+                                      double& val_curr, uint32_t node_index,
                                       region_constraints & region)
 {
   double trial_val;
@@ -489,7 +510,10 @@ bool sherlock :: return_best_effort_random_counter_example(bool direction,
     trial_val = network_output_value[node_index];
     if( (direction && (trial_val > val_curr)) || ( (!direction) && (trial_val < val_curr)) )
     {
+      cout << "Returning +ve result : " << endl;
+      cout << "Val current = " << val_curr << " Counter example val = " << trial_val << endl;
       current_point = trial_point;
+      val_curr = trial_val;
       return true;
     }
   }

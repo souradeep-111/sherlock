@@ -60,7 +60,7 @@ int main(int argc, char ** argv)
 	cout << "Computed output range by Sherlock = [" <<
 	output_range.first << " , " << output_range.second << " ] " << endl;
 
-
+	exit(0);
 	computation_graph sample_graph_b;
 	test_network_1(sample_graph_b);
 	x = 5.0;

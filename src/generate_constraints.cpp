@@ -469,7 +469,7 @@ bool constraints_stack :: optimize(uint32_t node_index, bool direction,
 
 bool constraints_stack :: optimize_enough(uint32_t node_index,
                                           double current_optima, bool direction,
-                                          map< uint32_t, double > neuron_value)
+                                          map< uint32_t, double >& neuron_value)
 {
   GRBLinExpr objective_expr;
   objective_expr = 0;
@@ -483,7 +483,7 @@ bool constraints_stack :: optimize_enough(uint32_t node_index,
      model_ptr->getEnv().set(GRB_IntParam_SolutionLimit, 1);
      model_ptr->getEnv().set(GRB_DoubleParam_Cutoff, data);
 
-     model_ptr->setObjective(objective_expr, GRB_MINIMIZE);
+     model_ptr->setObjective(objective_expr, GRB_MAXIMIZE);
    }
    else
    {
@@ -491,16 +491,34 @@ bool constraints_stack :: optimize_enough(uint32_t node_index,
      model_ptr->getEnv().set(GRB_IntParam_SolutionLimit, 1);
      model_ptr->getEnv().set(GRB_DoubleParam_Cutoff, data);
 
-     model_ptr->setObjective(objective_expr, GRB_MAXIMIZE);
+     model_ptr->setObjective(objective_expr, GRB_MINIMIZE);
    }
-
 
    model_ptr->update();
    model_ptr->optimize();
 
 
-   string s = "./Gurobi_file_created/Linear_program.txt";
+   string s = "./Gurobi_file_created/Linear_program.lp";
    model_ptr->write(s);
+
+
+   // cout << "Status = " << model_ptr->get(GRB_IntAttr_Status) << endl;
+   // cout << "Objective = " << model_ptr->get(GRB_DoubleAttr_ObjVal) << endl;
+   // cout << "Objective in the neurons list = " << neurons[node_index].get(GRB_DoubleAttr_X) << endl;
+   //
+   // GRBVar *vars = 0;
+   // int numvars = model_ptr->get(GRB_IntAttr_NumVars);
+   // vars = model_ptr->getVars();
+   //
+   // cout << "Number of variables = " << numvars << endl;
+   // for (int j = 0; j < numvars; j++)
+   // {
+   //    GRBVar v = vars[j];
+   //    cout << "For var name = " << v.get(GRB_StringAttr_VarName) ;
+   //    cout << "  ------- Value = " << v.get(GRB_DoubleAttr_X)  << endl;
+   // }
+   //    cout << endl;
+
 
    if((model_ptr->get(GRB_IntAttr_Status) == GRB_OPTIMAL) || (model_ptr->get(GRB_IntAttr_Status) == GRB_SOLUTION_LIMIT) )
    {
@@ -509,6 +527,7 @@ bool constraints_stack :: optimize_enough(uint32_t node_index,
        {
          neuron_value[some_neuron.first] = some_neuron.second.get(GRB_DoubleAttr_X);
        }
+       cout << "Objective = " << model_ptr->get(GRB_DoubleAttr_ObjVal) << endl;
        nodes_explored_last_optimization = model_ptr->get(GRB_DoubleAttr_NodeCount);
        return true;
    }

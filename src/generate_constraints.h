@@ -58,7 +58,7 @@ public:
 
   bool optimize_enough(uint32_t node_index,
                        double current_optima, bool direction,
-                       map< uint32_t, double > neuron_value);
+                       map< uint32_t, double >& neuron_value);
 
   double get_M_val_for_node(uint32_t node_index);
   void create_sum_of_inputs_and_return_var(map< uint32_t, GRBVar > & inputs_to_node,
