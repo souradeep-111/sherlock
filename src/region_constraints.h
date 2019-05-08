@@ -75,6 +75,7 @@ public:
 
   void overapproximate_polyhedron_as_rectangle( map< uint32_t, pair< double, double > >& interval);
   void print();
+  vector<int> get_input_indices();
 
 };
 

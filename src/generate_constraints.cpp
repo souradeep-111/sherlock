@@ -494,30 +494,26 @@ bool constraints_stack :: optimize_enough(uint32_t node_index,
      model_ptr->setObjective(objective_expr, GRB_MINIMIZE);
    }
 
+   // Initializing the input vars
+   // First, open all plants
+    // for (p = 0; p < nPlants; ++p)
+    // {
+    //   open[p].set(GRB_DoubleAttr_Start, 1.0);
+    // }
+
+    vector< int > input_indices = input_region.get_input_indices();
+
+    for(auto index : input_indices)
+    {
+      neurons[index].set(GRB_DoubleAttr_Start, neuron_value[index]);
+    }
+
    model_ptr->update();
    model_ptr->optimize();
 
 
    string s = "./Gurobi_file_created/Linear_program.lp";
    model_ptr->write(s);
-
-
-   // cout << "Status = " << model_ptr->get(GRB_IntAttr_Status) << endl;
-   // cout << "Objective = " << model_ptr->get(GRB_DoubleAttr_ObjVal) << endl;
-   // cout << "Objective in the neurons list = " << neurons[node_index].get(GRB_DoubleAttr_X) << endl;
-   //
-   // GRBVar *vars = 0;
-   // int numvars = model_ptr->get(GRB_IntAttr_NumVars);
-   // vars = model_ptr->getVars();
-   //
-   // cout << "Number of variables = " << numvars << endl;
-   // for (int j = 0; j < numvars; j++)
-   // {
-   //    GRBVar v = vars[j];
-   //    cout << "For var name = " << v.get(GRB_StringAttr_VarName) ;
-   //    cout << "  ------- Value = " << v.get(GRB_DoubleAttr_X)  << endl;
-   // }
-   //    cout << endl;
 
 
    if((model_ptr->get(GRB_IntAttr_Status) == GRB_OPTIMAL) || (model_ptr->get(GRB_IntAttr_Status) == GRB_SOLUTION_LIMIT) )

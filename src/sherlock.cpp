@@ -38,16 +38,6 @@ void sherlock :: optimize_node(uint32_t node_index, bool direction,
 
   if( network_constraints.optimize(node_index, direction, neuron_values, optima_achieved) )
   {
-    cout << "Values = [" << "1 -- " << neuron_values[1] << " , " ;
-    cout << " 2 -- " << neuron_values[2] << " , ";
-    cout << " 3 -- " << neuron_values[3] << " , ";
-    cout << " 4 -- " << neuron_values[4] << " , ";
-    cout << " 5 -- " << neuron_values[5] << " , ";
-    cout << " 6 -- " << neuron_values[6] << " , ";
-    cout << " 7 -- " << neuron_values[7] << " , ";
-    cout << endl;
-
-
     return;
   }
   else
@@ -126,6 +116,7 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index,
       cout << endl;
     }
 
+    neural_network.evaluate_graph(search_point, neuron_values);
 
     res = network_constraints.optimize_enough(node_index, current_optima, direction, neuron_values);
     if(!neuron_values.empty())
@@ -150,10 +141,12 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index,
 
     if(sherlock_parameters.verbosity)
     {
+      cout << "Nodes explored = " << network_constraints.nodes_explored_last_optimization << endl;
       cout << "Counter example found at : ";
       print_point(search_point);
       cout << endl;
     }
+
 
 
   }while(res);
@@ -178,8 +171,6 @@ void sherlock :: compute_output_region(region_constraints & input_region,
 
   // Does nothing at this point
 }
-
-
 
 void sherlock :: perform_gradient_search(uint32_t node_index, bool direction,
                                        region_constraints & region,

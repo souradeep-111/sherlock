@@ -87,7 +87,7 @@ struct parameter_values
     scale_factor_for_M = 1.0;
 
 
-    verbosity = false;
+    verbosity = true;
     time_verbosity = false;
     grad_search_point_verbosity = false;
 

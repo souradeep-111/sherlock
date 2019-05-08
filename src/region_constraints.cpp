@@ -346,6 +346,25 @@ void region_constraints :: print()
 }
 
 
+vector<int> region_constraints :: get_input_indices()
+{
+  assert(!polytope.empty());
+  linear_inequality linear_ineq = polytope[0];
+  vector< int > return_vector;
+
+  for(auto each_term : linear_ineq.inequality)
+  {
+    if(! each_term.first < 0)
+    {
+      return_vector.push_back(each_term.first);
+    }
+  }
+
+  return return_vector;
+
+}
+
+
 bool optimize_in_direction(
   map< uint32_t, double > direction_vector,
   region_constraints & region,
