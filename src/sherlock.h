@@ -72,5 +72,6 @@ void create_computation_graph_from_file(string filename,
 
 void test_network_1(computation_graph & CG);
 void test_network_2(computation_graph & CG);
-
+void test_network_sigmoid(computation_graph & CG);
+void test_network_tanh(computation_graph & CG);
 #endif

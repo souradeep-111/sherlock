@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
 
 	// testing the data structures built on a very small network which can be analysed etc
 	computation_graph sample_graph_a;
-	test_network_2(sample_graph_a);
+	test_network_sigmoid(sample_graph_a);
 
 	//
 	auto x = 5.0;
@@ -54,7 +54,10 @@ int main(int argc, char ** argv)
 
 	double max;
 	sherlock_handler.optimize_node(7, true, region, max);
-	cout << "Result by optimization = " << max << endl;
+	double min;
+	sherlock_handler.optimize_node(7, false, region, min);
+
+	cout << "Result by optimization = [ " << min << " , " << max << " ] " << endl;
 
 	sherlock_handler.compute_output_range(7, region, output_range);
 	cout << "Computed output range by Sherlock = [" <<

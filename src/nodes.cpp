@@ -222,6 +222,7 @@ map< uint32_t, datatype > node :: return_gradient(void)
     {
       gradient_info.insert( make_pair( some_node.first, some_node.second.second * (1 - pow(tanh(argument), 2)) ) );
     }
+
     return gradient_info;
   }
   else if(node_type == _sigmoid_ )

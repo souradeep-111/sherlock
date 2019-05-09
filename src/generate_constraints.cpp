@@ -354,6 +354,214 @@ void constraints_stack :: relate_input_output(node current_node,
     }
 
   }
+  else if(node_type == _sigmoid_)
+  {
+    GRBVar binary_1 = model_ptr->addVar(0.0, 1.0, 0.0, GRB_BINARY, current_node.get_node_name() + "_delta_1_");
+    GRBVar binary_2 = model_ptr->addVar(0.0, 1.0, 0.0, GRB_BINARY, current_node.get_node_name() + "_delta_2_");
+    GRBVar binary_3 = model_ptr->addVar(0.0, 1.0, 0.0, GRB_BINARY, current_node.get_node_name() + "_delta_3_");
+    GRBVar gurobi_one = model_ptr->addVar(1.0, 1.0, 0.0, GRB_CONTINUOUS, "const_name");
+
+    GRBLinExpr expression(0.0);
+    double data = 1.0;
+    expression.addTerms(& data, & binary_1, 1);
+    data = 1.0;
+    expression.addTerms(& data, & binary_2, 1);
+    data = 1.0;
+    expression.addTerms(& data, & binary_3, 1);
+    model_ptr->addConstr(expression, GRB_EQUAL, 1.0, current_node.get_node_name() + "_binary_sum_constraint_");
+
+    model_ptr->addConstr(output_var, GRB_LESS_EQUAL, 1.0, current_node.get_node_name() + "_output_upper_" );
+    model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, 0.0, current_node.get_node_name() + "_output_lower_" );
+
+    // Linear Piece #1
+    expression = 0.0;
+    data = -2.3-sherlock_parameters.epsilon;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_1, 1);
+    model_ptr->addConstr(input_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_left_input_" );
+
+    expression = 0.0;
+    data = 0.1;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_1, 1);
+    model_ptr->addConstr(output_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_left_output_");
+
+
+    // Linear Piece #2
+    expression = 0.0;
+    data = 2.3 - sherlock_parameters.epsilon;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_2, 1);
+    model_ptr->addConstr(input_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_middle_input_a_" );
+
+    expression = 0.0;
+    data = -2.3 + sherlock_parameters.epsilon;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_2, 1);
+    model_ptr->addConstr(input_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_middle_input_b_" );
+
+
+    expression = 0.0;
+    data = 0.2;
+    expression.addTerms(& data, & input_var , 1);
+    data = 0.55;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_2, 1);
+    model_ptr->addConstr(output_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_middle_output_a_");
+
+    expression = 0.0;
+    data = 0.2;
+    expression.addTerms(& data, & input_var , 1);
+    data = 0.45;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_2, 1);
+    model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_middle_output_b_");
+
+
+
+    // Linear Piece #3
+    expression = 0.0;
+    data = 2.3 + sherlock_parameters.epsilon;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_3, 1);
+    model_ptr->addConstr(input_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_right_input_" );
+
+    expression = 0.0;
+    data = 0.9;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_3, 1);
+    model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_right_output_");
+
+  }
+  else if(node_type == _tanh_)
+  {
+    GRBVar binary_1 = model_ptr->addVar(0.0, 1.0, 0.0, GRB_BINARY, current_node.get_node_name() + "_delta_1_");
+    GRBVar binary_2 = model_ptr->addVar(0.0, 1.0, 0.0, GRB_BINARY, current_node.get_node_name() + "_delta_2_");
+    GRBVar binary_3 = model_ptr->addVar(0.0, 1.0, 0.0, GRB_BINARY, current_node.get_node_name() + "_delta_3_");
+    GRBVar gurobi_one = model_ptr->addVar(1.0, 1.0, 0.0, GRB_CONTINUOUS, "const_name");
+
+    GRBLinExpr expression(0.0);
+    double data = 1.0;
+    expression.addTerms(& data, & binary_1, 1);
+    data = 1.0;
+    expression.addTerms(& data, & binary_2, 1);
+    data = 1.0;
+    expression.addTerms(& data, & binary_3, 1);
+    model_ptr->addConstr(expression, GRB_EQUAL, 1.0, current_node.get_node_name() + "_binary_sum_constraint_");
+
+    model_ptr->addConstr(output_var, GRB_LESS_EQUAL, 1.0, current_node.get_node_name() + "_output_upper_" );
+    model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, -1.0, current_node.get_node_name() + "_output_lower_" );
+
+    // Linear Piece #1
+    expression = 0.0;
+    data = -1.5-sherlock_parameters.epsilon;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_1, 1);
+    model_ptr->addConstr(input_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_left_input_" );
+
+    expression = 0.0;
+    data = -0.9;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_1, 1);
+    model_ptr->addConstr(output_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_left_output_");
+
+
+    // Linear Piece #2
+    expression = 0.0;
+    data = 1.5 - sherlock_parameters.epsilon;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_2, 1);
+    model_ptr->addConstr(input_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_middle_input_a_" );
+
+    expression = 0.0;
+    data = -1.5 + sherlock_parameters.epsilon;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_2, 1);
+    model_ptr->addConstr(input_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_middle_input_b_" );
+
+
+    expression = 0.0;
+    data = 0.7;
+    expression.addTerms(& data, & input_var , 1);
+    data = 0.15;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_2, 1);
+    model_ptr->addConstr(output_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_middle_output_a_");
+
+    expression = 0.0;
+    data = 0.7;
+    expression.addTerms(& data, & input_var , 1);
+    data = -0.14;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_2, 1);
+    model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_middle_output_b_");
+
+
+
+    // Linear Piece #3
+    expression = 0.0;
+    data = 1.5 + sherlock_parameters.epsilon;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_3, 1);
+    model_ptr->addConstr(input_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_right_input_" );
+
+    expression = 0.0;
+    data = 0.9;
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = -get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & gurobi_one, 1);
+    data = get_M_val_for_node(current_node.get_node_number());
+    expression.addTerms(& data, & binary_3, 1);
+    model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_right_output_");
+
+
+
+  }
   else
   {
     cout << "Node type relation missing from the code " << endl;
@@ -468,7 +676,7 @@ bool constraints_stack :: optimize(uint32_t node_index, bool direction,
 }
 
 bool constraints_stack :: optimize_enough(uint32_t node_index,
-                                          double current_optima, bool direction,
+                                          double& current_optima, bool direction,
                                           map< uint32_t, double >& neuron_value)
 {
   GRBLinExpr objective_expr;
@@ -523,6 +731,7 @@ bool constraints_stack :: optimize_enough(uint32_t node_index,
        {
          neuron_value[some_neuron.first] = some_neuron.second.get(GRB_DoubleAttr_X);
        }
+       current_optima = neuron_value[node_index];
        nodes_explored_last_optimization = model_ptr->get(GRB_DoubleAttr_NodeCount);
        return true;
    }

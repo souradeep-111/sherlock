@@ -125,6 +125,14 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index,
       {
         search_point[input_index] = neuron_values[input_index];
       }
+
+      neural_network.evaluate_graph(search_point, neuron_values);
+      double actual_val = neuron_values[node_index];
+      if(abs(actual_val - current_optima) > sherlock_parameters.MILP_tolerance)
+      {
+        optimize_node(7, direction, input_region, optima);
+        return;
+      }
     }
     else if(res)
     {
@@ -497,7 +505,9 @@ bool sherlock :: return_best_effort_random_counter_example(bool direction,
 
     neural_network.evaluate_graph(trial_point, network_output_value);
     trial_val = network_output_value[node_index];
-    if( (direction && (trial_val > val_curr)) || ( (!direction) && (trial_val < val_curr)) )
+    if( (direction && (trial_val > (val_curr + sherlock_parameters.grad_termination_limit)))
+                          ||
+        ((!direction) && (trial_val < (val_curr - sherlock_parameters.grad_termination_limit))) )
     {
       current_point = trial_point;
       val_curr = trial_val;
@@ -705,6 +715,110 @@ void test_network_2(computation_graph & CG)
   node node_5(5, "relu");
   CG.add_new_node(5, node_5);
   node node_6(6, "relu");
+  CG.add_new_node(6, node_6);
+
+  // The output node
+  node node_7(7, "none");
+  CG.add_new_node(7, node_7);
+
+
+  // First let's mark some of the nodes as inputs and outputs
+  CG.mark_node_as_input(1);
+  CG.mark_node_as_input(2);
+  CG.mark_node_as_output(7);
+
+  // Now let's create the connections:
+
+  // first layer connections and bias
+  CG.connect_node1_to_node2_with_weight(1,3,-10.0);
+  CG.connect_node1_to_node2_with_weight(1,4,10.0);
+  CG.connect_node1_to_node2_with_weight(2,3,-10.0);
+  CG.connect_node1_to_node2_with_weight(2,4,0.5);
+  CG.set_bias_of_node(3, 0.0);
+  CG.set_bias_of_node(4, 0.0);
+
+  CG.connect_node1_to_node2_with_weight(3,5,1.0);
+  CG.connect_node1_to_node2_with_weight(3,6,0.0);
+  CG.connect_node1_to_node2_with_weight(4,5,0.0);
+  CG.connect_node1_to_node2_with_weight(4,6,1.0);
+  CG.set_bias_of_node(5,0.0);
+  CG.set_bias_of_node(6,0.0);
+
+  CG.connect_node1_to_node2_with_weight(5,7,0.5);
+  CG.connect_node1_to_node2_with_weight(6,7,0.5);
+  CG.set_bias_of_node(7, 0.0);
+
+}
+
+void test_network_sigmoid(computation_graph & CG)
+{
+  CG.clear();
+  // The two input nodes to the graph declared as constants
+  node node_1(1, "constant");
+  CG.add_new_node(1, node_1);
+  node node_2(2, "constant");
+  CG.add_new_node(2, node_2);
+
+  // The internal nodes
+  node node_3(3, "sigmoid");
+  CG.add_new_node(3, node_3);
+  node node_4(4, "sigmoid");
+  CG.add_new_node(4, node_4);
+  node node_5(5, "sigmoid");
+  CG.add_new_node(5, node_5);
+  node node_6(6, "sigmoid");
+  CG.add_new_node(6, node_6);
+
+  // The output node
+  node node_7(7, "none");
+  CG.add_new_node(7, node_7);
+
+
+  // First let's mark some of the nodes as inputs and outputs
+  CG.mark_node_as_input(1);
+  CG.mark_node_as_input(2);
+  CG.mark_node_as_output(7);
+
+  // Now let's create the connections:
+
+  // first layer connections and bias
+  CG.connect_node1_to_node2_with_weight(1,3,-10.0);
+  CG.connect_node1_to_node2_with_weight(1,4,10.0);
+  CG.connect_node1_to_node2_with_weight(2,3,-10.0);
+  CG.connect_node1_to_node2_with_weight(2,4,0.5);
+  CG.set_bias_of_node(3, 0.0);
+  CG.set_bias_of_node(4, 0.0);
+
+  CG.connect_node1_to_node2_with_weight(3,5,1.0);
+  CG.connect_node1_to_node2_with_weight(3,6,0.0);
+  CG.connect_node1_to_node2_with_weight(4,5,0.0);
+  CG.connect_node1_to_node2_with_weight(4,6,1.0);
+  CG.set_bias_of_node(5,0.0);
+  CG.set_bias_of_node(6,0.0);
+
+  CG.connect_node1_to_node2_with_weight(5,7,0.5);
+  CG.connect_node1_to_node2_with_weight(6,7,0.5);
+  CG.set_bias_of_node(7, 0.0);
+
+}
+
+void test_network_tanh(computation_graph & CG)
+{
+  CG.clear();
+  // The two input nodes to the graph declared as constants
+  node node_1(1, "constant");
+  CG.add_new_node(1, node_1);
+  node node_2(2, "constant");
+  CG.add_new_node(2, node_2);
+
+  // The internal nodes
+  node node_3(3, "tanh");
+  CG.add_new_node(3, node_3);
+  node node_4(4, "tanh");
+  CG.add_new_node(4, node_4);
+  node node_5(5, "tanh");
+  CG.add_new_node(5, node_5);
+  node node_6(6, "tanh");
   CG.add_new_node(6, node_6);
 
   // The output node

@@ -68,7 +68,7 @@ struct parameter_values
     exponential_limit_upper = 10;
     exponential_limit_lower = -10;
     gradient_rate = 1e-3;
-    grad_termination_limit = 1e-7;
+    grad_termination_limit = 1e-5;
     switch_to_modified_gradient_search = true;
 
     num_tolerance = 1e-6;
@@ -80,14 +80,14 @@ struct parameter_values
     epsilon = 1e-7;
     int_tolerance = 1e-9;
     MILP_M = 1e6;
-    MILP_tolerance = 5e-2;
+    MILP_tolerance = 5e-4;
     MILP_e_tolerance = 1e-25;
     epsilon_degeneracy = 1e-10;
     do_dynamic_M_computation = true;
     scale_factor_for_M = 1.0;
 
 
-    verbosity = true;
+    verbosity = false;
     time_verbosity = false;
     grad_search_point_verbosity = false;
 
@@ -108,8 +108,8 @@ struct parameter_values
 
     do_LP_certificate = false;
 
-    thread_count = 4;
-    thread_count_for_constraint_generation = 5;
+    thread_count = 1;
+    thread_count_for_constraint_generation = 1;
 
     do_signed_gradient = true;
     do_random_restarts = true;

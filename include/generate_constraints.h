@@ -57,7 +57,7 @@ public:
                 double & result);
 
   bool optimize_enough(uint32_t node_index,
-                       double current_optima, bool direction,
+                       double& current_optima, bool direction,
                        map< uint32_t, double >& neuron_value);
 
   double get_M_val_for_node(uint32_t node_index);

@@ -504,228 +504,228 @@ void compute_gradient_wrt_inputs(computation_graph & c_graph,
   }
 
 
+  while(!mtx.try_lock());
+  auto & current_node = c_graph.all_nodes[node_id];
+  mtx.unlock();
+  vector< thread > vector_of_threads_created;
+
+
+  map< uint32_t, double > grad_of_an_input_to_the_node_wrt_graph_inputs;
+
+  map< uint32_t, double > gradient_wrt_inputs_to_the_node = current_node.return_gradient();
+  map< uint32_t, pair< node * , double > > input_nodes_to_the_current_node;
+  current_node.get_backward_connections( input_nodes_to_the_current_node );
+
+  map < uint32_t, map< uint32_t, double > > gradient_matrix;
+  // for(auto each_input_to_the_node : input_nodes_to_the_current_node )
+
+  // Some way to randomize direction
+  bool direction;
+  if( thread_id % 2)
+  {
+    direction = true;
+  }
+  else
+  {
+    direction = false;
+  }
+
+  if(direction == true)
+  {
+
+    for(auto it = input_nodes_to_the_current_node.begin(); it != input_nodes_to_the_current_node.end(); it ++)
+    {
+
+      // auto input_node_index = each_input_to_the_node.first;
+      auto input_node_index = it->first;
+
+      if(available_threads == 1)
+      {
+        compute_gradient_wrt_inputs(c_graph, input_node_index, input_node_and_value, memoized_table,
+                                    available_threads, grad_of_an_input_to_the_node_wrt_graph_inputs, thread_id);
+        gradient_matrix.insert(make_pair( input_node_index, grad_of_an_input_to_the_node_wrt_graph_inputs));
+      }
+      else
+      {
+        available_threads--;
+        if(debug_deriv)
+        {
+          while(!mtx.try_lock());
+          cout << "Starting a thread from node number = " << input_node_index << endl;
+          cout << "Available threads = " << available_threads << endl;
+          mtx.unlock();
+        }
+
+        gradient_matrix.insert(make_pair(input_node_index, grad_of_an_input_to_the_node_wrt_graph_inputs));
+
+        thread current_thread(compute_gradient_wrt_inputs,
+                              ref(c_graph),
+                              input_node_index,
+                              ref(input_node_and_value),
+                              ref(memoized_table),
+                              ref(available_threads),
+                              ref( gradient_matrix[input_node_index] ),
+                              input_node_index);
+
+        vector_of_threads_created.push_back(move(current_thread));
+      }
+      // grad_of_an_input_to_the_node_wrt_graph_inputs = compute_gradient_wrt_inputs(input_node_index, input_node_and_value, memoized_table);
+      if(debug_deriv)
+      {
+        while(!mtx.try_lock());
+        cout << "For node : " << node_id << " trying to get gradient for input number " << input_node_index << endl;
+        mtx.unlock();
+      }
+
+    }
+
+    for (thread & some_thread : vector_of_threads_created)
+    {
+
+      if (some_thread.joinable())
+      {
+        some_thread.join();
+        available_threads++;
+        if(debug_deriv)
+        {
+          while(!mtx.try_lock());
+          cout << "Some thread ended" << endl;
+          cout << "Available threads = " << available_threads << endl;
+          mtx.unlock();
+        }
+      }
+
+    }
+
+    // Compute the gradient wrt inputs
+    map < uint32_t, double > gradient_wrt_inputs_to_the_graph;
+    for(auto each_input_to_the_comp_graph : input_node_and_value)
+    {
+      auto current_network_input_node_index  = each_input_to_the_comp_graph.first;
+      double grad_buff = 0.0;
+      for(auto each_input_to_the_node : input_nodes_to_the_current_node)
+      {
+        auto current_node_input_index = each_input_to_the_node.first;
+        grad_buff += (   ((gradient_matrix[current_node_input_index])[current_network_input_node_index]) *
+                     gradient_wrt_inputs_to_the_node[current_node_input_index] ) ;
+      }
+      gradient_wrt_inputs_to_the_graph.insert(make_pair( current_network_input_node_index, grad_buff ));
+    }
+
     while(!mtx.try_lock());
-    auto & current_node = c_graph.all_nodes[node_id];
+    memoized_table.insert(make_pair(node_id, gradient_wrt_inputs_to_the_graph));
     mtx.unlock();
-    vector< thread > vector_of_threads_created;
 
-
-    map< uint32_t, double > grad_of_an_input_to_the_node_wrt_graph_inputs;
-
-    map< uint32_t, double > gradient_wrt_inputs_to_the_node = current_node.return_gradient();
-    map< uint32_t, pair< node * , double > > input_nodes_to_the_current_node;
-    current_node.get_backward_connections( input_nodes_to_the_current_node );
-
-    map < uint32_t, map< uint32_t, double > > gradient_matrix;
-    // for(auto each_input_to_the_node : input_nodes_to_the_current_node )
-
-    // Some way to randomize direction
-    bool direction;
-    if( thread_id % 2)
+    if(debug_deriv)
     {
-      direction = true;
-    }
-    else
-    {
-      direction = false;
+      while(!mtx.try_lock());
+      cout << "Gradient for node " << node_id << endl;
+      print_map(gradient_wrt_inputs_to_the_graph);
+      cout << "Done with gradient computation for node = " << node_id << " in thread " << thread_id << endl;
+      mtx.unlock();
     }
 
-    if(direction == true)
+    result = gradient_wrt_inputs_to_the_graph;
+    return;
+  }
+  else
+  {
+
+    for(auto it = input_nodes_to_the_current_node.rbegin(); it != input_nodes_to_the_current_node.rend(); it ++)
     {
 
-      for(auto it = input_nodes_to_the_current_node.begin(); it != input_nodes_to_the_current_node.end(); it ++)
+      // auto input_node_index = each_input_to_the_node.first;
+      auto input_node_index = it->first;
+
+      if(available_threads == 1)
       {
-
-        // auto input_node_index = each_input_to_the_node.first;
-        auto input_node_index = it->first;
-
-        if(available_threads == 1)
-        {
-          compute_gradient_wrt_inputs(c_graph, input_node_index, input_node_and_value, memoized_table,
-                                      available_threads, grad_of_an_input_to_the_node_wrt_graph_inputs, thread_id);
-          gradient_matrix.insert(make_pair( input_node_index, grad_of_an_input_to_the_node_wrt_graph_inputs));
-        }
-        else
-        {
-          available_threads--;
-          if(debug_deriv)
-          {
-            while(!mtx.try_lock());
-            cout << "Starting a thread from node number = " << input_node_index << endl;
-            cout << "Available threads = " << available_threads << endl;
-            mtx.unlock();
-          }
-
-          gradient_matrix.insert(make_pair(input_node_index, grad_of_an_input_to_the_node_wrt_graph_inputs));
-
-          thread current_thread(compute_gradient_wrt_inputs,
-                                ref(c_graph),
-                                input_node_index,
-                                ref(input_node_and_value),
-                                ref(memoized_table),
-                                ref(available_threads),
-                                ref( gradient_matrix[input_node_index] ),
-                                input_node_index);
-
-          vector_of_threads_created.push_back(move(current_thread));
-        }
-        // grad_of_an_input_to_the_node_wrt_graph_inputs = compute_gradient_wrt_inputs(input_node_index, input_node_and_value, memoized_table);
+        compute_gradient_wrt_inputs(c_graph, input_node_index, input_node_and_value, memoized_table,
+                                    available_threads, grad_of_an_input_to_the_node_wrt_graph_inputs, thread_id);
+        gradient_matrix.insert(make_pair( input_node_index, grad_of_an_input_to_the_node_wrt_graph_inputs));
+      }
+      else
+      {
+        available_threads--;
         if(debug_deriv)
         {
           while(!mtx.try_lock());
-          cout << "For node : " << node_id << " trying to get gradient for input number " << input_node_index << endl;
+          cout << "Starting a thread from node number = " << input_node_index << endl;
+          cout << "Available threads = " << available_threads << endl;
           mtx.unlock();
         }
 
+        gradient_matrix.insert(make_pair(input_node_index, grad_of_an_input_to_the_node_wrt_graph_inputs));
+
+        thread current_thread(compute_gradient_wrt_inputs,
+                              ref(c_graph),
+                              input_node_index,
+                              ref(input_node_and_value),
+                              ref(memoized_table),
+                              ref(available_threads),
+                              ref( gradient_matrix[input_node_index] ),
+                              input_node_index);
+
+        vector_of_threads_created.push_back(move(current_thread));
       }
-
-      for (thread & some_thread : vector_of_threads_created)
-      {
-
-        if (some_thread.joinable())
-        {
-          some_thread.join();
-          available_threads++;
-          if(debug_deriv)
-          {
-            while(!mtx.try_lock());
-            cout << "Some thread ended" << endl;
-            cout << "Available threads = " << available_threads << endl;
-            mtx.unlock();
-          }
-        }
-
-      }
-
-      // Compute the gradient wrt inputs
-      map < uint32_t, double > gradient_wrt_inputs_to_the_graph;
-      for(auto each_input_to_the_comp_graph : input_node_and_value)
-      {
-        auto current_network_input_node_index  = each_input_to_the_comp_graph.first;
-        double grad_buff = 0.0;
-        for(auto each_input_to_the_node : input_nodes_to_the_current_node)
-        {
-          auto current_node_input_index = each_input_to_the_node.first;
-          grad_buff += (   ((gradient_matrix[current_node_input_index])[current_network_input_node_index]) *
-                       gradient_wrt_inputs_to_the_node[current_node_input_index] ) ;
-        }
-        gradient_wrt_inputs_to_the_graph.insert(make_pair( current_network_input_node_index, grad_buff ));
-      }
-
-      while(!mtx.try_lock());
-      memoized_table.insert(make_pair(node_id, gradient_wrt_inputs_to_the_graph));
-      mtx.unlock();
-
+      // grad_of_an_input_to_the_node_wrt_graph_inputs = compute_gradient_wrt_inputs(input_node_index, input_node_and_value, memoized_table);
       if(debug_deriv)
       {
         while(!mtx.try_lock());
-        cout << "Gradient for node " << node_id << endl;
-        print_map(gradient_wrt_inputs_to_the_graph);
-        cout << "Done with gradient computation for node = " << node_id << " in thread " << thread_id << endl;
+        cout << "For node : " << node_id << " trying to get gradient for input number " << input_node_index << endl;
         mtx.unlock();
       }
 
-      result = gradient_wrt_inputs_to_the_graph;
-      return;
     }
-    else
+
+    for (thread & some_thread : vector_of_threads_created)
     {
 
-      for(auto it = input_nodes_to_the_current_node.rbegin(); it != input_nodes_to_the_current_node.rend(); it ++)
+      if (some_thread.joinable())
       {
-
-        // auto input_node_index = each_input_to_the_node.first;
-        auto input_node_index = it->first;
-
-        if(available_threads == 1)
-        {
-          compute_gradient_wrt_inputs(c_graph, input_node_index, input_node_and_value, memoized_table,
-                                      available_threads, grad_of_an_input_to_the_node_wrt_graph_inputs, thread_id);
-          gradient_matrix.insert(make_pair( input_node_index, grad_of_an_input_to_the_node_wrt_graph_inputs));
-        }
-        else
-        {
-          available_threads--;
-          if(debug_deriv)
-          {
-            while(!mtx.try_lock());
-            cout << "Starting a thread from node number = " << input_node_index << endl;
-            cout << "Available threads = " << available_threads << endl;
-            mtx.unlock();
-          }
-
-          gradient_matrix.insert(make_pair(input_node_index, grad_of_an_input_to_the_node_wrt_graph_inputs));
-
-          thread current_thread(compute_gradient_wrt_inputs,
-                                ref(c_graph),
-                                input_node_index,
-                                ref(input_node_and_value),
-                                ref(memoized_table),
-                                ref(available_threads),
-                                ref( gradient_matrix[input_node_index] ),
-                                input_node_index);
-
-          vector_of_threads_created.push_back(move(current_thread));
-        }
-        // grad_of_an_input_to_the_node_wrt_graph_inputs = compute_gradient_wrt_inputs(input_node_index, input_node_and_value, memoized_table);
+        some_thread.join();
+        available_threads++;
         if(debug_deriv)
         {
           while(!mtx.try_lock());
-          cout << "For node : " << node_id << " trying to get gradient for input number " << input_node_index << endl;
+          cout << "Some thread ended" << endl;
+          cout << "Available threads = " << available_threads << endl;
           mtx.unlock();
         }
-
       }
 
-      for (thread & some_thread : vector_of_threads_created)
-      {
-
-        if (some_thread.joinable())
-        {
-          some_thread.join();
-          available_threads++;
-          if(debug_deriv)
-          {
-            while(!mtx.try_lock());
-            cout << "Some thread ended" << endl;
-            cout << "Available threads = " << available_threads << endl;
-            mtx.unlock();
-          }
-        }
-
-      }
-
-      // Compute the gradient wrt inputs
-      map < uint32_t, double > gradient_wrt_inputs_to_the_graph;
-      for(auto each_input_to_the_comp_graph : input_node_and_value)
-      {
-        auto current_network_input_node_index  = each_input_to_the_comp_graph.first;
-        double grad_buff = 0.0;
-        for(auto each_input_to_the_node : input_nodes_to_the_current_node)
-        {
-          auto current_node_input_index = each_input_to_the_node.first;
-          grad_buff += (   ((gradient_matrix[current_node_input_index])[current_network_input_node_index]) *
-                       gradient_wrt_inputs_to_the_node[current_node_input_index] ) ;
-        }
-        gradient_wrt_inputs_to_the_graph.insert(make_pair( current_network_input_node_index, grad_buff ));
-      }
-
-      while(!mtx.try_lock());
-      memoized_table.insert(make_pair(node_id, gradient_wrt_inputs_to_the_graph));
-      mtx.unlock();
-
-      if(debug_deriv)
-      {
-        while(!mtx.try_lock());
-        cout << "Gradient for node " << node_id << endl;
-        print_map(gradient_wrt_inputs_to_the_graph);
-        cout << "Done with gradient computation for node = " << node_id << " in thread " << thread_id << endl;
-        mtx.unlock();
-      }
-
-      result = gradient_wrt_inputs_to_the_graph;
-      return;
     }
+
+    // Compute the gradient wrt inputs
+    map < uint32_t, double > gradient_wrt_inputs_to_the_graph;
+    for(auto each_input_to_the_comp_graph : input_node_and_value)
+    {
+      auto current_network_input_node_index  = each_input_to_the_comp_graph.first;
+      double grad_buff = 0.0;
+      for(auto each_input_to_the_node : input_nodes_to_the_current_node)
+      {
+        auto current_node_input_index = each_input_to_the_node.first;
+        grad_buff += (   ((gradient_matrix[current_node_input_index])[current_network_input_node_index]) *
+                     gradient_wrt_inputs_to_the_node[current_node_input_index] ) ;
+      }
+      gradient_wrt_inputs_to_the_graph.insert(make_pair( current_network_input_node_index, grad_buff ));
+    }
+
+    while(!mtx.try_lock());
+    memoized_table.insert(make_pair(node_id, gradient_wrt_inputs_to_the_graph));
+    mtx.unlock();
+
+    if(debug_deriv)
+    {
+      while(!mtx.try_lock());
+      cout << "Gradient for node " << node_id << endl;
+      print_map(gradient_wrt_inputs_to_the_graph);
+      cout << "Done with gradient computation for node = " << node_id << " in thread " << thread_id << endl;
+      mtx.unlock();
+    }
+
+    result = gradient_wrt_inputs_to_the_graph;
+    return;
+  }
 
 
 }
