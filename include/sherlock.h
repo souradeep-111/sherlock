@@ -68,7 +68,9 @@ public:
 
 void create_computation_graph_from_file(string filename,
                                         computation_graph & CG,
-                                        bool has_output_relu);
+                                        bool has_output_relu,
+                                        vector<uint32_t>& input_node_indices,
+                                        vector<uint32_t>& output_node_indices);
 
 void test_network_1(computation_graph & CG);
 void test_network_2(computation_graph & CG);

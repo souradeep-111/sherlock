@@ -63,7 +63,42 @@ int main(int argc, char ** argv)
 	cout << "Computed output range by Sherlock = [" <<
 	output_range.first << " , " << output_range.second << " ] " << endl;
 
+	computation_graph network_graph;
+	string network_1_name = "./network_files/neural_network_information_0";
+	vector<uint32_t> input_indices, output_indices;
+	create_computation_graph_from_file(network_1_name, network_graph, true,
+																		 input_indices, output_indices);
+	sherlock_handler.set_computation_graph(network_graph);
+	map<uint32_t, double> input_val;
+
+	interval.clear();
+	for(auto index : input_indices)
+	{
+		interval[index] = make_pair(0.0, 10.0);
+		input_val[index] = 5;
+	}
+	region.create_region_from_interval(interval);
+
+	map<uint32_t, double> neuron_val;
+	network_graph.evaluate_graph(input_val, neuron_val);
+	cout << "Value at that point = " << neuron_val[output_indices[0]] << endl;
+
+	sherlock_handler.compute_output_range_by_sampling(region, output_indices[0],
+																										output_range, 1000);
+	cout << "Computed output range from random sampling = [" <<
+	output_range.first << " , " << output_range.second << " ] " << endl;
+
+	sherlock_handler.optimize_node(output_indices[0], true, region, max);
+	sherlock_handler.optimize_node(output_indices[0], false, region, min);
+
+	cout << "Result by optimization = [ " << min << " , " << max << " ] " << endl;
+
+	sherlock_handler.compute_output_range(output_indices[0], region, output_range);
+	cout << "Computed output range by Sherlock = [" <<
+	output_range.first << " , " << output_range.second << " ] " << endl;
+
 	exit(0);
+
 	computation_graph sample_graph_b;
 	test_network_1(sample_graph_b);
 	x = 5.0;

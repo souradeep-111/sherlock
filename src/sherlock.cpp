@@ -520,8 +520,12 @@ bool sherlock :: return_best_effort_random_counter_example(bool direction,
 
 void create_computation_graph_from_file(string filename,
                                         computation_graph & CG,
-                                        bool has_output_relu)
+                                        bool has_output_relu,
+                                        vector<uint32_t>& input_node_indices,
+                                        vector<uint32_t>& output_node_indices)
 {
+  input_node_indices.clear();
+  output_node_indices.clear();
   CG.clear();
   ifstream file;
   file.open(filename.c_str(), ios::in);
@@ -544,7 +548,8 @@ void create_computation_graph_from_file(string filename,
     i++;
   }
 
-  node_index = 0;
+
+  node_index = 1;
 
   // Creating the input nodes, and adding them to the computation graph
   indices_of_previous_layer_nodes.clear();
@@ -555,7 +560,7 @@ void create_computation_graph_from_file(string filename,
     CG.add_new_node(node_index, node_x);
     CG.mark_node_as_input(node_index);
     indices_of_previous_layer_nodes.push_back(node_index);
-
+    input_node_indices.push_back(node_index);
     node_index ++;
     i++;
   }
@@ -569,7 +574,7 @@ void create_computation_graph_from_file(string filename,
       CG.add_new_node(node_index, node_x);
       indices_of_current_layer_nodes.push_back(node_index);
 
-      no_of_neurons_in_previous_layer = (i == 0) ? (no_of_inputs):(network_configuration[i-1]) ;
+      no_of_neurons_in_previous_layer = ((i == 0) ? (no_of_inputs):(network_configuration[i-1])) ;
       assert(no_of_neurons_in_previous_layer == indices_of_previous_layer_nodes.size());
       // Reading the weights
       for(k = 0; k < no_of_neurons_in_previous_layer; k++)
@@ -584,25 +589,26 @@ void create_computation_graph_from_file(string filename,
     }
     indices_of_previous_layer_nodes = indices_of_current_layer_nodes;
   }
-
-  i = 0;
-  while(i < no_of_outputs )
-  {
-    node node_x(node_index, "relu");
-    CG.add_new_node(node_index, node_x);
-    CG.mark_node_as_output(node_index);
-    indices_of_previous_layer_nodes.push_back(node_index);
-    node_index ++;
-    i++;
-  }
+  //
+  // i = 0;
+  // while(i < no_of_outputs )
+  // {
+  //   node node_x(node_index, "relu");
+  //   CG.add_new_node(node_index, node_x);
+  //   CG.mark_node_as_output(node_index);
+  //   indices_of_previous_layer_nodes.push_back(node_index);
+  //   node_index ++;
+  //   i++;
+  // }
 
   // Reading the output mapping
   for( j = 0 ; j < no_of_outputs ; j++ )
   {
-    string type = (has_output_relu) ? ("relu") : ("none");
+    string node_type = (has_output_relu) ? ("relu") : ("none");
 
-    node node_x(node_index, type);
+    node node_x(node_index, node_type);
     CG.add_new_node(node_index, node_x);
+    CG.mark_node_as_output(node_index);
 
     no_of_neurons_in_previous_layer = network_configuration[no_of_hidden_layers - 1] ;
     // Reading the weights
@@ -614,6 +620,7 @@ void create_computation_graph_from_file(string filename,
     // Reading the bias
     file >> buffer;
     CG.set_bias_of_node(node_index, buffer);
+    output_node_indices.push_back(node_index);
     node_index ++;
   }
 
