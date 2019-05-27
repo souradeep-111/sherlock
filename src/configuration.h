@@ -65,9 +65,9 @@ struct parameter_values
   parameter_values()
   {
     triggering_limit = 5;
-    exponential_limit_upper = 10;
-    exponential_limit_lower = -10;
-    gradient_rate = 1e-3;
+    exponential_limit_upper = 15;
+    exponential_limit_lower = -5;
+    gradient_rate = 1e-5;
     grad_termination_limit = 1e-5;
     switch_to_modified_gradient_search = true;
 
