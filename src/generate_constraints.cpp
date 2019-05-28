@@ -587,6 +587,15 @@ void constraints_stack :: delete_and_reinitialize()
 
 }
 
+void constraints_stack :: _delete_()
+{
+  if(model_ptr)
+    delete model_ptr;
+  if(env_ptr)
+    delete env_ptr;
+
+}
+
 void constraints_stack :: add_invariants(
                             computation_graph & neural_network,
                             region_constraints & input_region)
@@ -607,6 +616,7 @@ void constraints_stack :: add_invariants(
     add_constant_neurons(always_on, always_off);
   }
 
+  /*
   // Facts about same sense neurons
   set< pair< uint32_t, uint32_t > > same_sense_nodes, opposite_sense_nodes;
   network_signatures.learn_pairwise_relationship(same_sense_nodes, opposite_sense_nodes);
@@ -615,6 +625,8 @@ void constraints_stack :: add_invariants(
   {
     add_pairwise_neurons(same_sense_nodes, opposite_sense_nodes);
   }
+
+  */
 
   // Facts about implication relationship about neurons
   set< pair< uint32_t, uint32_t > > true_implication, false_implication;
@@ -792,22 +804,81 @@ void constaints_stack :: add_constant_neurons(set<uint32_t>& always_on, set<uint
 }
 
 void constraints_stack :: check_constant_neurons(computation_graph & neural_network,
+                                                 region_constraints & input_region,
                                                  set< uint32_t > & always_on,
                                                  set< uint32_t > & always_off)
 {
 
-  // For each neuron in the always on stack
+  relaxed_constraints_stack lp_constraints_for_this_node;
+  map< uint32_t, double > neuron_and_value;
+  double result;
+  lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(-1);
+
+  set< uint32_t > filtered_always_on, filtered_always_off;
+
+  while(!always_on.empty())
+  // For each neuron in the always_on stack check if the minimum is more
+  // than 0
+  {
+      lp_constraints_for_this_node.delete_and_reinitialize();
+
+      uint32_t current_on_neuron_index;
+      current_on_neuron_index = *( always_on.begin() );
+      lp_constraints_for_this_node.skip_activation_encoding_for_index.clear();
+      lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_on_neuron_index);
       // Create the relaxed set of constraints
+      lp_constraints_for_this_node.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
+      lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, current_on_neuron_index);
+
       // Check if the input to the neuron is always more than 0
-      // Set it as objective and check the value
-      // Delete the relaxed constraint
+      if(
+          lp_constraints_for_this_node.optimize(current_on_neuron_index, false, neuron_and_value, result)
+        )
+      {
+        if(result > 0)
+        {
+          filtered_always_on.insert(current_on_neuron_index);
+        }
 
+      }
+      always_on.erase(always_on.begin());
+  }
 
-  // For each neuron in the always off stack
-      //  Create the relaxed set of constraints
+  always_on = filtered_always_on;
+
+  while(!always_off.empty())
+  // For each neuron in the always_on stack check if the minimum is more
+  // than 0
+  {
+      lp_constraints_for_this_node.delete_and_reinitialize();
+
+      uint32_t current_off_neuron_index;
+      current_off_neuron_index = *( always_off.begin() );
+      lp_constraints_for_this_node.skip_activation_encoding_for_index.clear();
+      lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_off_neuron_index);
+
+      // Create the relaxed set of constraints
+      lp_constraints_for_this_node.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
+      lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, current_on_neuron_index);
+
       // Check if the input to the neuron is always less than 0
-      //  Same, set it as an objective and check the value
-      //  Delete the relaxed constraint set
+      if(
+          lp_constraints_for_this_node.optimize(current_off_neuron_index, true, neuron_and_value, result)
+        )
+      {
+        if(result < 0)
+        {
+          filtered_always_off.insert(current_off_neuron_index);
+        }
+
+      }
+
+
+      always_off.erase(always_off.begin());
+  }
+
+  always_off = filtered_always_off;
+
 }
 
 void constraints_stack :: add_pairwise_neurons(set< pair< uint32_t, uint32_t > > & same_sense_nodes,
@@ -819,6 +890,9 @@ void constraints_stack :: add_pairwise_neurons(set< pair< uint32_t, uint32_t > >
 void constraints_stack :: check_pairwise_relationship(set< pair< uint32_t, uint32_t > > & same_sense_nodes,
                                                       set< pair< uint32_t, uint32_t > > & opposite_sense_nodes )
 {
+  cout << "This function should not be called, sorry to crash the program !" << endl;
+  assert(false);
+
   // Create the LP relaxed constraints stack
 
   // For the binary variables, made into LP just assert that,
@@ -831,14 +905,81 @@ void constraints_stack :: add_implication_neurons(set< pair< uint32_t, uint32_t 
 
 }
 
-void constraints_stack :: check_implies_relationship(set< pair< uint32_t, uint32_t > > & true_implication,
+void constraints_stack :: check_implies_relationship(
+                                                    computation_graph & neural_network,
+                                                    region_constraints & input_region,
+                                                    set< pair< uint32_t, uint32_t > > & true_implication,
                                                     set< pair< uint32_t, uint32_t > > & false_implication)
 {
-  // Create the LP relaxed constraints stack
+  relaxed_constraints_stack lp_constraints_for_this_node;
+  map< uint32_t, double > neuron_and_value;
+  double result;
+  lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(-1);
 
-  // For the binary variables, made into LP just assert that,
-  // for true implication (Node_1 'on' implies Node_2 is 'on')  : check if min ( (sum of inputs to node_2) - (sum of inputs to node_1) ) > 0
-  // for false implication : (Node-1 'off' implies Node_2 'off' ) : check if max ( (sum of inputs to node_2) - (sum of inputs to node_1) )  < 0
+  set < pair< uint32_t, uint32_t > > filtered_true_implication;
+  while(!true_implication.empty())
+  // For each neuron activation check if one of them is more than 0, then is the
+  // other one also more than 0
+  {
+    lp_constraints_for_this_node.delete_and_reinitialize();
+
+    pair< uint32_t, uint32_t > current_pair;
+    current_pair = *(true_implication.begin())
+    lp_constraints_for_this_node.skip_activation_encoding_for_index.clear();
+    lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_pair.first);
+    lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_pair.second);
+    lp_constraints_for_this_node.create_the_input_overapproximation_for_each_neuron();
+    set< uint32_t > output_nodes;
+    output_nodes.insert(current_pair.first);
+    output_nodes.insert(current_pair.second);
+    lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, output_nodes);
+
+
+    // Check if the input to the neuron is always more than 0
+    if(
+        lp_constraints_for_this_node.check_implies_relation(true, current_pair.first, current_pair.second)
+      )
+    {
+        filtered_true_implication.insert(current_pair);
+    }
+
+    true_implication.erase(true_implication.begin());
+  }
+
+  true_implication = filtered_true_implication;
+
+  set < pair< uint32_t, uint32_t > > filtered_false_implication;
+  while(!false_implication.empty())
+  // For each neuron activation check if one of them is more than 0, then is the
+  // other one also more than 0
+  {
+    lp_constraints_for_this_node.delete_and_reinitialize();
+
+    pair< uint32_t, uint32_t > current_pair;
+    current_pair = *(false_implication.begin())
+    lp_constraints_for_this_node.skip_activation_encoding_for_index.clear();
+    lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_pair.first);
+    lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_pair.second);
+    lp_constraints_for_this_node.create_the_input_overapproximation_for_each_neuron();
+    set< uint32_t > output_nodes;
+    output_nodes.insert(current_pair.first);
+    output_nodes.insert(current_pair.second);
+    lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, output_nodes);
+
+
+    // Check if the input to the neuron is always more than 0
+    if(
+        lp_constraints_for_this_node.check_implies_relation(false, current_pair.first, current_pair.second)
+      )
+    {
+        filtered_false_implication.insert(current_pair);
+    }
+
+    false_implication.erase(false_implication.begin());
+  }
+
+  false_implication = filtered_false_implication;
+
 
 }
 
@@ -854,6 +995,16 @@ void relaxed_constraints_stack :: relate_input_output(node current_node,
   // if node type is sigmoid/tanh/etc , get the upper bound and lower bound constraints
   // add them, and assert that the output is indeed included there
   type node_type = current_node.get_node_type();
+  if(
+    (find(skip_activation_encoding_for_index.begin(), skip_activation_encoding_for_index.end(), current_node.get_node_number())
+      != skip_activation_encoding_for_index.end() )
+    &&
+    (skip_activation_encoding_for_index > 0)
+    )
+  {
+    node_type = _none_;
+  }
+
   if(node_type == _none_)
   {
       model_ptr->addConstr(input_var, GRB_EQUAL, output_var, current_node.get_node_name() + "_ip_op_constr_" );
@@ -1177,6 +1328,203 @@ void relaxed_constraints_stack :: relate_input_output(node current_node,
   {
     cout << "Node type relation missing from the code " << endl;
     assert(false);
+  }
+
+}
+
+bool relaxed_constraints_stack :: check_implies_relation(bool sense,
+                                  uint32_t node_1_index, uint32_t node_2_index)
+{
+
+  // For the binary variables, made into LP just assert that,
+  // for true implication (Node_1 'on' implies Node_2 is 'on')  : check if min ( (sum of inputs to node_2) - (sum of inputs to node_1) ) > 0
+  // for false implication : (Node-1 'off' implies Node_2 'off' ) : check if max ( (sum of inputs to node_2) - (sum of inputs to node_1) )  < 0
+
+  GRBLinExpr objective_expr;
+  objective_expr = 0;
+
+  if(sense)
+  {
+    double data = 1.0;
+    objective_expr.addTerms(& data, & neurons[node_2_index] , 1);
+    data = -1.0
+    objective_expr.addTerms(& data, & neurons[node_1_index] , 1);
+    model_ptr->setObjective(objective_expr, GRB_MINIMIZE);
+  }
+  else
+  {
+    double data = 1.0;
+    objective_expr.addTerms(& data, & neurons[node_2_index] , 1);
+    data = -1.0
+    objective_expr.addTerms(& data, & neurons[node_1_index] , 1);
+    model_ptr->setObjective(objective_expr, GRB_MAXIMIZE);
+
+  }
+
+
+   model_ptr->optimize();
+   model_ptr->update();
+
+
+
+   string s = "./Gurobi_file_created/Linear_program.lp";
+   model_ptr->write(s);
+
+   //
+   // cout << "Status = " << model_ptr->get(GRB_IntAttr_Status) << endl;
+   // cout << "Objective = " << model_ptr->get(GRB_DoubleAttr_ObjVal) << endl;
+   // cout << "Objective in the neurons list = " << neurons[node_index].get(GRB_DoubleAttr_X) << endl;
+   //
+   // GRBVar *vars = 0;
+   // int numvars = model_ptr->get(GRB_IntAttr_NumVars);
+   // vars = model_ptr->getVars();
+   //
+   // cout << "Number of variables = " << numvars << endl;
+   // for (int j = 0; j < numvars; j++)
+   // {
+   //    GRBVar v = vars[j];
+   //    cout << "For var name = " << v.get(GRB_StringAttr_VarName) ;
+   //    cout << "  ------- Value = " << v.get(GRB_DoubleAttr_X)  << endl;
+   // }
+   //    cout << endl;
+   //
+
+
+
+   if(model_ptr->get(GRB_IntAttr_Status) == GRB_OPTIMAL)
+   {
+     if(sense)
+     {
+       if(model_ptr->get(GRB_DoubleAttr_ObjVal) > 0)
+       {
+         return true;
+       }
+       else
+       {
+         return false;
+       }
+
+     }
+     else
+     {
+       if(model_ptr->get(GRB_DoubleAttr_ObjVal) < 0)
+       {
+         return true;
+       }
+       else
+       {
+         return false;
+       }
+
+     }
+
+   }
+   else if(model_ptr->get(GRB_IntAttr_Status) == GRB_INFEASIBLE)
+   {
+       return false;
+   }
+   else
+   {
+       cout << "Some unkown Gurobi flag !" << endl;
+       cout << "Flag returned - " << model_ptr->get(GRB_IntAttr_Status) << endl;
+       assert(false);
+       return false;
+   }
+
+   return false;
+}
+
+
+void relaxed_constraints_stack :: generate_graph_constraints(
+                         region_constraints &  region,
+                         computation_graph & CG,
+                         set< uint32_t > output_nodes)
+{
+  // Basically encode the whole network here
+
+  // Getting a reference to all the nodes in the computation graph
+  map< uint32_t, node >& all_nodes = CG.return_ref_to_all_nodes();
+
+  // Declaring the neurons for the input nodes of the computation graph
+  vector< uint32_t > input_node_indices, output_node_indices;
+  CG.return_id_of_input_output_nodes(input_node_indices, output_node_indices);
+
+  for(auto & input_node_index : input_node_indices)
+  {
+    GRBVar var = model_ptr->addVar(-GRB_INFINITY, GRB_INFINITY, 0.0, GRB_CONTINUOUS,  all_nodes[input_node_index].get_node_name() );
+    neurons.insert( make_pair( input_node_index , var ) );
+  }
+  /* NOTE : Don't change 'neurons'  here, it is supposed to be a list of input neurons to the computation graph here */
+  // impose constraints on the input nodes of the computation graph
+  region.add_this_region_to_MILP_model(neurons, model_ptr);
+
+  // A table which keeps track of the nodes who's constraints have already been added ,
+  // we initialize it with the inputs of the computation graph to begin with
+  vector < uint32_t > explored_nodes;
+  for(auto each_input_index : input_node_indices)
+  {
+    explored_nodes.push_back(each_input_index);
+  }
+  // Call generate_node_constraints on the output of the graph
+  generate_node_constraints(CG, explored_nodes ,output_nodes);
+}
+
+
+void relaxed_constraints_stack :: generate_node_constraints(
+                          computation_graph & CG,
+                          vector< uint32_t > explored_nodes,
+                          set< uint32_t > output_nodes)
+
+{
+  // NOTE: ALGORITHM--
+  // Create a queue for unexplored nodes in the graph
+  // Until the queue is empty
+      // pop a node
+      // Call the function : add constraint for node
+
+      // if threads are available and there is still stuff in the queue
+          // pop a node , ..... (basically everything that you did in the main loop )
+      // wait for all the threads you started to end
+
+  map< uint32_t, node >& all_nodes = CG.return_ref_to_all_nodes();
+
+  set < uint32_t > unexplored_nodes;
+
+  for(set< uint32_t> :: iterator it = output_nodes.begin(); it != output_nodes.end(); it++)
+  {
+    GRBVar output_var = model_ptr->addVar(-GRB_INFINITY, GRB_INFINITY, 0.0, GRB_CONTINUOUS,  all_nodes[*it].get_node_name());
+    neurons.insert(make_pair(*it, output_var));
+  }
+
+  vector< thread > threads_currently_running;
+  set< uint32_t > nodes_to_explore;
+
+  // unexplored_nodes.insert(output_node_id);
+  unexplored_nodes = output_nodes;
+  uint32_t current_node_id;
+
+  while(!unexplored_nodes.empty())
+  {
+
+      current_node_id = *(unexplored_nodes.begin());
+      unexplored_nodes.erase(unexplored_nodes.begin());
+
+      // cout << "Adding constraints for " << current_node_id << endl;
+      add_constraints_for_node(*this, current_node_id, CG, model_ptr, nodes_to_explore);
+      explored_nodes.push_back(current_node_id);
+
+    // Adding all the new nodes to explore  to the list
+    for(set<uint32_t> ::iterator it = nodes_to_explore.begin(); it != nodes_to_explore.end(); it ++)
+    {
+      unexplored_nodes.insert(*it);
+    }
+
+    // cout << "Unexplored nodes : [ " ;
+    // for(set<uint32_t> ::iterator it = unexplored_nodes.begin(); it != unexplored_nodes.end(); it ++)
+    // {
+    //   cout << *it << " ,  ";
+    // }
+    // cout << " ] " << endl;
   }
 
 }

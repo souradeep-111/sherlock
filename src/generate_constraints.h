@@ -50,6 +50,7 @@ class constraints_stack
                              GRBVar input_var, GRBVar output_var,
                              GRBModel * model_ptr);
 
+    void _delete_()
     void delete_and_reinitialize();
     void add_invariants();
 
@@ -76,13 +77,30 @@ class constraints_stack
 
 class relaxed_constraints_stack : public constraints_stack
 {
+
   public:
+    vector< int > skip_activation_encoding_for_index;
+
     void relate_input_output(node current_node,
                              GRBVar input_var, GRBVar output_var,
                              GRBModel * model_ptr);
 
+    using constraints_stack :: generate_graph_constraints;
+    void generate_graph_constraints(
+                             region_constraints &  region,
+                             computation_graph & CG,
+                             set< uint32_t > output_nodes);
+
+    using constraints_stack :: generate_node_constraints;
+    void generate_node_constraints(
+                             computation_graph & CG,
+                             vector< uint32_t > explored_nodes,
+                             set< uint32_t > output_nodes);
+
     bool check_implies_relation(bool sense, uint32_t node_1_index,
                                 uint32_t node_2_index);
+
+
 
 
 };
