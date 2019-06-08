@@ -4690,8 +4690,8 @@ bool bad_gradients(map< uint32_t, double > vector_of_gradients )
     {
       return true;
     }
-    else if((abs(each_grad.second) > sherlock_parameters.tool_high) ||
-           (abs(each_grad.second) < sherlock_parameters.tool_zero))
+    else if((fabs(each_grad.second) > sherlock_parameters.tool_high) ||
+           (fabs(each_grad.second) < sherlock_parameters.tool_zero))
     {
       return true;
     }

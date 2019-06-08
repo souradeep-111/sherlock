@@ -7,6 +7,7 @@
 #include <fstream>
 #include "computation_graph.h"
 #include "region_constraints.h"
+#include <set>
 #include <assert.h>
 
 typedef map<uint32_t, bool> bit_vector;
@@ -22,7 +23,7 @@ public:
                                    uint32_t no_of_samples);
 
   vector< uint32_t > return_sample_indices();
-  void return_bit_vector_for_sample(uint32_t index, bit_vector & b_vec)
+  void return_bit_vector_for_sample(uint32_t index, bit_vector & b_vec);
   void clear();
   bool empty();
   void learn_constant_neurons(set < uint32_t > & on_list,

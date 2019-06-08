@@ -128,7 +128,7 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index,
 
       neural_network.evaluate_graph(search_point, neuron_values);
       double actual_val = neuron_values[node_index];
-      if(abs(actual_val - current_optima) > sherlock_parameters.MILP_tolerance)
+      if(fabs(actual_val - current_optima) > sherlock_parameters.MILP_tolerance)
       {
         optimize_node(7, direction, input_region, optima);
         return;

@@ -219,13 +219,13 @@ double constraints_stack :: get_M_val_for_node(uint32_t node_index)
 {
   assert(neuron_bounds[node_index].first < neuron_bounds[node_index].second);
   double max;
-  if(abs(neuron_bounds[node_index].first) > abs(neuron_bounds[node_index].second))
+  if(fabs(neuron_bounds[node_index].first) > fabs(neuron_bounds[node_index].second))
   {
-    max = abs(neuron_bounds[node_index].first);
+    max = fabs(neuron_bounds[node_index].first);
   }
   else
   {
-    max = abs(neuron_bounds[node_index].second);
+    max = fabs(neuron_bounds[node_index].second);
   }
 
   return max;
@@ -610,7 +610,7 @@ void constraints_stack :: add_invariants(
   // Facts about constant neurons
   set< uint32_t > always_on, always_off;
   network_signature.learn_constant_neurons(always_on, always_off);
-  check_constant_neurons(always_on, always_off);
+  check_constant_neurons(neural_network, input_region, always_on, always_off);
   if(!(always_on.empty() && always_off.empty()))
   {
     add_constant_neurons(always_on, always_off);
@@ -798,9 +798,28 @@ bool constraints_stack :: optimize_enough(uint32_t node_index,
    return false;
 }
 
-void constaints_stack :: add_constant_neurons(set<uint32_t>& always_on, set<uint32_t>& always_off)
+void constraints_stack :: add_constant_neurons(set<uint32_t>& always_on, set<uint32_t>& always_off)
 {
-  // To the original Gurobi model pointer just add the always on and always off list
+  GRBLinExpr current_constraint;
+  double data;
+
+  for(auto some_on_neuron : always_on)
+  {
+    current_constraint = 0.0;
+    data = 1;
+    current_constraint.addTerms(& data, & binaries[some_on_neuron], 1);
+    model_ptr->addConstr(current_constraint, GRB_EQUAL, 1.0, "_valid_inequality_constant_node_" + string(some_on_neuron) );
+  }
+
+  for(auto some_off_neuron : always_off)
+  {
+    current_constraint = 0.0;
+    data = 1;
+    current_constraint.addTerms(&data, & binaries[some_off_neuron], 1);
+    model_ptr->addConstr(current_constraint, GRB_EQUAL, 0.0, "_valid_inequality_constant_node_" + string(some_off_neuron) );
+  }
+
+
 }
 
 void constraints_stack :: check_constant_neurons(computation_graph & neural_network,
@@ -884,6 +903,30 @@ void constraints_stack :: check_constant_neurons(computation_graph & neural_netw
 void constraints_stack :: add_pairwise_neurons(set< pair< uint32_t, uint32_t > > & same_sense_nodes,
                                                set< pair< uint32_t, uint32_t > > & opposite_sense_nodes)
 {
+  GRBLinExpr lhs, rhs;
+  double data;
+
+  for(auto some_pair : same_sense_nodes)
+  {
+    lhs = 0.0;
+    rhs = 0.0;
+    data = 1;
+    lhs.addTerms(& data, binaries[some_pair.first], 1);
+    rhs.addTerms(& data, binaries[some_pair.second], 1);
+
+    model_ptr->addConstr(lhs, GRB_EQUAL, rhs, "_same_sense_node_" + string(some_pair.first) + "_" + string(some_pair.second) );
+  }
+
+  GRBLinExpr current_constraint;
+  for(auto some_pair : opposite_sense_nodes)
+  {
+    current_constraint = 0.0;
+    data = 1;
+    current_constraint.addTerms(& data, binaries[some_pair.first], 1);
+    current_constraint.addTerms(& data, binaries[some_pair.second], 1);
+
+    model_ptr->addConstr(current_constraint, GRB_EQUAL, 1.0, "_opposite_sense_node_" + string(some_pair.first) + "_" + string(some_pair.second) );
+  }
 
 }
 
@@ -898,10 +941,35 @@ void constraints_stack :: check_pairwise_relationship(set< pair< uint32_t, uint3
   // For the binary variables, made into LP just assert that,
 }
 
-void constraints_stack :: add_implication_neurons(set< pair< uint32_t, uint32_t > > & same_sense_nodes,
-                                               set< pair< uint32_t, uint32_t > > & opposite_sense_nodes)
+void constraints_stack :: add_implication_neurons(set< pair< uint32_t, uint32_t > > & true_sense_nodes,
+                                               set< pair< uint32_t, uint32_t > > & false_sense_nodes)
 
 {
+  GRBLinExpr lhs, rhs;
+  double data;
+
+  for(auto some_pair : true_sense_nodes)
+  {
+    lhs = 0.0;
+    rhs = 0.0;
+    data = 1;
+    lhs.addTerms(& data, binaries[some_pair.first], 1);
+    rhs.addTerms(& data, binaries[some_pair.second], 1);
+
+    model_ptr->addConstr(lhs, GRB_LESS_EQUAL, rhs, string(some_pair.first) + "_implies_true_" + string(some_pair.second) );
+  }
+
+
+  for(auto some_pair : false_sense_nodes)
+  {
+    lhs = 0.0;
+    rhs = 0.0;
+    data = 1;
+    lhs.addTerms(& data, binaries[some_pair.first], 1);
+    rhs.addTerms(& data, binaries[some_pair.second], 1);
+
+    model_ptr->addConstr(rhs, GRB_LESS_EQUAL, lhs, string(some_pair.first) + "_implies_false_" + string(some_pair.second) );
+  }
 
 }
 

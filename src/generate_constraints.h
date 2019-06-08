@@ -50,9 +50,10 @@ class constraints_stack
                              GRBVar input_var, GRBVar output_var,
                              GRBModel * model_ptr);
 
-    void _delete_()
+    void _delete_();
     void delete_and_reinitialize();
-    void add_invariants();
+    void add_invariants(computation_graph & neural_network,
+                        region_constraints & input_region);
 
     bool optimize(uint32_t node_index, bool direction,
                   map< uint32_t, double >& neuron_value,
@@ -67,6 +68,27 @@ class constraints_stack
                                              node current_node,
                                              GRBVar & sum_variable,
                                              GRBModel * model_ptr);
+
+     void check_constant_neurons(computation_graph & neural_network,
+                                 region_constraints & input_region,
+                                 set< uint32_t > & always_on,
+                                 set< uint32_t > & always_off);
+
+     void add_pairwise_neurons(set< pair< uint32_t, uint32_t > > & same_sense_nodes,
+                               set< pair< uint32_t, uint32_t > > & opposite_sense_nodes);
+
+
+    void check_pairwise_relationship(set< pair< uint32_t, uint32_t > > & same_sense_nodes,
+                                     set< pair< uint32_t, uint32_t > > & opposite_sense_nodes );
+
+    void add_implication_neurons(set< pair< uint32_t, uint32_t > > & same_sense_nodes,
+                                 set< pair< uint32_t, uint32_t > > & opposite_sense_nodes);
+
+    void check_implies_relationship(computation_graph & neural_network,
+                                    region_constraints & input_region,
+                                    set< pair< uint32_t, uint32_t > > & true_implication,
+                                    set< pair< uint32_t, uint32_t > > & false_implication);
+
 
     friend void add_constraints_for_node(constraints_stack & CS,
                                          uint32_t current_node_id,
