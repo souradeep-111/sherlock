@@ -90,6 +90,10 @@ class constraints_stack
                                     set< pair< uint32_t, uint32_t > > & false_implication);
 
 
+    void add_constant_neurons(set<uint32_t>& always_on, set<uint32_t>& always_off);
+
+
+
     friend void add_constraints_for_node(constraints_stack & CS,
                                          uint32_t current_node_id,
                                          computation_graph & CG,
@@ -122,9 +126,6 @@ class relaxed_constraints_stack : public constraints_stack
     bool check_implies_relation(bool sense, uint32_t node_1_index,
                                 uint32_t node_2_index);
 
-
-
-
 };
 
 void add_constraints_for_node_generalized(constraints_stack & CS,
@@ -132,4 +133,6 @@ void add_constraints_for_node_generalized(constraints_stack & CS,
                               computation_graph & CG,
                               GRBModel * model_ptr,
                               set < uint32_t >& nodes_to_explore );
+
+
 #endif

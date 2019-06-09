@@ -35,7 +35,7 @@ void network_signatures :: clear()
 
 bool network_signatures ::empty()
 {
-  return signatures.empty()
+  return signatures.empty();
 }
 
 
@@ -44,7 +44,7 @@ vector< uint32_t > network_signatures :: return_sample_indices()
   vector<uint32_t> index_vector;
   for(auto each_signature : signatures)
   {
-    index_vector.push_back(each_signatures.first);
+    index_vector.push_back(each_signature.first);
   }
   return index_vector;
 }
@@ -91,7 +91,7 @@ void network_signatures :: learn_constant_neurons(
     }
     else
     {
-      auto size = b_vec.get_size();
+      auto size = b_vec.size();
       for(auto each_bit : b_vec)
       {
         if(each_bit.second)
@@ -127,7 +127,7 @@ void network_signatures :: learn_pairwise_relationship(uint32_t trial_count,
 
   same_sense_nodes.clear();
   opposite_sense_nodes.clear();
-  auto random_index;
+  uint32_t random_index;
 
   for(auto some_signature : signatures)
   {
@@ -140,8 +140,8 @@ void network_signatures :: learn_pairwise_relationship(uint32_t trial_count,
   auto trial_index = 0;
   while(trial_index < trial_count)
   {
-    auto  neuron_1_index = generate_random_int(number_of_neurons, trial_index * 17);
-    auto  neuron_2_index = generate_random_int(number_of_neurons, trial_index * 17 + 13);
+    uint32_t  neuron_1_index = generate_random_int(number_of_neurons, trial_index * 17);
+    uint32_t  neuron_2_index = generate_random_int(number_of_neurons, trial_index * 17 + 13);
 
     bool is_same_sense = true;
     bool is_opposite_sense = true;
@@ -192,23 +192,23 @@ void network_signatures :: learn_implies_relationship(
   node_1_implies_node_2_true_sense.clear();
   node_1_implies_node_2_false_sense.clear();
 
-  auto random_index;
+  uint32_t random_index;
   for(auto some_signature : signatures)
   {
     random_index  = some_signature.first;
     break;
   }
 
-  auto number_of_neurons = signatures[random_index];
-  auto trial_index = 0;
+  uint32_t number_of_neurons = signatures[random_index];
+  uint32_t trial_index = 0;
   while(trial_index < trial_count)
   {
-    auto neuron_1_index = generate_random_int(number_of_neurons, trial_index* 29 + 23);
-    auto neuron_2_index = generate_random_int(number_of_neurons, trial_index* 29 + 17);
+    uint32_t neuron_1_index = generate_random_int(number_of_neurons, trial_index* 29 + 23);
+    uint32_t neuron_2_index = generate_random_int(number_of_neurons, trial_index* 29 + 17);
 
     bool n1_imples_n2 = true;
     bool not_n1_implies_not_n2 = true;
-    auto current_pair;
+    pair< uint32_t, uint32_t > current_pair;
     if(neuron_1_index != neuron_2_index)
     {
       current_pair = make_pair(neuron_1_index, neuron_2_index);

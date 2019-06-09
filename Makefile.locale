@@ -1,3 +1,3 @@
 # change according to system and gurobi version
-GUROBI_PATH =  /Library/gurobi752
-HOST_ARCH =  mac64
+GUROBI_PATH =  /opt/gurobi800
+HOST_ARCH =  linux64

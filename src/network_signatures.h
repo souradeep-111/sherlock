@@ -29,10 +29,12 @@ public:
   void learn_constant_neurons(set < uint32_t > & on_list,
                               set < uint32_t > & off_list);
 
-  void learn_pairwise_relationship(set< pair< uint32_t, uint32_t > >& same_sense_nodes,
+  void learn_pairwise_relationship(uint32_t trial_count,
+                                   set< pair< uint32_t, uint32_t > >& same_sense_nodes,
                                    set< pair< uint32_t, uint32_t > >& opposite_sense_nodes);
 
-  void learn_implies_relationship(set< pair< uint32_t, uint32_t > >& node_1_implies_node_2_true_sense,
+  void learn_implies_relationship(uint32_t trial_count,
+                                  set< pair< uint32_t, uint32_t > >& node_1_implies_node_2_true_sense,
                                   set< pair< uint32_t, uint32_t > >& node_1_implies_node_2_false_sense);
 
 };

@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 #include <queue>
+#include <math.h>
 #include "computation_graph.h"
 #include "generate_constraints.h"
 #include <string>

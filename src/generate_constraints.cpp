@@ -1,5 +1,7 @@
 #include "generate_constraints.h"
+
 uint32_t trial_count_for_constraint_generation = 1000;
+
 mutex mtx_gen_cons;
 bool debug_gen_constr = true;
 constraints_stack :: constraints_stack()
@@ -609,7 +611,7 @@ void constraints_stack :: add_invariants(
 
   // Facts about constant neurons
   set< uint32_t > always_on, always_off;
-  network_signature.learn_constant_neurons(always_on, always_off);
+  network_signature.learn_constant_neurons( always_on, always_off);
   check_constant_neurons(neural_network, input_region, always_on, always_off);
   if(!(always_on.empty() && always_off.empty()))
   {
@@ -619,7 +621,7 @@ void constraints_stack :: add_invariants(
   /*
   // Facts about same sense neurons
   set< pair< uint32_t, uint32_t > > same_sense_nodes, opposite_sense_nodes;
-  network_signatures.learn_pairwise_relationship(same_sense_nodes, opposite_sense_nodes);
+  network_signatures.learn_pairwise_relationship(trial_count_for_constraint_generation,same_sense_nodes, opposite_sense_nodes);
   check_pairwise_relationship(same_sense_nodes, opposite_sense_nodes);
   if(!(same_sense_nodes.empty() && opposite_sense_nodes.empty()))
   {
@@ -630,8 +632,8 @@ void constraints_stack :: add_invariants(
 
   // Facts about implication relationship about neurons
   set< pair< uint32_t, uint32_t > > true_implication, false_implication;
-  network_signatures.learn_implies_relationship(true_implication, false_implication);
-  check_implies_relationship(true_implication, false_implication);
+  network_signature.learn_implies_relationship(trial_count_for_constraint_generation, true_implication, false_implication);
+  check_implies_relationship(neural_network, input_region ,true_implication, false_implication);
   if(!(true_implication.empty() && false_implication.empty()))
   {
     add_implication_neurons(true_implication, false_implication);
@@ -808,7 +810,7 @@ void constraints_stack :: add_constant_neurons(set<uint32_t>& always_on, set<uin
     current_constraint = 0.0;
     data = 1;
     current_constraint.addTerms(& data, & binaries[some_on_neuron], 1);
-    model_ptr->addConstr(current_constraint, GRB_EQUAL, 1.0, "_valid_inequality_constant_node_" + string(some_on_neuron) );
+    model_ptr->addConstr(current_constraint, GRB_EQUAL, 1.0, "_valid_inequality_constant_node_" + to_string(some_on_neuron) );
   }
 
   for(auto some_off_neuron : always_off)
@@ -816,7 +818,7 @@ void constraints_stack :: add_constant_neurons(set<uint32_t>& always_on, set<uin
     current_constraint = 0.0;
     data = 1;
     current_constraint.addTerms(&data, & binaries[some_off_neuron], 1);
-    model_ptr->addConstr(current_constraint, GRB_EQUAL, 0.0, "_valid_inequality_constant_node_" + string(some_off_neuron) );
+    model_ptr->addConstr(current_constraint, GRB_EQUAL, 0.0, "_valid_inequality_constant_node_" + to_string(some_off_neuron) );
   }
 
 
@@ -878,7 +880,7 @@ void constraints_stack :: check_constant_neurons(computation_graph & neural_netw
 
       // Create the relaxed set of constraints
       lp_constraints_for_this_node.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
-      lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, current_on_neuron_index);
+      lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, current_off_neuron_index);
 
       // Check if the input to the neuron is always less than 0
       if(
@@ -911,10 +913,10 @@ void constraints_stack :: add_pairwise_neurons(set< pair< uint32_t, uint32_t > >
     lhs = 0.0;
     rhs = 0.0;
     data = 1;
-    lhs.addTerms(& data, binaries[some_pair.first], 1);
-    rhs.addTerms(& data, binaries[some_pair.second], 1);
+    lhs.addTerms(& data, & binaries[some_pair.first], 1);
+    rhs.addTerms(& data, & binaries[some_pair.second], 1);
 
-    model_ptr->addConstr(lhs, GRB_EQUAL, rhs, "_same_sense_node_" + string(some_pair.first) + "_" + string(some_pair.second) );
+    model_ptr->addConstr(lhs, GRB_EQUAL, rhs, "_same_sense_node_" + to_string(some_pair.first) + "_" + to_string(some_pair.second) );
   }
 
   GRBLinExpr current_constraint;
@@ -922,10 +924,10 @@ void constraints_stack :: add_pairwise_neurons(set< pair< uint32_t, uint32_t > >
   {
     current_constraint = 0.0;
     data = 1;
-    current_constraint.addTerms(& data, binaries[some_pair.first], 1);
-    current_constraint.addTerms(& data, binaries[some_pair.second], 1);
+    current_constraint.addTerms(& data, & binaries[some_pair.first], 1);
+    current_constraint.addTerms(& data, & binaries[some_pair.second], 1);
 
-    model_ptr->addConstr(current_constraint, GRB_EQUAL, 1.0, "_opposite_sense_node_" + string(some_pair.first) + "_" + string(some_pair.second) );
+    model_ptr->addConstr(current_constraint, GRB_EQUAL, 1.0, "_opposite_sense_node_" + to_string(some_pair.first) + "_" + to_string(some_pair.second) );
   }
 
 }
@@ -953,10 +955,10 @@ void constraints_stack :: add_implication_neurons(set< pair< uint32_t, uint32_t 
     lhs = 0.0;
     rhs = 0.0;
     data = 1;
-    lhs.addTerms(& data, binaries[some_pair.first], 1);
-    rhs.addTerms(& data, binaries[some_pair.second], 1);
+    lhs.addTerms(& data, & binaries[some_pair.first], 1);
+    rhs.addTerms(& data, & binaries[some_pair.second], 1);
 
-    model_ptr->addConstr(lhs, GRB_LESS_EQUAL, rhs, string(some_pair.first) + "_implies_true_" + string(some_pair.second) );
+    model_ptr->addConstr(lhs, GRB_LESS_EQUAL, rhs, to_string(some_pair.first) + "_implies_true_" + to_string(some_pair.second) );
   }
 
 
@@ -965,10 +967,10 @@ void constraints_stack :: add_implication_neurons(set< pair< uint32_t, uint32_t 
     lhs = 0.0;
     rhs = 0.0;
     data = 1;
-    lhs.addTerms(& data, binaries[some_pair.first], 1);
-    rhs.addTerms(& data, binaries[some_pair.second], 1);
+    lhs.addTerms(& data, & binaries[some_pair.first], 1);
+    rhs.addTerms(& data, & binaries[some_pair.second], 1);
 
-    model_ptr->addConstr(rhs, GRB_LESS_EQUAL, lhs, string(some_pair.first) + "_implies_false_" + string(some_pair.second) );
+    model_ptr->addConstr(rhs, GRB_LESS_EQUAL, lhs, to_string(some_pair.first) + "_implies_false_" + to_string(some_pair.second) );
   }
 
 }
@@ -992,11 +994,11 @@ void constraints_stack :: check_implies_relationship(
     lp_constraints_for_this_node.delete_and_reinitialize();
 
     pair< uint32_t, uint32_t > current_pair;
-    current_pair = *(true_implication.begin())
+    current_pair = *(true_implication.begin());
     lp_constraints_for_this_node.skip_activation_encoding_for_index.clear();
     lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_pair.first);
     lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_pair.second);
-    lp_constraints_for_this_node.create_the_input_overapproximation_for_each_neuron();
+    lp_constraints_for_this_node.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
     set< uint32_t > output_nodes;
     output_nodes.insert(current_pair.first);
     output_nodes.insert(current_pair.second);
@@ -1024,11 +1026,11 @@ void constraints_stack :: check_implies_relationship(
     lp_constraints_for_this_node.delete_and_reinitialize();
 
     pair< uint32_t, uint32_t > current_pair;
-    current_pair = *(false_implication.begin())
+    current_pair = *(false_implication.begin());
     lp_constraints_for_this_node.skip_activation_encoding_for_index.clear();
     lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_pair.first);
     lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_pair.second);
-    lp_constraints_for_this_node.create_the_input_overapproximation_for_each_neuron();
+    lp_constraints_for_this_node.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
     set< uint32_t > output_nodes;
     output_nodes.insert(current_pair.first);
     output_nodes.insert(current_pair.second);
@@ -1062,12 +1064,12 @@ void relaxed_constraints_stack :: relate_input_output(node current_node,
   // computed and add the constraint
   // if node type is sigmoid/tanh/etc , get the upper bound and lower bound constraints
   // add them, and assert that the output is indeed included there
+
   type node_type = current_node.get_node_type();
-  if(
+  if( (!skip_activation_encoding_for_index.empty())
+    &&
     (find(skip_activation_encoding_for_index.begin(), skip_activation_encoding_for_index.end(), current_node.get_node_number())
       != skip_activation_encoding_for_index.end() )
-    &&
-    (skip_activation_encoding_for_index > 0)
     )
   {
     node_type = _none_;
@@ -1415,7 +1417,7 @@ bool relaxed_constraints_stack :: check_implies_relation(bool sense,
   {
     double data = 1.0;
     objective_expr.addTerms(& data, & neurons[node_2_index] , 1);
-    data = -1.0
+    data = -1.0;
     objective_expr.addTerms(& data, & neurons[node_1_index] , 1);
     model_ptr->setObjective(objective_expr, GRB_MINIMIZE);
   }
@@ -1423,7 +1425,7 @@ bool relaxed_constraints_stack :: check_implies_relation(bool sense,
   {
     double data = 1.0;
     objective_expr.addTerms(& data, & neurons[node_2_index] , 1);
-    data = -1.0
+    data = -1.0;
     objective_expr.addTerms(& data, & neurons[node_1_index] , 1);
     model_ptr->setObjective(objective_expr, GRB_MAXIMIZE);
 
