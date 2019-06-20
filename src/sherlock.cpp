@@ -50,6 +50,36 @@ void sherlock :: optimize_node(uint32_t node_index, bool direction,
 
 }
 
+void sherlock :: optimize_constrained(uint32_t node_index, bool direction,
+                               region_constraints & input_region,
+                               vector< linear_inequality > & inequalities,
+                               double & optima_achieved)
+{
+  map< uint32_t, double > neuron_values;
+  network_constraints.delete_and_reinitialize();
+  network_constraints.create_the_input_overapproximation_for_each_neuron(
+                      neural_network, input_region);
+  network_constraints.generate_graph_constraints(
+                      input_region, neural_network, node_index);
+
+  for(auto & each_inequality : inequalities)
+  {
+    network_constraints.add_linear_constraint(each_inequality);
+  }
+
+  if( network_constraints.optimize(node_index, direction, neuron_values, optima_achieved) )
+  {
+    return;
+  }
+  else
+  {
+    cout << "Optimization failed , terminating itself ! " << endl;
+    assert(false);
+  }
+
+  return;
+}
+
 void sherlock :: compute_output_range(uint32_t node_index,
                                       region_constraints & input_region,
                                       pair < double, double >& output_range )
@@ -516,6 +546,12 @@ bool sherlock :: return_best_effort_random_counter_example(bool direction,
   }
   return false;
 }
+
+void sherlock :: add_constraint(linear_inequality & lin_ineq)
+{
+  network_constraints.add_linear_constraint(lin_ineq);
+}
+
 
 
 void create_computation_graph_from_file(string filename,

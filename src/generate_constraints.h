@@ -92,7 +92,7 @@ class constraints_stack
 
     void add_constant_neurons(set<uint32_t>& always_on, set<uint32_t>& always_off);
 
-
+    void add_linear_constraint(linear_inequality & lin_ineq);
 
     friend void add_constraints_for_node(constraints_stack & CS,
                                          uint32_t current_node_id,

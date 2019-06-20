@@ -46,8 +46,10 @@ void linear_inequality :: add_this_constraint_to_MILP_model(map< uint32_t, GRBVa
 
   for(auto & some_var : grb_variables)
   {
-    if(some_var.first < 0)
+    if((some_var.first < 0) || (inequality.find(some_var.first) == inequality.end()))
+    {
       continue;
+    }
     data = inequality[some_var.first];
     expression.addTerms(& data, & grb_variables[some_var.first], 1);
   }

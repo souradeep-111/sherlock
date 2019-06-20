@@ -27,6 +27,12 @@ public:
   void optimize_node(uint32_t node_index, bool direction,
                       region_constraints & input_region,
                       double & optima_achieved);
+
+  void optimize_constrained(uint32_t node_index, bool direction,
+                                 region_constraints & input_region,
+                                 vector< linear_inequality > & inequalities,
+                                 double & optima_achieved);
+
   void gradient_driven_optimization(uint32_t node_index,
                                     region_constraints & input_region,
                                     bool direction, double & optima);
@@ -63,6 +69,8 @@ public:
                                     map< uint32_t , double >& current_point,
                                     double& val_curr, uint32_t node_index,
                                     region_constraints & region);
+
+  void add_constraint(linear_inequality & lin_ineq);
 
 };
 

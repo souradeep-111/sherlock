@@ -63,8 +63,22 @@ int main(int argc, char ** argv)
 	cout << "Computed output range by Sherlock = [" <<
 	output_range.first << " , " << output_range.second << " ] " << endl;
 
+
+	map<int, double > some_map;
+	some_map[-1] = -1;
+	some_map[1] = 1;
+	some_map[2] = 1;
+	linear_inequality my_inequality(some_map);
+	vector< linear_inequality > collection;
+	collection.push_back(my_inequality);
+
+	sherlock_handler.optimize_constrained(7, true, region, collection, max);
+	sherlock_handler.optimize_constrained(7, false, region, collection, min);
+	cout << "Constrained output range computed by Sherlock = [" << min << " , " << max << " ] " << endl;
+
+
 	computation_graph network_graph;
-	string network_1_name = "./network_files/neural_network_information_12";
+	string network_1_name = "./network_files/neural_network_information_2";
 	vector<uint32_t> input_indices, output_indices;
 	create_computation_graph_from_file(network_1_name, network_graph, true,
 																		 input_indices, output_indices);
@@ -92,6 +106,8 @@ int main(int argc, char ** argv)
 	sherlock_handler.compute_output_range(output_indices[0], region, output_range);
 	cout << "Computed output range by Sherlock = [" <<
 	output_range.first << " , " << output_range.second << " ] " << endl;
+
+
 
 
 	exit(0);
