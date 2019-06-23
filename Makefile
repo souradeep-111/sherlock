@@ -14,7 +14,7 @@ LINK_FLAGS = -g -L ./ -L /usr/local/lib/ -L $(GUROBI_LIBDIR)
 
 OBJS = ./src/sherlock.o ./src/network_computation.o ./src/gurobi_interface.o \
 ./src/configuration.o ./src/nodes.o ./src/computation_graph.o ./src/region_constraints.o \
-./src/generate_constraints.o  ./main.o
+./src/generate_constraints.o ./src/network_signatures.o ./main.o
 DEPENDS = ${OBJECTS:.o=.d}
 
 

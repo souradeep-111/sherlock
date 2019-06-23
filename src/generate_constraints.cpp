@@ -602,42 +602,43 @@ void constraints_stack :: add_invariants(
                             computation_graph & neural_network,
                             region_constraints & input_region)
 {
-  // // Make a call to the right function in generate invariants and do the implementation
-  // network_signatures network_signature;
-  // network_signature.create_signature_for_graph(neural_network, input_region,
-  //                   trial_count_for_constraint_generation);
-  // assert(!network_signature.empty());
-  // // So there are 3 types of invariants about the network that is being attempted here
-  //
-  // // Facts about constant neurons
-  // set< uint32_t > always_on, always_off;
-  // network_signature.learn_constant_neurons( always_on, always_off);
-  // check_constant_neurons(neural_network, input_region, always_on, always_off);
-  // if(!(always_on.empty() && always_off.empty()))
-  // {
-  //   add_constant_neurons(always_on, always_off);
-  // }
-  //
-  // /*
-  // // Facts about same sense neurons
-  // set< pair< uint32_t, uint32_t > > same_sense_nodes, opposite_sense_nodes;
-  // network_signatures.learn_pairwise_relationship(trial_count_for_constraint_generation,same_sense_nodes, opposite_sense_nodes);
-  // check_pairwise_relationship(same_sense_nodes, opposite_sense_nodes);
-  // if(!(same_sense_nodes.empty() && opposite_sense_nodes.empty()))
-  // {
-  //   add_pairwise_neurons(same_sense_nodes, opposite_sense_nodes);
-  // }
-  //
-  // */
-  //
-  // // Facts about implication relationship about neurons
-  // set< pair< uint32_t, uint32_t > > true_implication, false_implication;
-  // network_signature.learn_implies_relationship(trial_count_for_constraint_generation, true_implication, false_implication);
-  // check_implies_relationship(neural_network, input_region ,true_implication, false_implication);
-  // if(!(true_implication.empty() && false_implication.empty()))
-  // {
-  //   add_implication_neurons(true_implication, false_implication);
-  // }
+
+  // Make a call to the right function in generate invariants and do the implementation
+  network_signatures network_signature;
+  network_signature.create_signature_for_graph(neural_network, input_region,
+                    trial_count_for_constraint_generation);
+  assert(!network_signature.empty());
+  // So there are 3 types of invariants about the network that is being attempted here
+
+  // Facts about constant neurons
+  set< uint32_t > always_on, always_off;
+  network_signature.learn_constant_neurons( always_on, always_off);
+  check_constant_neurons(neural_network, input_region, always_on, always_off);
+  if(!(always_on.empty() && always_off.empty()))
+  {
+    add_constant_neurons(always_on, always_off);
+  }
+
+  /*
+  // Facts about same sense neurons
+  set< pair< uint32_t, uint32_t > > same_sense_nodes, opposite_sense_nodes;
+  network_signatures.learn_pairwise_relationship(trial_count_for_constraint_generation,same_sense_nodes, opposite_sense_nodes);
+  check_pairwise_relationship(same_sense_nodes, opposite_sense_nodes);
+  if(!(same_sense_nodes.empty() && opposite_sense_nodes.empty()))
+  {
+    add_pairwise_neurons(same_sense_nodes, opposite_sense_nodes);
+  }
+
+  */
+
+  // Facts about implication relationship about neurons
+  set< pair< uint32_t, uint32_t > > true_implication, false_implication;
+  network_signature.learn_implies_relationship(trial_count_for_constraint_generation, true_implication, false_implication);
+  check_implies_relationship(neural_network, input_region ,true_implication, false_implication);
+  if(!(true_implication.empty() && false_implication.empty()))
+  {
+    add_implication_neurons(true_implication, false_implication);
+  }
 
 }
 
@@ -807,6 +808,7 @@ void constraints_stack :: add_constant_neurons(set<uint32_t>& always_on, set<uin
 
   for(auto some_on_neuron : always_on)
   {
+    cout << "Constant neuron : " << some_on_neuron ;
     current_constraint = 0.0;
     data = 1;
     current_constraint.addTerms(& data, & binaries[some_on_neuron], 1);
@@ -821,7 +823,7 @@ void constraints_stack :: add_constant_neurons(set<uint32_t>& always_on, set<uin
     model_ptr->addConstr(current_constraint, GRB_EQUAL, 0.0, "_valid_inequality_constant_node_" + to_string(some_off_neuron) );
   }
 
-
+  cout << endl;
 }
 
 void constraints_stack :: check_constant_neurons(computation_graph & neural_network,

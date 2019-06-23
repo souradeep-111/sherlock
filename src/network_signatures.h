@@ -38,5 +38,6 @@ public:
                                   set< pair< uint32_t, uint32_t > >& node_1_implies_node_2_false_sense);
 
 };
+uint32_t generate_random_int(uint32_t range, uint32_t seed);
 
 #endif

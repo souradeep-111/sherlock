@@ -91,9 +91,11 @@ void sherlock :: compute_output_range(uint32_t node_index,
 
   // Maximizing
   gradient_driven_optimization(node_index, input_region, true, output_range.second);
+  nodes_explored = network_constraints.nodes_explored_last_optimization;
 
   // Minimizing :
   gradient_driven_optimization(node_index, input_region, false, output_range.first);
+  nodes_explored += network_constraints.nodes_explored_last_optimization;
 
 }
 
@@ -110,6 +112,7 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index,
   network_constraints.delete_and_reinitialize();
   network_constraints.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
   network_constraints.generate_graph_constraints(input_region, neural_network, node_index);
+  network_constraints.add_invariants(neural_network, input_region);
 
   bool res = true;
 

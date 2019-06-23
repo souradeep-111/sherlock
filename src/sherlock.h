@@ -20,6 +20,7 @@ private:
   computation_graph neural_network;
   constraints_stack network_constraints;
 public:
+  uint32_t nodes_explored;
   sherlock();
   sherlock(computation_graph & CG);
   void clear();

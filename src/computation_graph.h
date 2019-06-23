@@ -10,6 +10,7 @@
 #include <map>
 #include <time.h>
 
+
 class computation_graph
 {
   private:
@@ -38,6 +39,7 @@ class computation_graph
 
     void evaluate_graph(map < uint32_t , double > input_node_and_value ,
                         map < uint32_t, double > & output_node_and_value);
+
     map< uint32_t, datatype > return_gradient_wrt_inputs(uint32_t node_id,
                                                          map < uint32_t, double > & input_node_and_value );
 

@@ -26,6 +26,7 @@ const string sigmoid_string("sigmoid");
 const string relu_string("relu");
 const string none_string("none");
 
+
 class node{
   private:
 

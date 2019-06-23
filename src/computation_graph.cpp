@@ -135,6 +135,7 @@ void computation_graph :: evaluate_graph(map < uint32_t, double > input_node_and
 
 }
 
+
 void evaluate_node(computation_graph & c_graph, uint32_t node_id , map< uint32_t , double > & table,
                    int & available_threads, double & ret_val , int thread_id)
 {

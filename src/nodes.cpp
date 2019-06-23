@@ -2,6 +2,8 @@
 
 using namespace std;
 
+map< uint32_t, bool > last_signature;
+
 bool debug_nodes = true;
 node :: node()
 {
@@ -178,6 +180,7 @@ datatype node :: return_current_output(void)
   }
   else if (node_type == _relu_)
   {
+    last_signature[node_id] = ((argument > 0) ? true : false) ;
     return (argument > 0) ? argument : 0 ;
   }
   else if(node_type == _none_)

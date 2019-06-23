@@ -10,8 +10,11 @@ void network_signatures :: create_signature_for_graph(
                             region_constraints & input_region,
                             uint32_t no_of_samples)
 {
+  extern map< uint32_t, bool > last_signature;
+
   int samples_counter;
   map<uint32_t, double > current_sample;
+  map<uint32_t, double > output_node_value;
   bit_vector b_vec;
 
   samples_counter = 0;
@@ -19,9 +22,10 @@ void network_signatures :: create_signature_for_graph(
   {
     if(input_region.return_sample(current_sample, 100 + 29 * samples_counter))
     {
-      CG.evaluate_graph(current_sample, b_vec);
-      signatures[samples_counter] = b_vec;
-      b_vec.clear();
+      // THis is a hacky way to do it, but this is important
+      last_signature.clear();
+      CG.evaluate_graph(current_sample, output_node_value);
+      signatures[samples_counter] = last_signature;
     }
     samples_counter ++;
   }
@@ -68,9 +72,9 @@ void network_signatures :: learn_constant_neurons(
   uint32_t bit_index;
   bool first_time = true;
 
-  for(auto some_index : signatures.return_sample_indices())
+  for(auto some_index : return_sample_indices())
   {
-    signatures.return_bit_vector_for_sample(some_index, b_vec);
+    return_bit_vector_for_sample(some_index, b_vec);
     if(first_time)
     // basically iniitialize the list of 'on' neuron with all the neurons which are
     // on initially, and likewise for the 'off' neurons
@@ -135,7 +139,7 @@ void network_signatures :: learn_pairwise_relationship(uint32_t trial_count,
     break;
   }
 
-  auto number_of_neurons = signatures[random_index];
+  auto number_of_neurons = signatures[random_index].size();
 
   auto trial_index = 0;
   while(trial_index < trial_count)
@@ -146,7 +150,7 @@ void network_signatures :: learn_pairwise_relationship(uint32_t trial_count,
     bool is_same_sense = true;
     bool is_opposite_sense = true;
 
-    auto current_pair;
+    pair<uint32_t, uint32_t > current_pair;
     if(neuron_1_index != neuron_2_index)
     {
       current_pair = make_pair(neuron_1_index, neuron_2_index);
@@ -199,14 +203,14 @@ void network_signatures :: learn_implies_relationship(
     break;
   }
 
-  uint32_t number_of_neurons = signatures[random_index];
+  uint32_t number_of_neurons = signatures[random_index].size();
   uint32_t trial_index = 0;
   while(trial_index < trial_count)
   {
     uint32_t neuron_1_index = generate_random_int(number_of_neurons, trial_index* 29 + 23);
     uint32_t neuron_2_index = generate_random_int(number_of_neurons, trial_index* 29 + 17);
 
-    bool n1_imples_n2 = true;
+    bool n1_implies_n2 = true;
     bool not_n1_implies_not_n2 = true;
     pair< uint32_t, uint32_t > current_pair;
     if(neuron_1_index != neuron_2_index)

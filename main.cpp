@@ -78,7 +78,7 @@ int main(int argc, char ** argv)
 
 
 	computation_graph network_graph;
-	string network_1_name = "./network_files/neural_network_information_2";
+	string network_1_name = "./network_files/neural_network_information_8";
 	vector<uint32_t> input_indices, output_indices;
 	create_computation_graph_from_file(network_1_name, network_graph, true,
 																		 input_indices, output_indices);
@@ -103,10 +103,11 @@ int main(int argc, char ** argv)
 
 	cout << "Result by optimization = [ " << min << " , " << max << " ] " << endl;
 
+
 	sherlock_handler.compute_output_range(output_indices[0], region, output_range);
 	cout << "Computed output range by Sherlock = [" <<
 	output_range.first << " , " << output_range.second << " ] " << endl;
-
+	cout << "Node count = " << sherlock_handler.nodes_explored << endl;
 
 
 
