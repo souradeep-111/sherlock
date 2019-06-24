@@ -103,13 +103,15 @@ void network_signatures :: learn_constant_neurons(
     }
     else
     {
+
       auto size = b_vec.size();
       for(auto each_bit : b_vec)
       {
         if(each_bit.second)
         // if neuron is 'on' find it in the off list and remove it
         {
-          if(off_list.find(each_bit.first) != off_list.end());
+
+          if(off_list.find(each_bit.first) != off_list.end())
           {
             off_list.erase(off_list.find(each_bit.first)) ;
           }
@@ -117,13 +119,17 @@ void network_signatures :: learn_constant_neurons(
         else
         // if neuron is 'off' find it in the on list and remove it
         {
-          if(on_list.find(each_bit.first) != on_list.end());
+          if(on_list.find(each_bit.first) != on_list.end())
           {
             on_list.erase(on_list.find(each_bit.first)) ;
           }
         }
+
+
       }
     }
+
+
   }
 
 

@@ -615,8 +615,10 @@ void constraints_stack :: add_invariants(
 
   // Facts about constant neurons
   set< uint32_t > always_on, always_off;
+
   network_signature.learn_constant_neurons( always_on, always_off);
   check_constant_neurons(neural_network, input_region, always_on, always_off);
+
 
 
   if( (!always_on.empty()) || (!always_off.empty()))
@@ -814,24 +816,48 @@ void constraints_stack :: add_constant_neurons(set<uint32_t>& always_on, set<uin
   GRBLinExpr current_constraint;
   double data;
 
+  if(debug_gen_constr)
+  {
+    cout << "List of ON neurons : ";
+  }
   for(auto some_on_neuron : always_on)
   {
-    cout << "Constant neuron : " << some_on_neuron ;
+    if(debug_gen_constr)
+    {cout << some_on_neuron << " , ";}
+
+
     current_constraint = 0.0;
+    current_constraint.clear();
     data = 1;
     current_constraint.addTerms(& data, & binaries[some_on_neuron], 1);
-    model_ptr->addConstr(current_constraint, GRB_EQUAL, 1.0, "_valid_inequality_constant_node_" + to_string(some_on_neuron) );
+    if(debug_gen_constr)
+    {
+      cout << " Reaches here 1 " << endl ;
+      cout << "Find flag -- " << (binaries.find(some_on_neuron) != binaries.end()) << endl;
+      cout << " Size of the constraint - " << current_constraint.size() << endl;
+    }
+    model_ptr->addConstr(current_constraint, GRB_EQUAL, 1.0, "_valid_ineq_const_node_" + to_string(some_on_neuron) );
+    if(debug_gen_constr)
+    {cout << " Reaches here 2 " << endl ;}
+  }
+  if(debug_gen_constr)
+  {
+    cout << endl;
+    cout << "List of always OFF neurons : " ;
   }
 
   for(auto some_off_neuron : always_off)
   {
+    if(debug_gen_constr)
+    {cout << some_off_neuron << " , ";}
+
     current_constraint = 0.0;
     data = 1;
     current_constraint.addTerms(&data, & binaries[some_off_neuron], 1);
     model_ptr->addConstr(current_constraint, GRB_EQUAL, 0.0, "_valid_inequality_constant_node_" + to_string(some_off_neuron) );
   }
-
-  cout << endl;
+  if(debug_gen_constr)
+  {cout << endl;}
 }
 
 void constraints_stack :: check_constant_neurons(computation_graph & neural_network,
