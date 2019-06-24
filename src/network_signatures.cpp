@@ -1,5 +1,6 @@
 #include "network_signatures.h"
 
+bool debug_net_sig = true;
 network_signatures :: network_signatures()
 {
     signatures.clear();
@@ -12,6 +13,7 @@ void network_signatures :: create_signature_for_graph(
 {
   extern map< uint32_t, bool > last_signature;
 
+
   int samples_counter;
   map<uint32_t, double > current_sample;
   map<uint32_t, double > output_node_value;
@@ -22,13 +24,19 @@ void network_signatures :: create_signature_for_graph(
   {
     if(input_region.return_sample(current_sample, 100 + 29 * samples_counter))
     {
+
       // THis is a hacky way to do it, but this is important
       last_signature.clear();
       CG.evaluate_graph(current_sample, output_node_value);
+      if(last_signature.empty()) // NO Relu to generate signature
+      {
+        return;
+      }
       signatures[samples_counter] = last_signature;
     }
     samples_counter ++;
   }
+
 
 }
 
@@ -204,10 +212,12 @@ void network_signatures :: learn_implies_relationship(
   }
 
   uint32_t number_of_neurons = signatures[random_index].size();
+
+
   uint32_t trial_index = 0;
   while(trial_index < trial_count)
   {
-    uint32_t neuron_1_index = generate_random_int(number_of_neurons, trial_index* 29 + 23);
+    uint32_t neuron_1_index = generate_random_int(number_of_neurons, trial_index * 29 + 23);
     uint32_t neuron_2_index = generate_random_int(number_of_neurons, trial_index* 29 + 17);
 
     bool n1_implies_n2 = true;
@@ -215,6 +225,7 @@ void network_signatures :: learn_implies_relationship(
     pair< uint32_t, uint32_t > current_pair;
     if(neuron_1_index != neuron_2_index)
     {
+
       current_pair = make_pair(neuron_1_index, neuron_2_index);
       for(auto each_signature : signatures)
       {
@@ -248,6 +259,7 @@ void network_signatures :: learn_implies_relationship(
 uint32_t generate_random_int(uint32_t range, uint32_t seed)
 {
   srand (seed);
+
   auto random_number = rand() % range;
   return random_number;
 }

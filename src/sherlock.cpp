@@ -2,7 +2,7 @@
 
 using namespace std;
 
-bool debug_sherlock = false;
+bool debug_sherlock = true;
 
 sherlock :: sherlock()
 {
