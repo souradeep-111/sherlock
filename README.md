@@ -30,7 +30,7 @@ You should feel free to modify these two variables. The Makefile will look for G
 
 and libraries under
 
-> $(GUROBI_PATH)/$(HOST_ARCH)/include
+> $(GUROBI_PATH)/$(HOST_ARCH)/lib
 
 
 Once these are set, you should type
