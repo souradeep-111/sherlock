@@ -15,6 +15,7 @@ constraints_stack :: constraints_stack()
   binaries.clear();
 
   neuron_bounds.clear();
+  skip_activation_encoding_for_index.clear();
 }
 
 void constraints_stack :: create_the_input_overapproximation_for_each_neuron(
@@ -245,6 +246,17 @@ void constraints_stack :: relate_input_output(node current_node,
   // if node type is sigmoid/tanh/etc , get the upper bound and lower bound constraints
   // add them, and assert that the output is indeed included there
   type node_type = current_node.get_node_type();
+  bool skip_all_binary_encoding = false;
+  if( (!skip_activation_encoding_for_index.empty())
+    &&
+    (find(skip_activation_encoding_for_index.begin(), skip_activation_encoding_for_index.end(), current_node.get_node_number())
+      != skip_activation_encoding_for_index.end() )
+    )
+  {
+    skip_all_binary_encoding = true;
+    node_type = _none_;
+  }
+
   if(node_type == _none_)
   {
       model_ptr->addConstr(input_var, GRB_EQUAL, output_var, current_node.get_node_name() + "_ip_op_constr_" );
@@ -253,7 +265,15 @@ void constraints_stack :: relate_input_output(node current_node,
   {
     if(!sherlock_parameters.encode_relu_new)
     {
-      GRBVar current_node_binary_var = model_ptr->addVar( 0.0, 1.0, 0.0, GRB_BINARY, current_node.get_node_name() + "_delta_" );
+      GRBVar current_node_binary_var;
+      if(skip_all_binary_encoding)
+      {
+        current_node_binary_var = model_ptr->addVar( 0.0, 1.0, 0.0, GRB_CONTINUOUS, current_node.get_node_name() + "_delta_" );
+      }
+      else
+      {
+        current_node_binary_var = model_ptr->addVar( 0.0, 1.0, 0.0, GRB_BINARY, current_node.get_node_name() + "_delta_" );
+      }
       GRBVar gurobi_one = model_ptr->addVar(1.0, 1.0, 0.0, GRB_CONTINUOUS, "const_name");
       binaries[current_node.get_node_number()] = current_node_binary_var;
 
@@ -306,7 +326,15 @@ void constraints_stack :: relate_input_output(node current_node,
     }
     else
     {
-      GRBVar current_node_binary_var = model_ptr->addVar( 0.0, 1.0, 0.0, GRB_BINARY, current_node.get_node_name() + "_delta_" );
+      GRBVar current_node_binary_var;
+      if(skip_all_binary_encoding)
+      {
+        current_node_binary_var = model_ptr->addVar( 0.0, 1.0, 0.0, GRB_CONTINUOUS, current_node.get_node_name() + "_delta_" );
+      }
+      else
+      {
+        current_node_binary_var = model_ptr->addVar( 0.0, 1.0, 0.0, GRB_BINARY, current_node.get_node_name() + "_delta_" );
+      }
       GRBVar gurobi_one = model_ptr->addVar(1.0, 1.0, 0.0, GRB_CONTINUOUS, "const_name");
       binaries[current_node.get_node_number()] = current_node_binary_var;
 
@@ -638,18 +666,39 @@ void constraints_stack :: add_invariants(
 
   */
 
+  if(debug_gen_constr)
+  {
+    cout << "Done with adding constant neurons " << endl;
+    cout << "Starting to learn implies relation " << endl;
+  }
+
   // Facts about implication relationship about neurons
   set< pair< uint32_t, uint32_t > > true_implication, false_implication;
   network_signature.learn_implies_relationship(trial_count_for_constraint_generation, true_implication, false_implication);
 
+  if(debug_gen_constr)
+  {
+    cout << "Number of true implications learnt : " << true_implication.size() << endl;
+    cout << "Number of false implications learnt : " << false_implication.size() << endl;
+  }
+
   check_implies_relationship(neural_network, input_region ,true_implication, false_implication);
 
+  if(debug_gen_constr)
+  {
+    cout << "Done with learning implies relation " << endl;
+    cout << "Adding implies relation " << endl;
+  }
 
   if( (!true_implication.empty()) || (!false_implication.empty()) )
   {
     add_implication_neurons(true_implication, false_implication);
   }
 
+  if(debug_gen_constr)
+  {
+    cout << "Done with adding implies relation " << endl;
+  }
 }
 
 bool constraints_stack :: optimize(uint32_t node_index, bool direction,
@@ -816,48 +865,32 @@ void constraints_stack :: add_constant_neurons(set<uint32_t>& always_on, set<uin
   GRBLinExpr current_constraint;
   double data;
 
-  if(debug_gen_constr)
-  {
-    cout << "List of ON neurons : ";
-  }
+
   for(auto some_on_neuron : always_on)
   {
-    if(debug_gen_constr)
-    {cout << some_on_neuron << " , ";}
-
+    if(binaries.find(some_on_neuron) == binaries.end())
+      continue;
 
     current_constraint = 0.0;
     current_constraint.clear();
     data = 1;
     current_constraint.addTerms(& data, & binaries[some_on_neuron], 1);
-    if(debug_gen_constr)
-    {
-      cout << " Reaches here 1 " << endl ;
-      cout << "Find flag -- " << (binaries.find(some_on_neuron) != binaries.end()) << endl;
-      cout << " Size of the constraint - " << current_constraint.size() << endl;
-    }
     model_ptr->addConstr(current_constraint, GRB_EQUAL, 1.0, "_valid_ineq_const_node_" + to_string(some_on_neuron) );
-    if(debug_gen_constr)
-    {cout << " Reaches here 2 " << endl ;}
+
   }
-  if(debug_gen_constr)
-  {
-    cout << endl;
-    cout << "List of always OFF neurons : " ;
-  }
+
 
   for(auto some_off_neuron : always_off)
   {
-    if(debug_gen_constr)
-    {cout << some_off_neuron << " , ";}
+    if(binaries.find(some_off_neuron) == binaries.end())
+      continue;
 
     current_constraint = 0.0;
     data = 1;
     current_constraint.addTerms(&data, & binaries[some_off_neuron], 1);
     model_ptr->addConstr(current_constraint, GRB_EQUAL, 0.0, "_valid_inequality_constant_node_" + to_string(some_off_neuron) );
   }
-  if(debug_gen_constr)
-  {cout << endl;}
+
 }
 
 void constraints_stack :: check_constant_neurons(computation_graph & neural_network,
@@ -882,12 +915,16 @@ void constraints_stack :: check_constant_neurons(computation_graph & neural_netw
       lp_constraints_for_this_node.delete_and_reinitialize();
 
       uint32_t current_on_neuron_index;
+      set< uint32_t > current_set;
+
       current_on_neuron_index = *( always_on.begin() );
+      current_set.insert(current_on_neuron_index);
+
       lp_constraints_for_this_node.skip_activation_encoding_for_index.clear();
       lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_on_neuron_index);
       // Create the relaxed set of constraints
       lp_constraints_for_this_node.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
-      lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, current_on_neuron_index);
+      lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, current_set);
 
       // Check if the input to the neuron is always more than 0
       if(
@@ -905,6 +942,8 @@ void constraints_stack :: check_constant_neurons(computation_graph & neural_netw
 
   always_on = filtered_always_on;
 
+
+
   while(!always_off.empty())
   // For each neuron in the always_on stack check if the minimum is more
   // than 0
@@ -912,13 +951,17 @@ void constraints_stack :: check_constant_neurons(computation_graph & neural_netw
       lp_constraints_for_this_node.delete_and_reinitialize();
 
       uint32_t current_off_neuron_index;
+      set< uint32_t > current_set;
+
       current_off_neuron_index = *( always_off.begin() );
+      current_set.insert(current_off_neuron_index);
+
       lp_constraints_for_this_node.skip_activation_encoding_for_index.clear();
       lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_off_neuron_index);
 
       // Create the relaxed set of constraints
       lp_constraints_for_this_node.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
-      lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, current_off_neuron_index);
+      lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, current_set);
 
       // Check if the input to the neuron is always less than 0
       if(
@@ -938,6 +981,11 @@ void constraints_stack :: check_constant_neurons(computation_graph & neural_netw
 
   always_off = filtered_always_off;
 
+  if(debug_gen_constr)
+  {
+    cout << "No of actually always on neurons : " << always_on.size() << endl;
+    cout << "No of actually always off neurons : " << always_off.size() << endl;
+  }
 }
 
 void constraints_stack :: add_pairwise_neurons(set< pair< uint32_t, uint32_t > > & same_sense_nodes,
@@ -990,6 +1038,8 @@ void constraints_stack :: add_implication_neurons(set< pair< uint32_t, uint32_t 
 
   for(auto some_pair : true_sense_nodes)
   {
+    if((binaries.find(some_pair.first) == binaries.end()) || (binaries.find(some_pair.second) == binaries.end()))
+      continue;
     lhs = 0.0;
     rhs = 0.0;
     data = 1;
@@ -1002,6 +1052,9 @@ void constraints_stack :: add_implication_neurons(set< pair< uint32_t, uint32_t 
 
   for(auto some_pair : false_sense_nodes)
   {
+    if((binaries.find(some_pair.first) == binaries.end()) || (binaries.find(some_pair.second) == binaries.end()))
+      continue;
+
     lhs = 0.0;
     rhs = 0.0;
     data = 1;
@@ -1043,7 +1096,13 @@ void constraints_stack :: check_implies_relationship(
     set< uint32_t > output_nodes;
     output_nodes.insert(current_pair.first);
     output_nodes.insert(current_pair.second);
+    if(debug_gen_constr)
+    {
+      cout << "Current pair =  [ " << current_pair.first << " , " << current_pair.second << " ] " << endl;
+      cout << "Reaches here " << endl;
+    }
     lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, output_nodes);
+
 
 
     // Check if the input to the neuron is always more than 0
@@ -1100,354 +1159,6 @@ void constraints_stack :: add_linear_constraint(linear_inequality & lin_ineq)
 }
 
 
-void relaxed_constraints_stack :: relate_input_output(node current_node,
-                         GRBVar input_var, GRBVar output_var,
-                         GRBModel * model_ptr)
-{
-  // Basically input some switch-case type implementation
-  // if node_type is a _none_, then just say input = output
-  // if node type is _relu_, then add one binary variable, and use the big M from the input ranges
-  // computed and add the constraint
-  // if node type is sigmoid/tanh/etc , get the upper bound and lower bound constraints
-  // add them, and assert that the output is indeed included there
-
-  type node_type = current_node.get_node_type();
-  if( (!skip_activation_encoding_for_index.empty())
-    &&
-    (find(skip_activation_encoding_for_index.begin(), skip_activation_encoding_for_index.end(), current_node.get_node_number())
-      != skip_activation_encoding_for_index.end() )
-    )
-  {
-    node_type = _none_;
-  }
-
-  if(node_type == _none_)
-  {
-      model_ptr->addConstr(input_var, GRB_EQUAL, output_var, current_node.get_node_name() + "_ip_op_constr_" );
-  }
-  else if(node_type == _relu_)
-  {
-    if(!sherlock_parameters.encode_relu_new)
-    {
-      GRBVar current_node_binary_var = model_ptr->addVar( 0.0, 1.0, 0.0, GRB_CONTINUOUS, current_node.get_node_name() + "_delta_" );
-      GRBVar gurobi_one = model_ptr->addVar(1.0, 1.0, 0.0, GRB_CONTINUOUS, "const_name");
-      binaries[current_node.get_node_number()] = current_node_binary_var;
-
-      GRBLinExpr expression(0.0);
-      double data = 1.0;
-      expression.addTerms(& data, & input_var, 1);
-      data = get_M_val_for_node(current_node.get_node_number());
-      expression.addTerms(& data, & current_node_binary_var, 1);
-      data = (sherlock_parameters.int_tolerance * get_M_val_for_node(current_node.get_node_number()));
-      expression.addTerms(& data, & gurobi_one, 1);
-
-
-      model_ptr->addConstr(output_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_ip_op_constr_a_");
-      model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, input_var, current_node.get_node_name() + "_ip_op_constr_b_");
-      model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, 0.0, current_node.get_node_name() + "_ip_op_constr_c_");
-
-      GRBLinExpr expression_0(0.0);
-      data = get_M_val_for_node(current_node.get_node_number());
-      expression_0.addTerms(& data, & gurobi_one, 1);
-      data = -get_M_val_for_node(current_node.get_node_number());
-      expression_0.addTerms( & data, & current_node_binary_var, 1);
-      data = get_M_val_for_node(current_node.get_node_number()) * (-sherlock_parameters.int_tolerance);
-      expression_0.addTerms(& data, & gurobi_one, 1);
-
-
-      model_ptr->addConstr(output_var, GRB_LESS_EQUAL, expression_0, current_node.get_node_name() + "_ip_op_constr_d_");
-
-
-      GRBLinExpr trick_expression(0.0);
-      data = sherlock_parameters.epsilon;
-      trick_expression.addTerms(& data, & gurobi_one, 1);
-      data = (-get_M_val_for_node(current_node.get_node_number()));
-      trick_expression.addTerms(& data, & current_node_binary_var, 1);
-
-      model_ptr->addConstr(input_var, GRB_GREATER_EQUAL, trick_expression, current_node.get_node_name() + "_trick_lower");
-
-      GRBLinExpr trick_expression_(0.0);
-
-      data = (-sherlock_parameters.epsilon);
-      trick_expression_.addTerms(& data, & gurobi_one, 1);
-
-      data = get_M_val_for_node(current_node.get_node_number());
-      trick_expression_.addTerms(&data, & gurobi_one, 1);
-
-      data = (-get_M_val_for_node(current_node.get_node_number()));
-      trick_expression_.addTerms(& data, & current_node_binary_var, 1);
-
-      model_ptr->addConstr(input_var, GRB_LESS_EQUAL, trick_expression_, current_node.get_node_name() + "_trick_upper");
-
-    }
-    else
-    {
-      GRBVar current_node_binary_var = model_ptr->addVar( 0.0, 1.0, 0.0, GRB_CONTINUOUS, current_node.get_node_name() + "_delta_" );
-      GRBVar gurobi_one = model_ptr->addVar(1.0, 1.0, 0.0, GRB_CONTINUOUS, "const_name");
-      binaries[current_node.get_node_number()] = current_node_binary_var;
-
-
-      GRBLinExpr expression(0.0);
-      double data = 1.0;
-      expression.addTerms(& data, & input_var, 1);
-      data = get_M_val_for_node(current_node.get_node_number());
-      expression.addTerms(& data, & current_node_binary_var, 1);
-
-      model_ptr->addConstr(output_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_ip_op_constr_a_");
-      model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, input_var, current_node.get_node_name() + "_ip_op_constr_b_");
-      model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, 0.0, current_node.get_node_name() + "_ip_op_constr_c_");
-
-      GRBLinExpr expression_0(0.0);
-      data = get_M_val_for_node(current_node.get_node_number());
-      expression_0.addTerms(& data, & gurobi_one, 1);
-
-      data = -get_M_val_for_node(current_node.get_node_number());
-      expression_0.addTerms(& data, & current_node_binary_var, 1);
-
-
-      model_ptr->addConstr(output_var, GRB_LESS_EQUAL, expression_0, current_node.get_node_name() + "_ip_op_constr_d_");
-
-
-      GRBLinExpr trick_expression(0.0);
-      data = sherlock_parameters.epsilon;
-      trick_expression.addTerms(& data, & gurobi_one, 1);
-      data = (-get_M_val_for_node(current_node.get_node_number()));
-      trick_expression.addTerms(& data, & current_node_binary_var, 1);
-
-      model_ptr->addConstr(input_var, GRB_GREATER_EQUAL, trick_expression, current_node.get_node_name() + "_trick_lower");
-
-      GRBLinExpr trick_expression_(0.0);
-
-      data = (-sherlock_parameters.epsilon);
-      trick_expression_.addTerms(& data, & gurobi_one, 1);
-
-      data = get_M_val_for_node(current_node.get_node_number());
-      trick_expression_.addTerms(&data, & gurobi_one, 1);
-
-      data = (-get_M_val_for_node(current_node.get_node_number()));
-      trick_expression_.addTerms(& data, & current_node_binary_var, 1);
-
-      model_ptr->addConstr(input_var, GRB_LESS_EQUAL, trick_expression_, current_node.get_node_name() + "_trick_upper");
-
-    }
-
-  }
-  else if(node_type == _sigmoid_)
-  {
-    GRBVar binary_1 = model_ptr->addVar(0.0, 1.0, 0.0, GRB_CONTINUOUS, current_node.get_node_name() + "_delta_1_");
-    GRBVar binary_2 = model_ptr->addVar(0.0, 1.0, 0.0, GRB_CONTINUOUS, current_node.get_node_name() + "_delta_2_");
-    GRBVar binary_3 = model_ptr->addVar(0.0, 1.0, 0.0, GRB_CONTINUOUS, current_node.get_node_name() + "_delta_3_");
-    GRBVar gurobi_one = model_ptr->addVar(1.0, 1.0, 0.0, GRB_CONTINUOUS, "const_name");
-
-    GRBLinExpr expression(0.0);
-    double data = 1.0;
-    expression.addTerms(& data, & binary_1, 1);
-    data = 1.0;
-    expression.addTerms(& data, & binary_2, 1);
-    data = 1.0;
-    expression.addTerms(& data, & binary_3, 1);
-    model_ptr->addConstr(expression, GRB_EQUAL, 1.0, current_node.get_node_name() + "_binary_sum_constraint_");
-
-    model_ptr->addConstr(output_var, GRB_LESS_EQUAL, 1.0, current_node.get_node_name() + "_output_upper_" );
-    model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, 0.0, current_node.get_node_name() + "_output_lower_" );
-
-    // Linear Piece #1
-    expression = 0.0;
-    data = -2.3-sherlock_parameters.epsilon;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_1, 1);
-    model_ptr->addConstr(input_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_left_input_" );
-
-    expression = 0.0;
-    data = 0.1;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_1, 1);
-    model_ptr->addConstr(output_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_left_output_");
-
-
-    // Linear Piece #2
-    expression = 0.0;
-    data = 2.3 - sherlock_parameters.epsilon;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_2, 1);
-    model_ptr->addConstr(input_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_middle_input_a_" );
-
-    expression = 0.0;
-    data = -2.3 + sherlock_parameters.epsilon;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_2, 1);
-    model_ptr->addConstr(input_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_middle_input_b_" );
-
-
-    expression = 0.0;
-    data = 0.2;
-    expression.addTerms(& data, & input_var , 1);
-    data = 0.55;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_2, 1);
-    model_ptr->addConstr(output_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_middle_output_a_");
-
-    expression = 0.0;
-    data = 0.2;
-    expression.addTerms(& data, & input_var , 1);
-    data = 0.45;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_2, 1);
-    model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_middle_output_b_");
-
-
-
-    // Linear Piece #3
-    expression = 0.0;
-    data = 2.3 + sherlock_parameters.epsilon;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_3, 1);
-    model_ptr->addConstr(input_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_right_input_" );
-
-    expression = 0.0;
-    data = 0.9;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_3, 1);
-    model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_right_output_");
-
-  }
-  else if(node_type == _tanh_)
-  {
-    GRBVar binary_1 = model_ptr->addVar(0.0, 1.0, 0.0, GRB_CONTINUOUS, current_node.get_node_name() + "_delta_1_");
-    GRBVar binary_2 = model_ptr->addVar(0.0, 1.0, 0.0, GRB_CONTINUOUS, current_node.get_node_name() + "_delta_2_");
-    GRBVar binary_3 = model_ptr->addVar(0.0, 1.0, 0.0, GRB_CONTINUOUS, current_node.get_node_name() + "_delta_3_");
-    GRBVar gurobi_one = model_ptr->addVar(1.0, 1.0, 0.0, GRB_CONTINUOUS, "const_name");
-
-    GRBLinExpr expression(0.0);
-    double data = 1.0;
-    expression.addTerms(& data, & binary_1, 1);
-    data = 1.0;
-    expression.addTerms(& data, & binary_2, 1);
-    data = 1.0;
-    expression.addTerms(& data, & binary_3, 1);
-    model_ptr->addConstr(expression, GRB_EQUAL, 1.0, current_node.get_node_name() + "_binary_sum_constraint_");
-
-    model_ptr->addConstr(output_var, GRB_LESS_EQUAL, 1.0, current_node.get_node_name() + "_output_upper_" );
-    model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, -1.0, current_node.get_node_name() + "_output_lower_" );
-
-    // Linear Piece #1
-    expression = 0.0;
-    data = -1.5-sherlock_parameters.epsilon;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_1, 1);
-    model_ptr->addConstr(input_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_left_input_" );
-
-    expression = 0.0;
-    data = -0.9;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_1, 1);
-    model_ptr->addConstr(output_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_left_output_");
-
-
-    // Linear Piece #2
-    expression = 0.0;
-    data = 1.5 - sherlock_parameters.epsilon;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_2, 1);
-    model_ptr->addConstr(input_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_middle_input_a_" );
-
-    expression = 0.0;
-    data = -1.5 + sherlock_parameters.epsilon;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_2, 1);
-    model_ptr->addConstr(input_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_middle_input_b_" );
-
-
-    expression = 0.0;
-    data = 0.7;
-    expression.addTerms(& data, & input_var , 1);
-    data = 0.15;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_2, 1);
-    model_ptr->addConstr(output_var, GRB_LESS_EQUAL, expression, current_node.get_node_name() + "_middle_output_a_");
-
-    expression = 0.0;
-    data = 0.7;
-    expression.addTerms(& data, & input_var , 1);
-    data = -0.14;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_2, 1);
-    model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_middle_output_b_");
-
-
-
-    // Linear Piece #3
-    expression = 0.0;
-    data = 1.5 + sherlock_parameters.epsilon;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_3, 1);
-    model_ptr->addConstr(input_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_right_input_" );
-
-    expression = 0.0;
-    data = 0.9;
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = -get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & gurobi_one, 1);
-    data = get_M_val_for_node(current_node.get_node_number());
-    expression.addTerms(& data, & binary_3, 1);
-    model_ptr->addConstr(output_var, GRB_GREATER_EQUAL, expression, current_node.get_node_name() + "_right_output_");
-
-
-
-  }
-  else
-  {
-    cout << "Node type relation missing from the code " << endl;
-    assert(false);
-  }
-
-}
-
 bool relaxed_constraints_stack :: check_implies_relation(bool sense,
                                   uint32_t node_1_index, uint32_t node_2_index)
 {
@@ -1461,6 +1172,7 @@ bool relaxed_constraints_stack :: check_implies_relation(bool sense,
 
   if(sense)
   {
+
     double data = 1.0;
     objective_expr.addTerms(& data, & neurons[node_2_index] , 1);
     data = -1.0;
@@ -1504,6 +1216,7 @@ bool relaxed_constraints_stack :: check_implies_relation(bool sense,
    // }
    //    cout << endl;
    //
+
 
 
 
@@ -1634,13 +1347,6 @@ void relaxed_constraints_stack :: generate_node_constraints(
     {
       unexplored_nodes.insert(*it);
     }
-
-    // cout << "Unexplored nodes : [ " ;
-    // for(set<uint32_t> ::iterator it = unexplored_nodes.begin(); it != unexplored_nodes.end(); it ++)
-    // {
-    //   cout << *it << " ,  ";
-    // }
-    // cout << " ] " << endl;
   }
 
 }

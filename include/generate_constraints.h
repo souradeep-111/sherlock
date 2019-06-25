@@ -33,7 +33,9 @@ class constraints_stack
 
   public:
 
+    vector< int > skip_activation_encoding_for_index;
     uint32_t nodes_explored_last_optimization;
+
     constraints_stack();
     void create_the_input_overapproximation_for_each_neuron(
                                 computation_graph & CG,
@@ -99,17 +101,18 @@ class constraints_stack
                                          computation_graph & CG,
                                          GRBModel * model_ptr,
                                          set < uint32_t >& nodes_to_explore );
+
 };
 
 class relaxed_constraints_stack : public constraints_stack
 {
 
   public:
-    vector< int > skip_activation_encoding_for_index;
 
-    void relate_input_output(node current_node,
-                             GRBVar input_var, GRBVar output_var,
-                             GRBModel * model_ptr);
+    // using constraints_stack :: relate_input_output;
+    // void relate_input_output_generalized(node current_node,
+    //                          GRBVar input_var, GRBVar output_var,
+    //                          GRBModel * model_ptr);
 
     using constraints_stack :: generate_graph_constraints;
     void generate_graph_constraints(
@@ -128,11 +131,7 @@ class relaxed_constraints_stack : public constraints_stack
 
 };
 
-void add_constraints_for_node_generalized(constraints_stack & CS,
-                              uint32_t current_node_id,
-                              computation_graph & CG,
-                              GRBModel * model_ptr,
-                              set < uint32_t >& nodes_to_explore );
+
 
 
 #endif

@@ -132,6 +132,13 @@ void network_signatures :: learn_constant_neurons(
 
   }
 
+  if(debug_net_sig)
+  {
+    cout << "No of always on Neurons found = " << on_list.size() << endl;
+    cout << "No of always off Neurons found = " << off_list.size() << endl;
+
+  }
+
 
 
 }
@@ -266,6 +273,6 @@ uint32_t generate_random_int(uint32_t range, uint32_t seed)
 {
   srand (seed);
 
-  auto random_number = rand() % range;
+  auto random_number = rand() % range + 1;
   return random_number;
 }
