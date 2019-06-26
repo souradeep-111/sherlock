@@ -698,6 +698,8 @@ void constraints_stack :: add_invariants(
   if(debug_gen_constr)
   {
     cout << "Done with adding implies relation " << endl;
+    cout << "Actually true implications learnt : " << true_implication.size() << endl;
+    cout << "Actually false implications learnt : " << false_implication.size() << endl;
   }
 }
 
@@ -848,6 +850,29 @@ bool constraints_stack :: optimize_enough(uint32_t node_index,
        neuron_value.clear();
        nodes_explored_last_optimization = model_ptr->get(GRB_DoubleAttr_NodeCount);
        return false;
+   }
+   else if(model_ptr->get(GRB_IntAttr_Status) == GRB_INF_OR_UNBD)
+   {
+     model_ptr->set(GRB_IntParam_DualReductions, 0);
+     model_ptr->update();
+     model_ptr->optimize();
+     if((model_ptr->get(GRB_IntAttr_Status) == GRB_OPTIMAL) || (model_ptr->get(GRB_IntAttr_Status) == GRB_SOLUTION_LIMIT) )
+     {
+         neuron_value.clear();
+         for(auto & some_neuron : neurons)
+         {
+           neuron_value[some_neuron.first] = some_neuron.second.get(GRB_DoubleAttr_X);
+         }
+         current_optima = neuron_value[node_index];
+         nodes_explored_last_optimization = model_ptr->get(GRB_DoubleAttr_NodeCount);
+         return true;
+     }
+     else if((model_ptr->get(GRB_IntAttr_Status) == GRB_INFEASIBLE) || (model_ptr->get(GRB_IntAttr_Status) == GRB_CUTOFF) )
+     {
+         neuron_value.clear();
+         nodes_explored_last_optimization = model_ptr->get(GRB_DoubleAttr_NodeCount);
+         return false;
+     }
    }
    else
    {
@@ -1096,11 +1121,7 @@ void constraints_stack :: check_implies_relationship(
     set< uint32_t > output_nodes;
     output_nodes.insert(current_pair.first);
     output_nodes.insert(current_pair.second);
-    if(debug_gen_constr)
-    {
-      cout << "Current pair =  [ " << current_pair.first << " , " << current_pair.second << " ] " << endl;
-      cout << "Reaches here " << endl;
-    }
+
     lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, output_nodes);
 
 
@@ -1252,10 +1273,50 @@ bool relaxed_constraints_stack :: check_implies_relation(bool sense,
    {
        return false;
    }
+   else if(model_ptr->get(GRB_IntAttr_Status) == GRB_INF_OR_UNBD)
+   {
+     model_ptr->set(GRB_IntParam_DualReductions, 0);
+     model_ptr->update();
+     model_ptr->optimize();
+     if(model_ptr->get(GRB_IntAttr_Status) == GRB_OPTIMAL)
+     {
+       if(sense)
+       {
+         if(model_ptr->get(GRB_DoubleAttr_ObjVal) > 0)
+         {
+           return true;
+         }
+         else
+         {
+           return false;
+         }
+
+       }
+       else
+       {
+         if(model_ptr->get(GRB_DoubleAttr_ObjVal) < 0)
+         {
+           return true;
+         }
+         else
+         {
+           return false;
+         }
+
+       }
+
+     }
+     else if(model_ptr->get(GRB_IntAttr_Status) == GRB_INFEASIBLE)
+     {
+         return false;
+     }
+
+   }
    else
    {
        cout << "Some unkown Gurobi flag !" << endl;
        cout << "Flag returned - " << model_ptr->get(GRB_IntAttr_Status) << endl;
+
        assert(false);
        return false;
    }

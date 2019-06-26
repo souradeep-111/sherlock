@@ -233,17 +233,19 @@ void network_signatures :: learn_implies_relationship(
     uint32_t neuron_1_index = generate_random_int(number_of_neurons, trial_index * 29 + 23);
     uint32_t neuron_2_index = generate_random_int(number_of_neurons, trial_index* 29 + 17);
 
-    bool n1_implies_n2 = true;
-    bool not_n1_implies_not_n2 = true;
-    pair< uint32_t, uint32_t > current_pair;
-    if(neuron_1_index != neuron_2_index)
-    {
 
+    bool n1_implies_n2 ,not_n1_implies_not_n2;
+    pair< uint32_t, uint32_t > current_pair;
+    if((neuron_1_index != neuron_2_index) && (signatures[random_index].find(neuron_1_index) != signatures[random_index].end()) &&
+    (signatures[random_index].find(neuron_2_index) != signatures[random_index].end()))
+    {
+      n1_implies_n2 = true;
+      not_n1_implies_not_n2 = true;
       current_pair = make_pair(neuron_1_index, neuron_2_index);
       for(auto each_signature : signatures)
       {
         if(
-           ! ( (!each_signature.second[current_pair.first]) ||
+            !( (!each_signature.second[current_pair.first]) ||
            (each_signature.second[current_pair.second]) ) )
            {
              n1_implies_n2 = false;
@@ -259,8 +261,10 @@ void network_signatures :: learn_implies_relationship(
 
       if(n1_implies_n2)
         node_1_implies_node_2_true_sense.insert(current_pair);
+
       if(not_n1_implies_not_n2)
         node_1_implies_node_2_false_sense.insert(current_pair);
+
     }
     trial_index++;
   }
