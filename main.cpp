@@ -99,8 +99,9 @@ int main(int argc, char ** argv)
 	output_range.first << " , " << output_range.second << " ] " << endl;
 
 	sherlock_handler.optimize_node(output_indices[0], true, region, max);
+	cout << "Node count for max = " << sherlock_handler.nodes_explored << endl;
 	sherlock_handler.optimize_node(output_indices[0], false, region, min);
-
+	cout << "Node count for min = " << sherlock_handler.nodes_explored << endl;
 	cout << "Result by optimization = [ " << min << " , " << max << " ] " << endl;
 
 
@@ -110,8 +111,6 @@ int main(int argc, char ** argv)
 	cout << "Computed output range by Sherlock = [" <<
 	output_range.first << " , " << output_range.second << " ] " << endl;
 	cout << "Node count = " << sherlock_handler.nodes_explored << endl;
-	cout << "MILP tolerance = " << sherlock_parameters.MILP_tolerance << endl;
-
 
 	exit(0);
 

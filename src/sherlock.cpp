@@ -38,18 +38,18 @@ void sherlock :: optimize_node(uint32_t node_index, bool direction,
 
   if( network_constraints.optimize(node_index, direction, neuron_values, optima_achieved) )
   {
-    if(debug_sherlock)
-    {
-      cout << "Point of " << (direction?"maxima":"minima") << " found at " << endl;
-      vector< uint32_t> input_nodes, output_nodes;
-      neural_network.return_id_of_input_output_nodes(input_nodes, output_nodes);
-      map< uint32_t, double > optima_point;
-      for(auto index:input_nodes)
-      {
-        optima_point[index] = neuron_values[index];
-      }
-      print_point(optima_point);
-    }
+    // if(debug_sherlock)
+    // {
+    //   cout << "Point of " << (direction?"maxima":"minima") << " found at " << endl;
+    //   vector< uint32_t> input_nodes, output_nodes;
+    //   neural_network.return_id_of_input_output_nodes(input_nodes, output_nodes);
+    //   map< uint32_t, double > optima_point;
+    //   for(auto index:input_nodes)
+    //   {
+    //     optima_point[index] = neuron_values[index];
+    //   }
+    //   print_point(optima_point);
+    // }
     return;
   }
   else
@@ -96,10 +96,7 @@ void sherlock :: compute_output_range(uint32_t node_index,
                                       region_constraints & input_region,
                                       pair < double, double >& output_range )
 {
-  if(debug_sherlock)
-  {
-    cout << "Entering compute_output_range " << endl;
-  }
+
 
   // Maximizing
   gradient_driven_optimization(node_index, input_region, true, output_range.second);
@@ -369,10 +366,7 @@ void sherlock :: perform_gradient_search_with_random_restarts(uint32_t node_inde
 
   starting_point = current_point;
 
-  if(debug_sherlock)
-  {
-    cout << "Randomized gradient descent ends at value : " << val << endl;
-  }
+
   return;
 
 }
@@ -510,10 +504,7 @@ void sherlock :: compute_output_range_by_sampling(region_constraints & input_reg
                                                   pair < double , double > & output_range,
                                                   uint32_t sample_count)
 {
-  if(debug_sherlock)
-  {
-    cout << "Entering compute_output_range by random sampling " << endl;
-  }
+
   // assert(sample_count > 10);
   map < uint32_t, double > input_point;
   map < uint32_t, double > output_val;
