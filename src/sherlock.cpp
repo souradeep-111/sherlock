@@ -38,6 +38,18 @@ void sherlock :: optimize_node(uint32_t node_index, bool direction,
 
   if( network_constraints.optimize(node_index, direction, neuron_values, optima_achieved) )
   {
+    if(debug_sherlock)
+    {
+      cout << "Point of " << (direction?"maxima":"minima") << " found at " << endl;
+      vector< uint32_t> input_nodes, output_nodes;
+      neural_network.return_id_of_input_output_nodes(input_nodes, output_nodes);
+      map< uint32_t, double > optima_point;
+      for(auto index:input_nodes)
+      {
+        optima_point[index] = neuron_values[index];
+      }
+      print_point(optima_point);
+    }
     return;
   }
   else
@@ -92,6 +104,7 @@ void sherlock :: compute_output_range(uint32_t node_index,
   // Maximizing
   gradient_driven_optimization(node_index, input_region, true, output_range.second);
   nodes_explored = network_constraints.nodes_explored_last_optimization;
+
 
   // Minimizing :
   gradient_driven_optimization(node_index, input_region, false, output_range.first);
@@ -163,7 +176,7 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index,
       double actual_val = neuron_values[node_index];
       if(fabs(actual_val - current_optima) > sherlock_parameters.MILP_tolerance)
       {
-        optimize_node(7, direction, input_region, optima);
+        optimize_node(node_index, direction, input_region, optima);
         return;
       }
     }
@@ -183,7 +196,7 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index,
     if(sherlock_parameters.verbosity)
     {
       cout << "Nodes explored = " << network_constraints.nodes_explored_last_optimization << endl;
-      cout << "Counter example found at : ";
+      cout << "This phase ends at : ";
       print_point(search_point);
       cout << endl;
     }
@@ -300,8 +313,10 @@ void sherlock :: perform_gradient_search(uint32_t node_index, bool direction,
   }
 
 
-  if(!improvement < 0.0)
+
+  if(improvement > 0.0)
   {
+    starting_point = current_point;
     val = value_curr;
   }
 
@@ -352,6 +367,7 @@ void sherlock :: perform_gradient_search_with_random_restarts(uint32_t node_inde
     restart_count ++;
   }
 
+  starting_point = current_point;
 
   if(debug_sherlock)
   {

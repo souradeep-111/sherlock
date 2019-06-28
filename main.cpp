@@ -103,13 +103,14 @@ int main(int argc, char ** argv)
 
 	cout << "Result by optimization = [ " << min << " , " << max << " ] " << endl;
 
+
 	sherlock_parameters.verbosity = true;
 	sherlock_parameters.grad_search_point_verbosity = true;
 	sherlock_handler.compute_output_range(output_indices[0], region, output_range);
 	cout << "Computed output range by Sherlock = [" <<
 	output_range.first << " , " << output_range.second << " ] " << endl;
 	cout << "Node count = " << sherlock_handler.nodes_explored << endl;
-
+	cout << "MILP tolerance = " << sherlock_parameters.MILP_tolerance << endl;
 
 
 	exit(0);

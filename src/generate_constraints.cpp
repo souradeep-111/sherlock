@@ -247,13 +247,14 @@ void constraints_stack :: relate_input_output(node current_node,
   // add them, and assert that the output is indeed included there
   type node_type = current_node.get_node_type();
   bool skip_all_binary_encoding = false;
-  if( (!skip_activation_encoding_for_index.empty())
-    &&
-    (find(skip_activation_encoding_for_index.begin(), skip_activation_encoding_for_index.end(), current_node.get_node_number())
-      != skip_activation_encoding_for_index.end() )
-    )
+  if( !skip_activation_encoding_for_index.empty() )
   {
     skip_all_binary_encoding = true;
+  }
+
+    if(find(skip_activation_encoding_for_index.begin(), skip_activation_encoding_for_index.end(), current_node.get_node_number())
+      != skip_activation_encoding_for_index.end() )
+  {
     node_type = _none_;
   }
 
@@ -900,7 +901,7 @@ void constraints_stack :: add_constant_neurons(set<uint32_t>& always_on, set<uin
     current_constraint.clear();
     data = 1;
     current_constraint.addTerms(& data, & binaries[some_on_neuron], 1);
-    model_ptr->addConstr(current_constraint, GRB_EQUAL, 1.0, "_valid_ineq_const_node_" + to_string(some_on_neuron) );
+    model_ptr->addConstr(current_constraint, GRB_EQUAL, 0.0, "_valid_ineq_const_node_" + to_string(some_on_neuron) );
 
   }
 
@@ -913,7 +914,7 @@ void constraints_stack :: add_constant_neurons(set<uint32_t>& always_on, set<uin
     current_constraint = 0.0;
     data = 1;
     current_constraint.addTerms(&data, & binaries[some_off_neuron], 1);
-    model_ptr->addConstr(current_constraint, GRB_EQUAL, 0.0, "_valid_inequality_constant_node_" + to_string(some_off_neuron) );
+    model_ptr->addConstr(current_constraint, GRB_EQUAL, 1.0, "_valid_inequality_constant_node_" + to_string(some_off_neuron) );
   }
 
 }
@@ -929,7 +930,7 @@ void constraints_stack :: check_constant_neurons(computation_graph & neural_netw
   relaxed_constraints_stack lp_constraints_for_this_node;
   map< uint32_t, double > neuron_and_value;
   double result;
-  lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(-1);
+  // lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(-1);
 
   set< uint32_t > filtered_always_on, filtered_always_off;
 
@@ -956,6 +957,7 @@ void constraints_stack :: check_constant_neurons(computation_graph & neural_netw
           lp_constraints_for_this_node.optimize(current_on_neuron_index, false, neuron_and_value, result)
         )
       {
+
         if(result > 0)
         {
           filtered_always_on.insert(current_on_neuron_index);
@@ -963,6 +965,8 @@ void constraints_stack :: check_constant_neurons(computation_graph & neural_netw
 
       }
       always_on.erase(always_on.begin());
+      lp_constraints_for_this_node.skip_activation_encoding_for_index.clear();
+
   }
 
   always_on = filtered_always_on;
@@ -1071,7 +1075,7 @@ void constraints_stack :: add_implication_neurons(set< pair< uint32_t, uint32_t 
     lhs.addTerms(& data, & binaries[some_pair.first], 1);
     rhs.addTerms(& data, & binaries[some_pair.second], 1);
 
-    model_ptr->addConstr(lhs, GRB_LESS_EQUAL, rhs, to_string(some_pair.first) + "_implies_true_" + to_string(some_pair.second) );
+    model_ptr->addConstr(rhs, GRB_LESS_EQUAL, lhs, to_string(some_pair.first) + "_implies_true_" + to_string(some_pair.second) );
   }
 
 
@@ -1086,7 +1090,7 @@ void constraints_stack :: add_implication_neurons(set< pair< uint32_t, uint32_t 
     lhs.addTerms(& data, & binaries[some_pair.first], 1);
     rhs.addTerms(& data, & binaries[some_pair.second], 1);
 
-    model_ptr->addConstr(rhs, GRB_LESS_EQUAL, lhs, to_string(some_pair.first) + "_implies_false_" + to_string(some_pair.second) );
+    model_ptr->addConstr(lhs, GRB_LESS_EQUAL, rhs, to_string(some_pair.first) + "_implies_false_" + to_string(some_pair.second) );
   }
 
 }

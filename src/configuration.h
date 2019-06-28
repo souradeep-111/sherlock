@@ -79,7 +79,7 @@ struct parameter_values
     // epsilon < M \times \tolerance
     epsilon = 1e-7;
     int_tolerance = 1e-9;
-    MILP_M = 1e6;
+    MILP_M = 1e4;
     MILP_tolerance = 5e-4;
     MILP_e_tolerance = 1e-25;
     epsilon_degeneracy = 1e-10;
