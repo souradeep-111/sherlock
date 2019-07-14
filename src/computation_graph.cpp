@@ -746,8 +746,28 @@ void computation_graph :: return_id_of_all_nodes(vector< uint32_t >& node_indice
 }
 
 
-void computation_graph :: return_id_of_input_output_nodes(vector< uint32_t > & in_nodes , vector< uint32_t > & op_nodes )
+void computation_graph :: return_id_of_input_output_nodes(vector< uint32_t > & in_nodes ,
+                                                          vector< uint32_t > & op_nodes )
 {
   in_nodes = input_nodes;
   op_nodes = output_nodes;
+}
+void computation_graph :: return_id_of_nodes_at_depth_one_from_set( vector<uint32_t> current_vector ,
+                                                                    set<uint32_t> & set_at_depth_one)
+{
+
+  set_at_depth_one.clear();
+  node current_node;
+  map< uint32_t, pair< node * , double > > forward_nodes_container;
+
+  for(auto each_node : current_vector)
+  {
+      current_node  = all_nodes[each_node];
+      current_node.get_forward_connections(forward_nodes_container);
+      for(auto each_forward_connection : forward_nodes_container)
+      {
+        set_at_depth_one.insert(each_forward_connection.first);
+      }
+  }
+  return;
 }

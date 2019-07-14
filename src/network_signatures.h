@@ -39,5 +39,5 @@ public:
 
 };
 uint32_t generate_random_int(uint32_t range, uint32_t seed);
-
+uint32_t generate_random_int_from_set(set< uint32_t >& input_set, uint32_t seed);
 #endif

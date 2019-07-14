@@ -1415,3 +1415,30 @@ void relaxed_constraints_stack :: generate_node_constraints(
   }
 
 }
+
+
+void relaxed_constraints_stack :: search_constant_nodes_incrementally()
+{
+  // NOTE : Algorithm ---
+  // Depth counter = 1
+  // While( you don't discover any new constnt node )
+    // Starting from the input nodes, find the nodes at depth = counter
+
+    // Out of the nodes found, try to mine which ones, form constants,
+    // and verify it.
+
+    // Increment counter by 1
+    // Set the nodes discovered as constant to the values found
+
+
+  uint32_t depth_counter = 1;
+
+  bool discovered_new_constant_nodes = true;
+
+  set< uint32_t > constant_nodes;
+  while(discovered_new_constant_nodes)
+  {
+    discovered_new_constant_nodes = false;
+    
+  }
+}

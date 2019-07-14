@@ -280,3 +280,20 @@ uint32_t generate_random_int(uint32_t range, uint32_t seed)
   auto random_number = rand() % range + 1;
   return random_number;
 }
+
+uint32_t generate_random_int_from_set(set< uint32_t >& input_set, uint32_t seed)
+{
+  // Make a map from the input set to relate it to the numbers you have
+  // In this case the map is from uint32_t to uint32_t
+
+  uint32_t index = 1;
+  map< uint32_t, uint32_t > my_map;
+  for(auto each_index : input_set)
+  {
+    my_map[index] = each_index;
+    index++;
+  }
+
+  uint32_t randomly_picked_integer = generate_random_int(input_set.size(), seed);
+  return my_map[randomly_picked_integer];
+}

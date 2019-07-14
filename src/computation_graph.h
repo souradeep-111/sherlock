@@ -54,6 +54,7 @@ class computation_graph
     map< uint32_t, node > & return_ref_to_all_nodes();
     void return_id_of_all_nodes(vector< uint32_t >& node_indices);
     void return_id_of_input_output_nodes(vector< uint32_t > & in_nodes , vector< uint32_t > & op_nodes );
+    void return_id_of_nodes_at_depth_one_from_set( vector<uint32_t> current_set , set<uint32_t>& set_at_depth_one);
 };
 
 
