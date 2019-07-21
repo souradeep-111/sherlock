@@ -9,6 +9,7 @@
 #include <thread>
 #include <map>
 #include <time.h>
+#include <set>
 
 
 class computation_graph

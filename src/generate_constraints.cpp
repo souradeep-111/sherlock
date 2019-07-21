@@ -641,11 +641,11 @@ void constraints_stack :: add_invariants(
     return;
   }
   // So there are 3 types of invariants about the network that is being attempted here
+  // Facts about constant neurons
+  set< uint32_t > always_on, always_off;
 
   if(!sherlock_parameters.do_incremental_constant_search)
   {
-    // Facts about constant neurons
-    set< uint32_t > always_on, always_off;
 
     network_signature.learn_constant_neurons( always_on, always_off);
     check_constant_neurons(neural_network, input_region, always_on, always_off);
@@ -1550,7 +1550,8 @@ void relaxed_constraints_stack :: search_constant_nodes_incrementally(computatio
 
   on_neurons.clear();
   off_neurons.clear();
-  vector< uint32_t > input_nodes, output_nodes, current_set, next_set;
+  vector < uint32_t > input_nodes, output_nodes;
+  set < uint32_t > current_set, next_set;
   CG.return_id_of_input_output_nodes(input_nodes, output_nodes);
 
   network_signatures network_signature;
@@ -1591,7 +1592,7 @@ void relaxed_constraints_stack :: search_constant_nodes_incrementally(computatio
 
     current_set = next_set;
     depth_counter++;
-    if(!always_on.empty()) || (!always_off.empty())
+    if( (!always_on.empty()) || (!always_off.empty()) )
     {
       discovered_new_constant_nodes = true;
     }

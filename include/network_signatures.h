@@ -37,7 +37,11 @@ public:
                                   set< pair< uint32_t, uint32_t > >& node_1_implies_node_2_true_sense,
                                   set< pair< uint32_t, uint32_t > >& node_1_implies_node_2_false_sense);
 
+  void learn_constant_neurons_within_set(set<uint32_t> super_set,
+                                         set<uint32_t> & on_list,
+                                         set<uint32_t> & off_list);
+
 };
 uint32_t generate_random_int(uint32_t range, uint32_t seed);
-
+uint32_t generate_random_int_from_set(set< uint32_t >& input_set, uint32_t seed);
 #endif

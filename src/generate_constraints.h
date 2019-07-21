@@ -81,7 +81,7 @@ class constraints_stack
                                   set< uint32_t > & pre_set_to_on,
                                   set< uint32_t > & pre_set_to_off,
                                   set< uint32_t > & always_on,
-                                  set< uint32_t > & always_off)
+                                  set< uint32_t > & always_off);
 
      void add_pairwise_neurons(set< pair< uint32_t, uint32_t > > & same_sense_nodes,
                                set< pair< uint32_t, uint32_t > > & opposite_sense_nodes);
@@ -139,7 +139,7 @@ class relaxed_constraints_stack : public constraints_stack
     void search_constant_nodes_incrementally(computation_graph & CG,
                                               region_constraints input_region,
                                               set< uint32_t > & on_neurons,
-                                              set< uint32_t > & off_neurons)
+                                              set< uint32_t > & off_neurons);
 
 
 };
@@ -147,8 +147,8 @@ class relaxed_constraints_stack : public constraints_stack
 class selective_binarization : public constraints_stack
 {
 public:
-
-}
+//
+};
 
 template <typename T>
 set<T> getUnion(const set<T>& a, const set<T>& b);
