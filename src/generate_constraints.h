@@ -34,6 +34,7 @@ class constraints_stack
   public:
 
     vector< int > skip_activation_encoding_for_index;
+    map<uint32_t, bool> binarize;
     uint32_t nodes_explored_last_optimization;
 
     constraints_stack();
@@ -75,6 +76,12 @@ class constraints_stack
                                  region_constraints & input_region,
                                  set< uint32_t > & always_on,
                                  set< uint32_t > & always_off);
+     void check_constant_neurons(computation_graph & neural_network,
+                                  region_constraints & input_region,
+                                  set< uint32_t > & pre_set_to_on,
+                                  set< uint32_t > & pre_set_to_off,
+                                  set< uint32_t > & always_on,
+                                  set< uint32_t > & always_off)
 
      void add_pairwise_neurons(set< pair< uint32_t, uint32_t > > & same_sense_nodes,
                                set< pair< uint32_t, uint32_t > > & opposite_sense_nodes);
@@ -129,9 +136,22 @@ class relaxed_constraints_stack : public constraints_stack
     bool check_implies_relation(bool sense, uint32_t node_1_index,
                                 uint32_t node_2_index);
 
+    void search_constant_nodes_incrementally(computation_graph & CG,
+                                              region_constraints input_region,
+                                              set< uint32_t > & on_neurons,
+                                              set< uint32_t > & off_neurons)
+
+
 };
 
+class selective_binarization : public constraints_stack
+{
+public:
 
+}
+
+template <typename T>
+set<T> getUnion(const set<T>& a, const set<T>& b);
 
 
 #endif

@@ -642,19 +642,32 @@ void constraints_stack :: add_invariants(
   }
   // So there are 3 types of invariants about the network that is being attempted here
 
-  // Facts about constant neurons
-  set< uint32_t > always_on, always_off;
-
-  network_signature.learn_constant_neurons( always_on, always_off);
-  check_constant_neurons(neural_network, input_region, always_on, always_off);
-
-
-
-  if( (!always_on.empty()) || (!always_off.empty()))
+  if(!sherlock_parameters.do_incremental_constant_search)
   {
-    add_constant_neurons(always_on, always_off);
-  }
+    // Facts about constant neurons
+    set< uint32_t > always_on, always_off;
 
+    network_signature.learn_constant_neurons( always_on, always_off);
+    check_constant_neurons(neural_network, input_region, always_on, always_off);
+
+
+
+    if( (!always_on.empty()) || (!always_off.empty()))
+    {
+      add_constant_neurons(always_on, always_off);
+    }
+
+  }
+  else
+  {
+    relaxed_constraints_stack lp_constraints;
+    lp_constraints.search_constant_nodes_incrementally(neural_network, input_region, always_on, always_off);
+    if( (!always_on.empty()) || (!always_off.empty()))
+    {
+      add_constant_neurons(always_on, always_off);
+    }
+
+  }
   /*
   // Facts about same sense neurons
   set< pair< uint32_t, uint32_t > > same_sense_nodes, opposite_sense_nodes;
@@ -1016,6 +1029,108 @@ void constraints_stack :: check_constant_neurons(computation_graph & neural_netw
     cout << "No of actually always off neurons : " << always_off.size() << endl;
   }
 }
+
+void constraints_stack :: check_constant_neurons(computation_graph & neural_network,
+                                                 region_constraints & input_region,
+                                                 set< uint32_t > & pre_set_to_on,
+                                                 set< uint32_t > & pre_set_to_off,
+                                                 set< uint32_t > & always_on,
+                                                 set< uint32_t > & always_off)
+{
+  if(always_on.empty() && always_off.empty())
+    return;
+
+  relaxed_constraints_stack lp_constraints_for_this_node;
+  map< uint32_t, double > neuron_and_value;
+  double result;
+  // lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(-1);
+
+  set< uint32_t > filtered_always_on, filtered_always_off;
+
+  while(!always_on.empty())
+  // For each neuron in the always_on stack check if the minimum is more
+  // than 0
+  {
+      lp_constraints_for_this_node.delete_and_reinitialize();
+
+      uint32_t current_on_neuron_index;
+      set< uint32_t > current_set;
+
+      current_on_neuron_index = *( always_on.begin() );
+      current_set.insert(current_on_neuron_index);
+
+      lp_constraints_for_this_node.skip_activation_encoding_for_index.clear();
+      lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_on_neuron_index);
+      // Create the relaxed set of constraints
+      lp_constraints_for_this_node.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
+      lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, current_set);
+      lp_constraints_for_this_node.add_constant_neurons(pre_set_to_on, pre_set_to_off);
+      // Check if the input to the neuron is always more than 0
+      if(
+          lp_constraints_for_this_node.optimize(current_on_neuron_index, false, neuron_and_value, result)
+        )
+      {
+
+        if(result > 0)
+        {
+          filtered_always_on.insert(current_on_neuron_index);
+        }
+
+      }
+      always_on.erase(always_on.begin());
+      lp_constraints_for_this_node.skip_activation_encoding_for_index.clear();
+
+  }
+
+  always_on = filtered_always_on;
+
+
+
+  while(!always_off.empty())
+  // For each neuron in the always_on stack check if the minimum is more
+  // than 0
+  {
+      lp_constraints_for_this_node.delete_and_reinitialize();
+
+      uint32_t current_off_neuron_index;
+      set< uint32_t > current_set;
+
+      current_off_neuron_index = *( always_off.begin() );
+      current_set.insert(current_off_neuron_index);
+
+      lp_constraints_for_this_node.skip_activation_encoding_for_index.clear();
+      lp_constraints_for_this_node.skip_activation_encoding_for_index.push_back(current_off_neuron_index);
+
+      // Create the relaxed set of constraints
+      lp_constraints_for_this_node.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
+      lp_constraints_for_this_node.generate_graph_constraints(input_region, neural_network, current_set);
+      lp_constraints_for_this_node.add_constant_neurons(pre_set_to_on, pre_set_to_off);
+
+      // Check if the input to the neuron is always less than 0
+      if(
+          lp_constraints_for_this_node.optimize(current_off_neuron_index, true, neuron_and_value, result)
+        )
+      {
+        if(result < 0)
+        {
+          filtered_always_off.insert(current_off_neuron_index);
+        }
+
+      }
+
+
+      always_off.erase(always_off.begin());
+  }
+
+  always_off = filtered_always_off;
+
+  if(debug_gen_constr)
+  {
+    cout << "No of actually always on neurons : " << always_on.size() << endl;
+    cout << "No of actually always off neurons : " << always_off.size() << endl;
+  }
+}
+
 
 void constraints_stack :: add_pairwise_neurons(set< pair< uint32_t, uint32_t > > & same_sense_nodes,
                                                set< pair< uint32_t, uint32_t > > & opposite_sense_nodes)
@@ -1417,7 +1532,10 @@ void relaxed_constraints_stack :: generate_node_constraints(
 }
 
 
-void relaxed_constraints_stack :: search_constant_nodes_incrementally()
+void relaxed_constraints_stack :: search_constant_nodes_incrementally(computation_graph & CG,
+                                                                      region_constraints input_region,
+                                                                      set< uint32_t > & on_neurons,
+                                                                      set< uint32_t > & off_neurons)
 {
   // NOTE : Algorithm ---
   // Depth counter = 1
@@ -1430,15 +1548,62 @@ void relaxed_constraints_stack :: search_constant_nodes_incrementally()
     // Increment counter by 1
     // Set the nodes discovered as constant to the values found
 
+  on_neurons.clear();
+  off_neurons.clear();
+  vector< uint32_t > input_nodes, output_nodes, current_set, next_set;
+  CG.return_id_of_input_output_nodes(input_nodes, output_nodes);
+
+  network_signatures network_signature;
+  network_signature.create_signature_for_graph(CG, input_region,
+                      trial_count_for_constraint_generation);
+  if(network_signature.empty())
+  {
+    return;
+  }
+
 
   uint32_t depth_counter = 1;
-
+  set< uint32_t > always_on, always_off;
   bool discovered_new_constant_nodes = true;
 
   set< uint32_t > constant_nodes;
   while(discovered_new_constant_nodes)
   {
+    always_on.clear();
+    always_off.clear();
     discovered_new_constant_nodes = false;
-    
+    // Call get id of input output nodes
+    if(depth_counter == 1)
+    {
+      CG.return_id_of_nodes_at_depth_one_from_set(input_nodes, current_set);
+      network_signature.learn_constant_neurons_within_set(current_set, always_on, always_off);
+      check_constant_neurons(CG, input_region, on_neurons, off_neurons, always_on, always_off);
+      on_neurons = getUnion < uint32_t > (on_neurons, always_on);
+    }
+    else
+    {
+      CG.return_id_of_nodes_at_depth_one_from_set(current_set, next_set);
+      network_signature.learn_constant_neurons_within_set(current_set, always_on, always_off);
+      check_constant_neurons(CG, input_region,on_neurons, off_neurons, always_on, always_off);
+      off_neurons = getUnion < uint32_t > (off_neurons, always_off);
+
+    }
+
+    current_set = next_set;
+    depth_counter++;
+    if(!always_on.empty()) || (!always_off.empty())
+    {
+      discovered_new_constant_nodes = true;
+    }
   }
+
+
+}
+
+template <typename T>
+set<T> getUnion(const set<T>& a, const set<T>& b)
+{
+  set<T> result = a;
+  result.insert(b.begin(), b.end());
+  return result;
 }

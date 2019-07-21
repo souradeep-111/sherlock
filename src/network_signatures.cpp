@@ -143,6 +143,86 @@ void network_signatures :: learn_constant_neurons(
 
 }
 
+void network_signatures :: learn_constant_neurons_within_set(
+                            set < uint32_t > starting_set,
+                            set < uint32_t > & on_list,
+                            set < uint32_t > & off_list)
+{
+  on_list.clear();
+  off_list.clear();
+
+  bit_vector b_vec;
+  uint32_t bit_index;
+  bool first_time = true;
+
+  for(auto some_index : return_sample_indices())
+  {
+    return_bit_vector_for_sample(some_index, b_vec);
+    if(first_time)
+    // basically iniitialize the list of 'on' neuron with all the neurons which are
+    // on initially, and likewise for the 'off' neurons
+    {
+      first_time = false;
+      for(auto each_bit : b_vec)
+      {
+        if(starting_set.find(each_bit.first) == starting_set.end())
+          continue;
+
+        if(each_bit.second)
+        {
+          on_list.insert(each_bit.first);
+        }
+        else
+        {
+          off_list.insert(each_bit.first);
+        }
+      }
+
+    }
+    else
+    {
+
+      auto size = b_vec.size();
+      for(auto each_bit : b_vec)
+      {
+        if(starting_set.find(each_bit.first) == starting_set.end())
+          continue;
+
+        if(each_bit.second)
+        // if neuron is 'on' find it in the off list and remove it
+        {
+
+          if(off_list.find(each_bit.first) != off_list.end())
+          {
+            off_list.erase(off_list.find(each_bit.first)) ;
+          }
+        }
+        else
+        // if neuron is 'off' find it in the on list and remove it
+        {
+          if(on_list.find(each_bit.first) != on_list.end())
+          {
+            on_list.erase(on_list.find(each_bit.first)) ;
+          }
+        }
+
+
+      }
+    }
+
+
+  }
+
+  if(debug_net_sig)
+  {
+    cout << "No of always on Neurons found = " << on_list.size() << endl;
+    cout << "No of always off Neurons found = " << off_list.size() << endl;
+
+  }
+
+
+}
+
 void network_signatures :: learn_pairwise_relationship(uint32_t trial_count,
                                  set< pair< uint32_t, uint32_t > >& same_sense_nodes,
                                  set< pair< uint32_t, uint32_t > >& opposite_sense_nodes)
