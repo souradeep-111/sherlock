@@ -58,6 +58,7 @@ struct parameter_values
   int random_counter_example_count;
   bool encode_relu_new;
   bool do_incremental_constant_search;
+  bool learn_implies_relation;
 
 
 
@@ -118,7 +119,7 @@ struct parameter_values
 
     encode_relu_new = true;
     do_incremental_constant_search = true;
-
+    learn_implies_relation = false;
 
   }
 

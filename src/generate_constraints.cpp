@@ -667,6 +667,10 @@ void constraints_stack :: add_invariants(
       add_constant_neurons(always_on, always_off);
     }
 
+    if(debug_gen_constr)
+    {
+      cout << "Total number of constant neurons learnt = " << always_on.size() + always_off.size() << endl;
+    }
   }
   /*
   // Facts about same sense neurons
@@ -680,40 +684,20 @@ void constraints_stack :: add_invariants(
 
   */
 
-  if(debug_gen_constr)
-  {
-    cout << "Done with adding constant neurons " << endl;
-    cout << "Starting to learn implies relation " << endl;
-  }
 
   // Facts about implication relationship about neurons
-  set< pair< uint32_t, uint32_t > > true_implication, false_implication;
-  network_signature.learn_implies_relationship(trial_count_for_constraint_generation, true_implication, false_implication);
-
-  if(debug_gen_constr)
+  if(sherlock_parameters.learn_implies_relation)
   {
-    cout << "Number of true implications learnt : " << true_implication.size() << endl;
-    cout << "Number of false implications learnt : " << false_implication.size() << endl;
-  }
+    set< pair< uint32_t, uint32_t > > true_implication, false_implication;
+    network_signature.learn_implies_relationship(trial_count_for_constraint_generation, true_implication, false_implication);
 
-  check_implies_relationship(neural_network, input_region ,true_implication, false_implication);
+    check_implies_relationship(neural_network, input_region ,true_implication, false_implication);
 
-  if(debug_gen_constr)
-  {
-    cout << "Done with learning implies relation " << endl;
-    cout << "Adding implies relation " << endl;
-  }
 
-  if( (!true_implication.empty()) || (!false_implication.empty()) )
-  {
-    add_implication_neurons(true_implication, false_implication);
-  }
-
-  if(debug_gen_constr)
-  {
-    cout << "Done with adding implies relation " << endl;
-    cout << "Actually true implications learnt : " << true_implication.size() << endl;
-    cout << "Actually false implications learnt : " << false_implication.size() << endl;
+    if( (!true_implication.empty()) || (!false_implication.empty()) )
+    {
+      add_implication_neurons(true_implication, false_implication);
+    }
   }
 }
 
@@ -1570,6 +1554,10 @@ void relaxed_constraints_stack :: search_constant_nodes_incrementally(computatio
   set< uint32_t > constant_nodes;
   while(discovered_new_constant_nodes)
   {
+    if(debug_gen_constr)
+    {
+      cout << "Depth Counter = " << depth_counter << endl;
+    }
     always_on.clear();
     always_off.clear();
     discovered_new_constant_nodes = false;
@@ -1577,22 +1565,40 @@ void relaxed_constraints_stack :: search_constant_nodes_incrementally(computatio
     if(depth_counter == 1)
     {
       CG.return_id_of_nodes_at_depth_one_from_set(input_nodes, current_set);
+      if(debug_gen_constr)
+      {
+        cout << "Next Set size = " << current_set.size() << endl;
+      }
       network_signature.learn_constant_neurons_within_set(current_set, always_on, always_off);
+      if(current_set.empty())
+        break;
       check_constant_neurons(CG, input_region, on_neurons, off_neurons, always_on, always_off);
       on_neurons = getUnion < uint32_t > (on_neurons, always_on);
+      off_neurons = getUnion < uint32_t > (off_neurons, always_off);
     }
     else
     {
+      if(debug_gen_constr)
+      {
+        cout << "Current Set size pushed in = " << current_set.size() << endl;
+      }
       CG.return_id_of_nodes_at_depth_one_from_set(current_set, next_set);
-      network_signature.learn_constant_neurons_within_set(current_set, always_on, always_off);
+      if(debug_gen_constr)
+      {
+        cout << "Next Set size = " << next_set.size() << endl;
+      }
+      network_signature.learn_constant_neurons_within_set(next_set, always_on, always_off);
+      if(next_set.empty())
+        break;
       check_constant_neurons(CG, input_region,on_neurons, off_neurons, always_on, always_off);
+      on_neurons = getUnion < uint32_t > (on_neurons, always_on);
       off_neurons = getUnion < uint32_t > (off_neurons, always_off);
-
+      current_set = next_set;
     }
 
-    current_set = next_set;
+
     depth_counter++;
-    if( (!always_on.empty()) || (!always_off.empty()) )
+    if( (!always_on.empty()) || (!always_off.empty()))
     {
       discovered_new_constant_nodes = true;
     }

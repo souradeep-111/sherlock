@@ -17,6 +17,7 @@ using namespace std::chrono;
 int main(int argc, char ** argv)
 {
 	sherlock_parameters.thread_count = 1;
+	sherlock_parameters.do_incremental_constant_search = true;
 
 
 	// testing the data structures built on a very small network which can be analysed etc
@@ -112,40 +113,41 @@ int main(int argc, char ** argv)
 	output_range.first << " , " << output_range.second << " ] " << endl;
 	cout << "Node count = " << sherlock_handler.nodes_explored << endl;
 
-	exit(0);
-
-	computation_graph sample_graph_b;
-	test_network_1(sample_graph_b);
-	x = 5.0;
-	y = -2.0;
-	inputs.clear();
-	inputs.insert(make_pair(1, x));
-	inputs.insert(make_pair(2, y));
-
-	outputs.clear();
-	gradient.clear();
-	sample_graph_b.evaluate_graph(inputs, outputs);
-	inputs.clear();
-	inputs.insert(make_pair(1, x));
-	inputs.insert(make_pair(2, y));
-	gradient = sample_graph_b.return_gradient_wrt_inputs(10, inputs);
-	cout << "Value at x = " << x << "  and y = " << y << " is " << outputs[10] << endl;
-	cout << "Gradient = [ " << gradient[1] << " , " << gradient[2] <<" ] " << endl;
-
-	sherlock_handler.clear();
-	sherlock_handler.set_computation_graph(sample_graph_b);
-	interval.clear();
-	interval[1] = make_pair(-1,1);
-	interval[2] = make_pair(-1,1);
-	region.create_region_from_interval(interval);
-	sherlock_handler.compute_output_range_by_sampling(region, 10, output_range, 1000);
-	cout << "Computed output range from random sampling = [" <<
-	output_range.first << " , " << output_range.second << "]" << endl;
-
-	sherlock_handler.compute_output_range(10, region, output_range);
-	cout << "Computed output range by Sherlock = [" << output_range.first
-	<< " , " << output_range.second << " ] " << endl;
-
-
   return 0;
 }
+
+// Old testing code
+/*
+computation_graph sample_graph_b;
+test_network_1(sample_graph_b);
+x = 5.0;
+y = -2.0;
+inputs.clear();
+inputs.insert(make_pair(1, x));
+inputs.insert(make_pair(2, y));
+
+outputs.clear();
+gradient.clear();
+sample_graph_b.evaluate_graph(inputs, outputs);
+inputs.clear();
+inputs.insert(make_pair(1, x));
+inputs.insert(make_pair(2, y));
+gradient = sample_graph_b.return_gradient_wrt_inputs(10, inputs);
+cout << "Value at x = " << x << "  and y = " << y << " is " << outputs[10] << endl;
+cout << "Gradient = [ " << gradient[1] << " , " << gradient[2] <<" ] " << endl;
+
+sherlock_handler.clear();
+sherlock_handler.set_computation_graph(sample_graph_b);
+interval.clear();
+interval[1] = make_pair(-1,1);
+interval[2] = make_pair(-1,1);
+region.create_region_from_interval(interval);
+sherlock_handler.compute_output_range_by_sampling(region, 10, output_range, 1000);
+cout << "Computed output range from random sampling = [" <<
+output_range.first << " , " << output_range.second << "]" << endl;
+
+sherlock_handler.compute_output_range(10, region, output_range);
+cout << "Computed output range by Sherlock = [" << output_range.first
+<< " , " << output_range.second << " ] " << endl;
+
+*/
