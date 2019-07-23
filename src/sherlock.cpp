@@ -97,6 +97,10 @@ void sherlock :: compute_output_range(uint32_t node_index,
                                       pair < double, double >& output_range )
 {
 
+  network_constraints.delete_and_reinitialize();
+  network_constraints.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
+  network_constraints.generate_graph_constraints(input_region, neural_network, node_index);
+  network_constraints.add_invariants(neural_network, input_region);
 
   // Maximizing
   gradient_driven_optimization(node_index, input_region, true, output_range.second);
@@ -119,10 +123,10 @@ void sherlock :: gradient_driven_optimization(uint32_t node_index,
   map<uint32_t, double > neuron_values, search_point;
 
   // assert(indices_of_output_nodes.size() == 1);
-  network_constraints.delete_and_reinitialize();
-  network_constraints.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
-  network_constraints.generate_graph_constraints(input_region, neural_network, node_index);
-  network_constraints.add_invariants(neural_network, input_region);
+  // network_constraints.delete_and_reinitialize();
+  // network_constraints.create_the_input_overapproximation_for_each_neuron(neural_network, input_region);
+  // network_constraints.generate_graph_constraints(input_region, neural_network, node_index);
+  // network_constraints.add_invariants(neural_network, input_region);
 
   bool res = true;
 
