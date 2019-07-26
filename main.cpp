@@ -16,11 +16,30 @@ using namespace std::chrono;
 
 int main(int argc, char ** argv)
 {
-	sherlock_parameters.thread_count = 1;
 	sherlock sherlock_handler;
-	computation_graph network_graph;
-	region_constraints region;
+	computation_graph sample_graph_b;
+	map<uint32_t, pair< double, double > > interval;
 	pair<double, double> output_range;
+	region_constraints region;
+
+	test_network_1(sample_graph_b);
+
+	sherlock_handler.clear();
+	sherlock_handler.set_computation_graph(sample_graph_b);
+	interval.clear();
+	interval[1] = make_pair(-1,1);
+	interval[2] = make_pair(-1,1);
+	region.create_region_from_interval(interval);
+	sherlock_handler.compute_output_range_by_sampling(region, 10, output_range, 1000);
+	cout << "Computed output range from random sampling = [" <<
+	output_range.first << " , " << output_range.second << "]" << endl;
+
+	sherlock_handler.compute_output_range(10, region, output_range);
+	cout << "Computed output range by Sherlock = [" << output_range.first
+	<< " , " << output_range.second << " ] " << endl;
+
+	sherlock_parameters.thread_count = 1;
+	computation_graph network_graph;
 	string network_1_name = "./network_files/neural_network_information_7";
 	vector<uint32_t> input_indices, output_indices;
 	create_computation_graph_from_file(network_1_name, network_graph, true,
@@ -28,7 +47,6 @@ int main(int argc, char ** argv)
 	sherlock_handler.set_computation_graph(network_graph);
 	map<uint32_t, double> input_val;
 
-	map<uint32_t, pair< double, double > > interval;
 	for(auto index : input_indices)
 	{
 		interval[index] = make_pair(-0.5, 0.1);
