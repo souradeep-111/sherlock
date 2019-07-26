@@ -14,7 +14,7 @@ LINK_FLAGS = -g -L ./ -L /usr/local/lib/ -L $(GUROBI_LIBDIR)
 
 OBJS = ./src/sherlock.o ./src/network_computation.o ./src/gurobi_interface.o \
 ./src/configuration.o ./src/nodes.o ./src/computation_graph.o ./src/region_constraints.o \
-./src/generate_constraints.o ./src/network_signatures.o ./main.o
+./src/generate_constraints.o ./main.o
 DEPENDS = ${OBJECTS:.o=.d}
 
 
@@ -37,9 +37,6 @@ run_file: main.o $(OBJS)
 	$(CXX) -O3 -c $(CXXFLAGS) -o $@ $< $(LIBS)
 
 clean:
-	rm -f ./src/*.o *.o ./run_file ./lib/* \
-	./include/configuration.h ./include/gurobi_interface.h \
-	./include/network_computation.h ./include/propagate_intervals.h \
-	./include/nodes.h ./include/computation_graph.h
+	rm -f ./src/*.o *.o ./run_file ./lib/* ./include/*.h
 
 -include ${DEPENDS}
