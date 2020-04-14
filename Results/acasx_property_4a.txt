@@ -1,0 +1,35 @@
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_1_1.onnx
+ ------------------------------ 
+	 Printing the parameters : 
+	 Dimension sizes : [ 5 , ]
+	 Content = 1 , 2 , 3 , 4 , 5 , 
+ ------------------------------- 
+
+ ------------------------------ 
+	 Printing the parameters : 
+	 Dimension sizes : [ 5 , 1 , ]
+	 Content = 911 , 912 , 913 , 914 , 915 , 
+ ------------------------------- 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_1_7.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2K

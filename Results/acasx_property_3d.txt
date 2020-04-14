@@ -1,0 +1,148 @@
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_1_1.onnx
+ ------------------------------ 
+	 Printing the parameters : 
+	 Dimension sizes : [ 5 , ]
+	 Content = 1 , 2 , 3 , 4 , 5 , 
+ ------------------------------- 
+
+ ------------------------------ 
+	 Printing the parameters : 
+	 Dimension sizes : [ 5 , 1 , ]
+	 Content = 911 , 912 , 913 , 914 , 915 , 
+ ------------------------------- 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_4_7.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KLimit Computed - 0.0461049
+Witness -  Point = [1 : -0.298553 , 2 : 0.00690284 , 3 : 0.49338 , 4 : 0.3 , 5 : 0.31 , ]
+Property Could not be proved 
+Time taken : 2372.47
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_4_8.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KLimit Computed - 0.0450003
+Witness -  Point = [1 : -0.303531 , 2 : -0.0095493 , 3 : 0.5 , 4 : 0.31 , 5 : 0.3 , ]
+Property Could not be proved 
+Time taken : 6456.19
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_4_9.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KLimit Computed - 0.0424514
+Witness -  Point = [1 : -0.298553 , 2 : -0.000549783 , 3 : 0.5 , 4 : 0.3 , 5 : 0.31 , ]
+Property Could not be proved 
+Time taken : 143756
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_1.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KLimit Computed - 0.034962
+Witness -  Point = [1 : -0.298553 , 2 : -0.00571021 , 3 : 0.499043 , 4 : 0.3 , 5 : 0.3 , ]
+Property Could not be proved 
+Time taken : 6198.63
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_2.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KLimit Computed - 0.0204083
+Witness -  Point = [1 : -0.298553 , 2 : -0.00431166 , 3 : 0.496564 , 4 : 0.3 , 5 : 0.31 , ]
+Property Could not be proved 
+Time taken : 391.616
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_3.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KLimit Computed - 0.0411835
+Witness -  Point = [1 : -0.303531 , 2 : -0.00943476 , 3 : 0.49338 , 4 : 0.3 , 5 : 0.31 , ]
+Property Could not be proved 
+Time taken : 5810.95
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_4.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KLimit Computed - 0.037917
+Witness -  Point = [1 : -0.303531 , 2 : 0.00779394 , 3 : 0.5 , 4 : 0.3 , 5 : 0.3 , ]
+Property Could not be proved 
+Time taken : 266.826
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_5.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KLimit Computed - 0.0088455
+Witness -  Point = [1 : -0.303531 , 2 : 0.00117274 , 3 : 0.49338 , 4 : 0.3 , 5 : 0.31 , ]
+Property Could not be proved 
+Time taken : 3062.18
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_6.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KLimit Computed - 0.00883207
+Witness -  Point = [1 : -0.303531 , 2 : 0.0095493 , 3 : 0.49338 , 4 : 0.31 , 5 : 0.3 , ]
+Property Could not be proved 
+Time taken : 11025.5
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_7.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KLimit Computed - 0.00698473
+Witness -  Point = [1 : -0.303531 , 2 : -0.0095493 , 3 : 0.5 , 4 : 0.31 , 5 : 0.31 , ]
+Property Could not be proved 
+Time taken : 122.617
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_8.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KLimit Computed - 0.00389009
+Witness -  Point = [1 : -0.298553 , 2 : 0.0095493 , 3 : 0.5 , 4 : 0.3 , 5 : 0.3 , ]
+Property Could not be proved 
+Time taken : 2781.13
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_9.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KLimit Computed - 0.00416684
+Witness -  Point = [1 : -0.303531 , 2 : 0.0095493 , 3 : 0.498503 , 4 : 0.3 , 5 : 0.31 , ]
+Property Could not be proved 
+Time taken : 63.1104
+ ------------------------------------------------ 
+
+

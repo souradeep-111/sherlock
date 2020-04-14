@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package sherlock;
+
+message network
+{
+  string onnx_filename = 1;
+  string old_format_filename = 2;
+  repeated int32 input_node_indices = 3;
+  repeated int32 output_node_indices = 4;
+}
+
+message mapping
+{
+  int32 node_index = 1;
+  float upper_limit = 2;
+  float lower_limit = 3;
+}
+
+message interval
+{
+  repeated mapping limits = 1;
+}
+
+message linear_combo
+{
+  float coefficient = 1;
+  int32 node_index = 2;
+}
+
+message objective
+{
+  enum optimization_status
+  {
+    NOT_STARTED = 0;
+    STARTED = 1;
+    DONE = 2;
+  }
+
+  repeated linear_combo linear_terms = 1;
+  bool direction = 2;
+  optimization_status status_flag = 3;
+}
+
+message sherlock_message
+{
+  network network_description = 1;
+  interval input_interval = 2;
+  objective optimization_problem = 4;
+
+  // This gets populated at the result computation phase
+  interval output_interval = 3;
+  bool status_flag = 5;
+}
+
+//Compilation : protoc -I=. --python_out=. --cpp_out=./ sherlock_message.proto

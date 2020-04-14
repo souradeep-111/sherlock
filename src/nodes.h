@@ -49,7 +49,7 @@ class node{
 
   public:
     node();
-    node(uint32_t node_index,string type_name); // type_name = {"constant_node", "computation_node"}
+    node(uint32_t node_index,string type_name); // type_name = {"constant_node", computation_node}
     node(uint32_t node_index);
     int get_node_number();
     string get_node_name();
@@ -69,7 +69,7 @@ class node{
     void set_inputs( map < uint32_t, datatype > & inputs);
     datatype return_current_output(void);
     map< uint32_t, datatype > return_gradient(void);
-
+    node & operator= (const node & rhs);
 };
 
 void print_map(map< uint32_t, double > some_map );

@@ -10,7 +10,15 @@
 #include <map>
 #include <time.h>
 #include <set>
+#include <stack>
+#include "network_computation.h"
+#include "Eigen/Dense"
+#include "eigen_ridge.hpp"
 
+extern parameter_values sherlock_parameters;
+using Eigen::MatrixXd;
+using namespace std;
+using namespace Eigen;
 
 class computation_graph
 {
@@ -27,11 +35,13 @@ class computation_graph
     void add_new_node(uint32_t node_id, node & node_to_add);
 
     void mark_node_as_input(uint32_t input_node_number);
+    void clear_output_nodes();
     void mark_node_as_output(uint32_t output_node_number);
 
     string return_node_position(uint32_t node_index);
 
-    void connect_node1_to_node2_with_weight(uint32_t node_1_index, uint32_t node_2_index,
+    void connect_node1_to_node2_with_weight(uint32_t node_1_index,
+                                            uint32_t node_2_index,
                                             datatype weight);
     void set_bias_of_node(uint32_t node_id, datatype bias);
 
@@ -59,8 +69,23 @@ class computation_graph
                                                    set<uint32_t>& set_at_depth_one);
      void return_id_of_nodes_at_depth_one_from_set( set < uint32_t > current_set ,
                                                     set < uint32_t >& set_at_depth_one);
+
+    void return_next_layer_from_set(vector< uint32_t > & current_layer,
+                                    set < uint32_t > & set_at_depth_one);
+
+    void return_next_layer_from_set(set< uint32_t > & current_layer,
+                                    set < uint32_t > & set_at_depth_one);
+
+    bool is_computable(uint32_t node_id,
+                       set< uint32_t > & current_computable_set);
+    void extract_graph(const set< uint32_t > & output_node_set,
+                       const set< uint32_t > & input_node_set,
+                       computation_graph & sub_graph);
 };
 
+
+void print_stack(stack< uint32_t > );
+void print_set(set< uint32_t > );
 
 
 // Here is the plan for generating constraints from the computation graph you have.

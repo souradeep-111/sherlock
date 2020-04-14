@@ -59,8 +59,17 @@ struct parameter_values
   bool encode_relu_new;
   bool do_incremental_constant_search;
   bool learn_implies_relation;
+  bool skip_invariant_guarantees_in_binarization;
+  bool skip_invariant_addition;
 
+  bool verbose_onnx;
 
+  int mult_fac_for_regression;
+  bool use_gurobi_internal_constraints;
+  bool find_extra_directions;
+  bool split_polyhedron;
+
+  double timeout_seconds;
 
 
   parameter_values()
@@ -120,6 +129,16 @@ struct parameter_values
     encode_relu_new = true;
     do_incremental_constant_search = true;
     learn_implies_relation = false;
+    skip_invariant_guarantees_in_binarization = false;
+    verbose_onnx = false;
+    skip_invariant_addition = false;
+    mult_fac_for_regression = 20;
+
+    use_gurobi_internal_constraints = true;
+    find_extra_directions = true;
+    split_polyhedron = true;
+
+    double timeout_seconds = 36000; // 10 hours
 
   }
 

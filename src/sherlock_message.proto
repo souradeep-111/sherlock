@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package __sherlock__;
+
+message network
+{
+  string onnx_filename = 1;
+  string old_format_filename = 2;
+  string input_tensor_name = 3;
+  string output_tensor_name = 4;
+  bool has_output_relu_in_old_style = 5;
+}
+
+message mapping
+{
+  int32 node_index = 1;
+  float upper_limit = 2;
+  float lower_limit = 3;
+}
+
+message interval
+{
+  repeated mapping limits = 1;
+
+  /*
+  The input node information is passed as the name of the
+  input tensor. The individual nodes are ordered in the usual
+  row major formation way. The node index tries to capture
+  that order.
+  */
+}
+
+message value_binding
+{
+  int32 node_index = 1;
+  float value = 2;
+}
+
+message point
+{
+  repeated value_binding values = 1;
+}
+
+message linear_combo
+{
+  float coefficient = 1;
+  int32 node_index = 2;
+}
+
+message MPC_details
+{
+  point goal_state = 1;
+  int32 steps = 2;
+  repeated int32 state_vars = 3;
+  repeated int32 control_vars = 4;
+}
+
+message objective
+{
+  enum optimization_status
+  {
+    NOT_STARTED = 0;
+    STARTED = 1;
+    DONE = 2;
+  }
+
+  enum optimization_mode
+  {
+    MAXIMIZE = 0;
+    MINIMIZE = 1;
+    MPC = 2;
+  }
+
+  repeated linear_combo linear_terms = 1;
+  float constant = 2;
+  optimization_mode direction = 3;
+
+  optimization_status status_flag = 4;
+  MPC_details mpc_structure = 5;
+}
+
+message sherlock_message
+{
+  network network_description = 1;
+  interval input_interval = 2;
+
+  // These get populated at the result computation phase
+  float optima_val = 3;
+  point witness = 4;
+
+  objective optimization_problem = 5;
+}
+
+//Compilation : protoc -I=. --python_out=. --cpp_out=./ sherlock_message.proto

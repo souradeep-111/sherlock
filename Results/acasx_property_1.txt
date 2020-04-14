@@ -1,0 +1,419 @@
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_1_1.onnx
+ ------------------------------ 
+	 Printing the parameters : 
+	 Dimension sizes : [ 5 , ]
+	 Content = 1 , 2 , 3 , 4 , 5 , 
+ ------------------------------- 
+
+ ------------------------------ 
+	 Printing the parameters : 
+	 Dimension sizes : [ 5 , 1 , ]
+	 Content = 911 , 912 , 913 , 914 , 915 , 
+ ------------------------------- 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_1_1.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.672024 , 2 : -0.0757 , 3 : 0.4074 , 4 : 0.49485 , 5 : -0.492735 , ]
+ Output vals - -0.0230682
+Time taken : 1.82481
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_1_2.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.636351 , 2 : -0.037 , 3 : 0.2573 , 4 : 0.480365 , 5 : -0.483975 , ]
+ Output vals - -0.0204373
+Time taken : 1.32657
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_1_3.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.613272 , 2 : 0.1203 , 3 : 0.4714 , 4 : 0.487715 , 5 : -0.46606 , ]
+ Output vals - -0.0212714
+Time taken : 2.30906
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_1_4.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0205129
+Time taken : 0.895888
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_1_5.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.614862 , 2 : 0.0776 , 3 : 0.0698 , 4 : 0.48961 , 5 : -0.451485 , ]
+ Output vals - -0.020726
+Time taken : 1.67533
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_1_6.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.648601 , 2 : 0.0897 , 3 : -0.1677 , 4 : 0.469375 , 5 : -0.471945 , ]
+ Output vals - -0.0201745
+Time taken : 1.41822
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_1_7.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.63715 , 2 : -0.0705 , 3 : 0.1879 , 4 : 0.49588 , 5 : -0.467735 , ]
+ Output vals - -0.0201886
+Time taken : 1.46531
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_1_8.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0202057
+Time taken : 0.92711
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_1_9.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0201197
+Time taken : 0.915174
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_2_1.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.670035 , 2 : 0.4268 , 3 : -0.3891 , 4 : 0.473775 , 5 : -0.487215 , ]
+ Output vals - -0.0244763
+Time taken : 2.40334
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_2_2.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.607411 , 2 : 0.0256 , 3 : -0.3509 , 4 : 0.467845 , 5 : -0.47223 , ]
+ Output vals - -0.0219233
+Time taken : 1.38573
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_2_3.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0208682
+Time taken : 0.93253
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_2_4.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.634906 , 2 : -0.4708 , 3 : 0.3719 , 4 : 0.45342 , 5 : -0.494975 , ]
+ Output vals - -0.0219373
+Time taken : 1.57398
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_2_5.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0202878
+Time taken : 0.941312
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_2_6.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.020472
+Time taken : 0.944383
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_2_7.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0201921
+Time taken : 0.967064
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_2_8.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0215689
+Time taken : 0.958293
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_2_9.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0210782
+Time taken : 0.914271
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_3_1.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.66387 , 2 : 0.1165 , 3 : -0.4502 , 4 : 0.469115 , 5 : -0.48274 , ]
+ Output vals - -0.0202738
+Time taken : 1.26364
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_3_2.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0217395
+Time taken : 0.959513
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_3_3.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.640368 , 2 : -0.0996 , 3 : 0.126 , 4 : 0.46957 , 5 : -0.453895 , ]
+ Output vals - -0.0222644
+Time taken : 1.77858
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_3_4.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0207768
+Time taken : 0.943845
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_3_5.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0208699
+Time taken : 0.950989
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_3_6.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.620236 , 2 : 0.4267 , 3 : 0.4156 , 4 : 0.477335 , 5 : -0.45539 , ]
+ Output vals - -0.0210171
+Time taken : 1.8072
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_3_7.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.613815 , 2 : -0.1696 , 3 : -0.4883 , 4 : 0.471375 , 5 : -0.499035 , ]
+ Output vals - -0.0208164
+Time taken : 1.81766
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_3_8.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0209265
+Time taken : 0.960651
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_3_9.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.651317 , 2 : 0.4004 , 3 : -0.4844 , 4 : 0.47735 , 5 : -0.45926 , ]
+ Output vals - -0.0242028
+Time taken : 1.43504
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_4_1.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0208698
+Time taken : 0.972298
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_4_2.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.666114 , 2 : 0.1186 , 3 : 0.3568 , 4 : 0.47594 , 5 : -0.481525 , ]
+ Output vals - -0.0274118
+Time taken : 3.61763
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_4_3.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.614862 , 2 : 0.0776 , 3 : 0.0698 , 4 : 0.48961 , 5 : -0.451485 , ]
+ Output vals - -0.0207633
+Time taken : 1.7087
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_4_4.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0205829
+Time taken : 1.06689
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_4_5.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.607411 , 2 : 0.0256 , 3 : -0.3509 , 4 : 0.467845 , 5 : -0.47223 , ]
+ Output vals - -0.020824
+Time taken : 1.5457
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_4_6.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.618807 , 2 : 0.4449 , 3 : -0.1706 , 4 : 0.457565 , 5 : -0.471725 , ]
+ Output vals - -0.0234317
+Time taken : 1.23449
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_4_7.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0211303
+Time taken : 1.07366
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_4_8.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.630993 , 2 : 0.4952 , 3 : 0.1133 , 4 : 0.483465 , 5 : -0.47151 , ]
+ Output vals - -0.0233447
+Time taken : 1.93579
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_4_9.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0210899
+Time taken : 1.07655
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_1.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.653377 , 2 : 0.4094 , 3 : 0.3445 , 4 : 0.49133 , 5 : -0.457005 , ]
+ Output vals - -0.0203228
+Time taken : 1.15368
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_2.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.640137 , 2 : 0.2325 , 3 : -0.2814 , 4 : 0.464195 , 5 : -0.463845 , ]
+ Output vals - -0.0209423
+Time taken : 1.66145
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_3.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.678676 , 2 : -0.3819 , 3 : 0.0358 , 4 : 0.47646 , 5 : -0.450535 , ]
+ Output vals - -0.0234375
+Time taken : 2.37708
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_4.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0207069
+Time taken : 1.05353
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_5.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0215604
+Time taken : 1.07722
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_6.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0204593
+Time taken : 1.06366
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_7.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0201623
+Time taken : 1.06169
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_8.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0200873
+Time taken : 1.1026
+ ------------------------------------------------ 
+
+Source file name - ./Marabou/onnx/acasxu/ACASXU_experimental_v2a_5_9.onnx
+Academic license - for non-commercial use only
+[A[2KAcademic license - for non-commercial use only
+[A[2KProperty Fails
+ Input Witness -  Point = [1 : 0.642357 , 2 : -0.4641 , 3 : -0.1935 , 4 : 0.495785 , 5 : -0.479 , ]
+ Output vals - -0.0205513
+Time taken : 1.06107
+ ------------------------------------------------ 
+
+

@@ -9,8 +9,12 @@
 #include <math.h>
 #include <map>
 #include <stdint.h>
+#include <iomanip>
 #include "gurobi_interface.h"
 #include "configuration.h"
+#include "neuralRuleAnalysisInterface.h"
+#include "Eigen/Dense"
+#include "eigen_ridge.hpp"
 
 using namespace std;
 extern parameter_values sherlock_parameters;
@@ -402,6 +406,7 @@ void collect_all_reach_sets_for_the_time_stamp(
   vector< vector< vector< datatype > > >& returned_reach_sets
 );
 
+
 class plotting_data{
 public:
   int reach_set_time_range;
@@ -421,6 +426,12 @@ public:
 };
 
 void print_point( map< uint32_t, double > point );
+
+void save_final_results_to_file( bool set_header,
+int example_no, double taylor_model_order, double step_size_flowpipe,
+double polynomial_order, double max_error_computed, double total_time_cost,
+double polynomial_regression_percentage, double pwl_percentage,
+double sherlock_time, double flowstar_time, double max_linear_regions);
 
 #endif
 

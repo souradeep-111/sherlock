@@ -3922,6 +3922,36 @@ void plotting_data :: collect_and_merge_reach_sets(vector< set_info > time_stamp
 }
 
 
+datatype compute_prediction_for_linear_regression(
+  Eigen::VectorXf coeff_vector,
+  vector< datatype > var_values
+)
+{
+  unsigned int var_size = var_values.size();
+  unsigned int i, j ;
+
+
+  datatype result = coeff_vector(0);
+  Eigen::VectorXf eig_vec = Eigen::VectorXf::Random((int)(var_size+1)) ;
+
+  i = 0;
+  while(i < var_size)
+  {
+    result += (coeff_vector(i+1) * var_values[i]);
+    i++;
+  }
+
+  // cout << "Coeff vec values = " << coeff_vector(0) << "  " << coeff_vector(1) << " " << coeff_vector(2) << endl;
+  // cout << "Eig vec values = " << var_values[0] << "  " << var_values[1]  << endl;
+  //
+  // cout << "Coeff vector received size = " << coeff_vector.size() << endl;
+  // cout << "Value vector size = " << eig_vec.size() << endl;
+  // datatype result;
+  // result = coeff_vector.transpose() * eig_vec;
+
+  return result;
+}
+
 void plotting_data :: plot(int mode)
 /* 1 for just the trace ,
    2 for just the reach sets,
@@ -4708,4 +4738,230 @@ void print_point( map< uint32_t, double > point )
     cout << some_dim.first << " : " << some_dim.second << " , ";
   }
   cout << "]" << endl;
+}
+
+void save_final_results_to_file(
+bool set_header,
+int example_no,
+double taylor_model_order,
+double step_size_flowpipe,
+double polynomial_order,
+double max_error_computed,
+double total_time_cost,
+double polynomial_regression_percentage,
+double pwl_percentage,
+double sherlock_time,
+double flowstar_time,
+double max_linear_regions
+)
+{
+  setprecision(4);
+  int width = 12;
+  int i = 0, j = 0;
+  ofstream file;
+  file.open("./Results/results_table", ios::app);
+
+  // Setting the header of the file
+  if(set_header)
+  {
+    file <<"+";
+    i = 0;
+    while(i < 12)
+    {
+      j = 0;
+      while(j < width)
+      {
+        file << "-" ;
+        j++;
+      }
+      file << "+";
+      i++;
+    }
+
+    file <<"\n";
+
+    file<<"|";
+    j = 0;
+    while(j < width-1)
+    {
+      file << " " ;
+      j++;
+    }
+    file << "#" << "|";
+    j = 0;
+    while(j < width-1)
+    {
+      file << " " ;
+      j++;
+    }
+    file << "k" << "|";
+    j = 0;
+    while(j < width-5)
+    {
+      file << " " ;
+      j++;
+    }
+    file << "tau_I" << "|";
+
+    j = 0;
+    while(j < width-3)
+    {
+      file << " " ;
+      j++;
+    }
+    file << "P_0" << "|";
+
+    j = 0;
+    while(j < width-7)
+    {
+      file << " " ;
+      j++;
+    }
+    file << "epsilon" << "|";
+
+    j = 0;
+    while(j < width-6)
+    {
+      file << " " ;
+      j++;
+    }
+    file << "T_p(s)" << "|";
+
+    j = 0;
+    while(j < width-3)
+    {
+      file << " " ;
+      j++;
+    }
+    file << "P_r" << "|";
+
+    j = 0;
+    while(j < width-5)
+    {
+      file << " " ;
+      j++;
+    }
+    file << "P_pwl" << "|";
+
+    j = 0;
+    while(j < width-3)
+    {
+      file << " " ;
+      j++;
+    }
+    file << "P_s" << "|";
+
+    j = 0;
+    while(j < width-3)
+    {
+      file << " " ;
+      j++;
+    }
+    file << "P_f" << "|";
+
+    j = 0;
+    while(j < width-3)
+    {
+      file << " " ;
+      j++;
+    }
+    file << "T_I" << "|";
+
+    j = 0;
+    while(j < width-3)
+    {
+      file << " " ;
+      j++;
+    }
+    file << "L_c" << "|";
+    file <<"\n";
+
+    file <<"+";
+    i = 0;
+    while(i < 12)
+    {
+      j = 0;
+      while(j < width)
+      {
+        file << "-" ;
+        j++;
+      }
+      file << "+";
+      i++;
+    }
+
+
+  }
+
+
+  // file.setf(ios::right);
+
+  file << "\n";
+  file <<"|";
+  if(example_no == 11)
+  {
+    file.fill(' ');
+    file.width(width);
+    file << setprecision(4)<< "Quadrotor" << "|";
+  }
+  else
+  {
+    file.fill(' ');
+    file.width(width);
+    file << setprecision(4)<< example_no << "|";
+  }
+  file.fill(' ');
+  file.width(width);
+  file << setprecision(4)<<  taylor_model_order << "|";
+
+  file.fill(' ');
+  file.width(width);
+  file <<  setprecision(4)<< step_size_flowpipe << "|";
+  file.fill(' ');
+  file.width(width);
+  file <<  setprecision(4)<< polynomial_order <<  "|";
+  file.fill(' ');
+  file.width(width);
+  file <<  setprecision(4)<< max_error_computed <<  "|";
+  file.fill(' ');
+  file.width(width);
+  file <<  setprecision(4)<< total_time_cost <<  "|";
+  file.fill(' ');
+  file.width(width);
+  file <<  setprecision(4)<< polynomial_regression_percentage <<  "|";
+  file.fill(' ');
+  file.width(width);
+  file <<  setprecision(4)<< pwl_percentage <<  "|";
+  file.fill(' ');
+  file.width(width);
+  file <<  setprecision(4)<< sherlock_time <<  "|";
+
+  file.fill(' ');
+  file.width(width);
+  file <<  setprecision(4)<< flowstar_time <<  "|";
+
+  file.fill(' ');
+  file.width(width);
+  file << "*" <<  "|";
+
+  file.fill(' ');
+  file.width(width);
+  file << setprecision(4)<<  max_linear_regions <<  "|";
+
+
+  file <<"\n";
+  file <<"+";
+  i = 0;
+  while(i < 12)
+  {
+    j = 0;
+    while(j < width)
+    {
+      file << "-" ;
+      j++;
+    }
+    file << "+";
+    i++;
+  }
+  file.close();
 }

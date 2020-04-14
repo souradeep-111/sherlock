@@ -1,0 +1,24 @@
+Academic license - for non-commercial use only
+[A[2K   ----------------------------   
+Network name - ./network_files/sine_net/300n/sine_net_4_75.onnx
+Computed output range by sampling = [0.710934 , 9.99316 ] 
+Academic license - for non-commercial use only
+[A[2KComputed output range by Sherlock = [0.618717 , 9.99976 ] 
+time cost =========> 4589.743236
+   ----------------------------   
+Academic license - for non-commercial use only
+[A[2K   ----------------------------   
+Network name - ./network_files/sine_net/300n/sine_net_3_100.onnx
+Computed output range by sampling = [0.572895 , 10.0453 ] 
+Academic license - for non-commercial use only
+[A[2KComputed output range by Sherlock = [0.520124 , 10.053 ] 
+time cost =========> 307.758438
+   ----------------------------   
+Academic license - for non-commercial use only
+[A[2K   ----------------------------   
+Network name - ./network_files/sine_net/300n/sine_net_2_150.onnx
+Computed output range by sampling = [0.342772 , 10.0427 ] 
+Academic license - for non-commercial use only
+[A[2KComputed output range by Sherlock = [0.131085 , 10.0495 ] 
+time cost =========> 105.715238
+   ----------------------------   
